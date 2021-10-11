@@ -1,4 +1,4 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
 ## ![Menu rápido na árvore de documentos](../img/icon-menurapido.png) Menu rápido na árvore de processo
 

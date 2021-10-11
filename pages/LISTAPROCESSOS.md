@@ -1,6 +1,6 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![SEI Pro Alinhar texto](../img/icon-listaprocessos.png) Exportar informações de processos em planilha CSV 
+## ![ANTAQ Pro Alinhar texto](../img/icon-listaprocessos.png) Exportar informações de processos em planilha CSV 
 
 Essa funcionalidade adiciona à página inicial do SEI a possibilidade de exportar as informações da lista de processos em planilha CSV.
 

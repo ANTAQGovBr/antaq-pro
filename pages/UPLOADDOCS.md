@@ -1,6 +1,6 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![SEI Pro Enviar documentos](../img/icon-uploaddocs.png) Enviar múltiplos documentos externos
+## ![ANTAQ Pro Enviar documentos](../img/icon-uploaddocs.png) Enviar múltiplos documentos externos
 
 Essa funcionalidade adiciona à árvore de processos do SEI a possibilidade de enviar múltiplos documentos externos.
 
@@ -26,9 +26,9 @@ Caso disponível, a data de última modificação do arquivo é adicionada ao ca
 
 > ![Tela Enviar documentos](../img/tela-uploaddocs2.gif) 
 
-Para isso, ative a opção **Ordernar documentos na árvore antes de enviar (Não enviar automaticamente)** nas configurações do SEI Pro.
+Para isso, ative a opção **Ordernar documentos na árvore antes de enviar (Não enviar automaticamente)** nas configurações do ANTAQ Pro.
 
-Clique no ícone do **SEI Pro** na barra de extensões do Google Chrome:
+Clique no ícone do **ANTAQ Pro** na barra de extensões do Google Chrome:
 
 >  <img src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-seisheets.png" data-canonical-src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-seisheets.png" width="490"/>
 

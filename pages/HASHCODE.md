@@ -1,6 +1,6 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![SEI Pro Verificar Integridade Hashcode](../img/icon-hashcode.png) Verificar código de integridade (Hashcode)
+## ![ANTAQ Pro Verificar Integridade Hashcode](../img/icon-hashcode.png) Verificar código de integridade (Hashcode)
 
 Essa funcionalidade adiciona ao visualizador de documentos do SEI a verificação de código de integridade (Hashcode).
 

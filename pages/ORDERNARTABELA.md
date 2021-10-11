@@ -1,6 +1,6 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![SEI Pro Ordenar Tabelas](../img/icon-ordernartabela.png) Filtrar e ordenar tabelas ao clicar no seu cabeçalho
+## ![ANTAQ Pro Ordenar Tabelas](../img/icon-ordernartabela.png) Filtrar e ordenar tabelas ao clicar no seu cabeçalho
 
 Essa funcionalidade adiciona ao SEI a possibilidade de ordenar as tabelas de dados ao clicar no seu cabeçalho, bem como filtrar o seu conteúdo.
 

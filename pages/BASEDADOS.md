@@ -1,4 +1,4 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
 ## Configurando o Google Spreadsheets como uma base de dados
 
@@ -29,7 +29,7 @@ Clique em **"Fazer uma cópia"**
 
 ### ID da planilha
 
-Anote o ID da sua planilha, você precisará dele para [Conectar o SEI Pro ao Google Spreadsheets](../pages/SEISHEETS.md)
+Anote o ID da sua planilha, você precisará dele para [Conectar o ANTAQ Pro ao Google Spreadsheets](../pages/SEISHEETS.md)
 
 >  <img src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados3.png" data-canonical-src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados3.png" width="927"/>
 
@@ -45,7 +45,7 @@ Para iniciar a configuração dessa API, acesse o **"Google Cloud Plataform"** e
 
 Clique no botão **Criar projeto**
 
-No campo **"Nome do Projeto"** insira **"SEI Pro"**. Por fim, clique em **Criar**
+No campo **"Nome do Projeto"** insira **"ANTAQ Pro"**. Por fim, clique em **Criar**
 
 >  <img src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados5.png" data-canonical-src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados5.png" width="666"/>
 
@@ -73,7 +73,7 @@ Selecione a modalidade **Externo**
 
 >  <img src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados10.png" data-canonical-src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados10.png" width="536"/>
 
-No campo **"Nome do Aplicativo"** insira **"SEI Pro"**
+No campo **"Nome do Aplicativo"** insira **"ANTAQ Pro"**
 
 >  <img src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados11.png" data-canonical-src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados11.png" width="477"/>
 
@@ -100,13 +100,13 @@ Clique no botão **"Criar credenciais"** > **"ID do cliente do OAuth"**
 
 No campo **"Tipo de aplicativo"**, selecione **"Aplicativo da Web"**
 
-No campo **"Nome"**, insira **"SEI Pro"**
+No campo **"Nome"**, insira **"ANTAQ Pro"**
 
 No campo **"Origens JavaScript autorizadas"**, insira o URL do **SEI!** do seu órgão ou entidade.
 
 >  <img src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados14.png" data-canonical-src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados14.png" width="500"/>
 
-Anote **"Seu ID de Cliente"**, você precisará dela no passo a passo [Conectar o SEI Pro ao Google Spreadsheets](../pages/SEISHEETS.md)
+Anote **"Seu ID de Cliente"**, você precisará dela no passo a passo [Conectar o ANTAQ Pro ao Google Spreadsheets](../pages/SEISHEETS.md)
 
 >  <img src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados15.png" data-canonical-src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados15.png" width="494"/>
 
@@ -116,7 +116,7 @@ Clique no botão **"Criar credenciais"** > **"Chave de API"**
 
 >  <img src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados16.png" data-canonical-src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados16.png" width="628"/>
 
-Anote **"Sua Chave de API"**, você precisará dela no passo a passo [Conectar o SEI Pro ao Google Spreadsheets](../pages/SEISHEETS.md)
+Anote **"Sua Chave de API"**, você precisará dela no passo a passo [Conectar o ANTAQ Pro ao Google Spreadsheets](../pages/SEISHEETS.md)
 
 >  <img src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados17.png" data-canonical-src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/tela-basedados17.png" width="515"/>
 
@@ -150,4 +150,4 @@ Em ambiente de testes todos os utilizadores da base de dados precisam ser cadast
 
 ## Próximo item
 
-[Conectar o SEI Pro ao Google Spreadsheets](../pages/SEISHEETS.md)
+[Conectar o ANTAQ Pro ao Google Spreadsheets](../pages/SEISHEETS.md)

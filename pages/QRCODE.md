@@ -1,6 +1,6 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![SEI Pro Código QR (QRCode)](../img/icon-qrcode.png) Adicionar Código QR (QRCode)
+## ![ANTAQ Pro Código QR (QRCode)](../img/icon-qrcode.png) Adicionar Código QR (QRCode)
 
 Essa funcionalidade adiciona ao editor de texto do SEI a edição e inclusão de Código QR (QRCode) em seus documentos.
 

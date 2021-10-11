@@ -1,6 +1,6 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![SEI Pro Histórico de Versões](../img/icon-historico.png) Histórico de versões
+## ![ANTAQ Pro Histórico de Versões](../img/icon-historico.png) Histórico de versões
 
 ### Versão 0.1.26
 08/09/2021
@@ -68,7 +68,7 @@
 - Correções e melhorias 
 - Adicionada função [Alinhar o texto à esquerda, ao centro, à direita ou justificadamente](../pages/ALINHARTEXTO.md) (Sugestão de Geraldo Nogueira)
 - Atualizada função [Adicionar link de legislação](../pages/LINKLEGIS.md) para inserir recurso de pesquisa legislação por conteúdo
-- Adicionado recurso de desfazer (Ctrl + Z) as modificações feitas pelo SEI Pro no editor de texto do SEI
+- Adicionado recurso de desfazer (Ctrl + Z) as modificações feitas pelo ANTAQ Pro no editor de texto do SEI
 
 ### Versão 0.1.17
 13/11/2020
@@ -114,7 +114,7 @@
 - Correções e melhorias
 - Adicionada funcionalidade de [Inserir equações (fórmulas matemáticas)](../pages/EQUACOES.md) (Sugestão de Samuel Kaiser)
 
-# Lista de funções do SEI Pro ![SEI Pro](../img/icon-32.png)
+# Lista de funções do ANTAQ Pro ![ANTAQ Pro](../img/icon-32.png)
 
 - [Gerenciar projetos](../pages/PROJETOS.md)
 - [Agrupar  lista de processos por data de recebimento, envio, último acesso, marcadores, tipo, responsável, ponto de controle e unidade de envio](../pages/AGRUPAR.md)

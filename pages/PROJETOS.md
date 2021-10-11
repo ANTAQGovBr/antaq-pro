@@ -1,6 +1,6 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![SEI Pro Estilo Tabela](../img/icon-projetos.png) Gerenciar projetos
+## ![ANTAQ Pro Estilo Tabela](../img/icon-projetos.png) Gerenciar projetos
 
 Essa funcionalidade adiciona à página inicial do SEI um gestor de projetos utilizando o [Diagrama de Gantt](https://pt.wikipedia.org/wiki/Diagrama_de_Gantt)
 
@@ -14,9 +14,9 @@ Os passos a seguir são necessários apenas para o proprietário da base de dado
 
 Siga o passo a passo para [Configurar o Google Spreadsheets como uma base de dados](../pages/BASEDADOS.md)
 
-## 2. Conectando ao SEI Pro
+## 2. Conectando ao ANTAQ Pro
 
-Siga o passo a passo para [Conectar o SEI Pro ao Google Spreadsheets](../pages/SEISHEETS.md)
+Siga o passo a passo para [Conectar o ANTAQ Pro ao Google Spreadsheets](../pages/SEISHEETS.md)
 
 ## 3. Gerenciando seus projetos
 

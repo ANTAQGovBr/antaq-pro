@@ -1,6 +1,6 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![SEI Pro Enviar documentos](../img/icon-notaarvore.png) Anotação diretamente pela árvore do processo
+## ![ANTAQ Pro Enviar documentos](../img/icon-notaarvore.png) Anotação diretamente pela árvore do processo
 
 Essa funcionalidade adiciona à árvore do processo a capacidade de criar anotação diretamente pela árvore do processo.
 

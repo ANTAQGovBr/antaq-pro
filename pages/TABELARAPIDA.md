@@ -1,4 +1,4 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
 ## ![Tabela Rápida](../img/icon-tabelarapida.png) Adicionar tabela rápida
 

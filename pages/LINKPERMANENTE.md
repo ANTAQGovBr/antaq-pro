@@ -1,6 +1,6 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![SEI Pro Alinhar texto](../img/icon-linkpermanente.png) Pesquisar link permanente
+## ![ANTAQ Pro Alinhar texto](../img/icon-linkpermanente.png) Pesquisar link permanente
 
 Essa funcionalidade adiciona à página inicial do SEI a possibilidade de pesquisar o link permanente de uma lista de processos.
 

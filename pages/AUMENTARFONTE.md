@@ -1,4 +1,4 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
 ## ![Aumentar fonte](../img/icon-aumentarfonte.png) Aumentar ou reduzir o tamanho da fonte
 

@@ -1,6 +1,6 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![SEI Pro Favoritos](../img/icon-favoritos.png) Gerenciar processos favoritos
+## ![ANTAQ Pro Favoritos](../img/icon-favoritos.png) Gerenciar processos favoritos
 
 Essa funcionalidade adiciona à página inicial do SEI um gestor de processos favoritos, exclusivo do usuário.
 

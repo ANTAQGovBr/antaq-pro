@@ -1,6 +1,6 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![SEI Pro Nota Rodapé](../img/icon-notarodape.png) Inserir nota de rodapé
+## ![ANTAQ Pro Nota Rodapé](../img/icon-notarodape.png) Inserir nota de rodapé
 
 Essa funcionalidade adiciona ao editor de texto do SEI a inclusão de notas ao rodapé do documento.
 

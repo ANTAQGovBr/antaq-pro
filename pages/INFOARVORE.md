@@ -1,6 +1,6 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![SEI Pro Enviar documentos](../img/icon-infoarvore.png) Informações adicionais na árvore do processo
+## ![ANTAQ Pro Enviar documentos](../img/icon-infoarvore.png) Informações adicionais na árvore do processo
 
 Essa funcionalidade adiciona à árvore do processo informações adicionais. 
 

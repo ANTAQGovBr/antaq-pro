@@ -1,6 +1,6 @@
-# [![Home](../img/home.png)](../) |  SEI Pro ![Icone](../img/icon-32.png)
+# [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![SEI Pro Sigilo Documento](../img/icon-sigilodoc.png) Adicionar marca de sigilo e tarjas pretas de confidencialidade
+## ![ANTAQ Pro Sigilo Documento](../img/icon-sigilodoc.png) Adicionar marca de sigilo e tarjas pretas de confidencialidade
 
 Essa funcionalidade adiciona ao editor de texto do SEI a possibilidade de adicionar marca de sigilo e tarjas pretas de confidencialidade ao documento.
 
@@ -8,7 +8,7 @@ Essa funcionalidade adiciona ao editor de texto do SEI a possibilidade de adicio
 
 ### Marcas de sigilo e tarjas pretas
 
-A extensão SEI Pro não controla o acesso ou a visualização de partes do texto que é mostrado no SEI.
+A extensão ANTAQ Pro não controla o acesso ou a visualização de partes do texto que é mostrado no SEI.
 Para conseguir manter a confidencialidade de textos censurados, a alternativa mais segura é substituir o texto sigiloso 
 por marcas indecifráveis (tarjas de confidencialidade)
 
