@@ -1,6 +1,8 @@
-# Bem vindo ao SEI Pro ![SEI Pro](/img/icon-32.png)
+# Bem vindo ao ANTAQ Pro ![ANTAQ Pro](/img/icon-32.png)
 
-**SEI Pro!** adiciona ao [Sistema Eletrônico de Informações (SEI)](https://softwarepublico.gov.br/social/sei) diversas funções avançadas na página inicial e no editor de textos:
+**ANTAQ Pro!** A Plataforma Eletrônica de Atividades da Agência Nacional de Transportes Aquaviários.
+
+Além de gerenciar suas atividades, ele adiciona ao [Sistema Eletrônico de Informações (SEI)](https://softwarepublico.gov.br/social/sei) diversas funções avançadas na página inicial e no editor de textos:
 
 - [Gerenciar projetos](./pages/PROJETOS.md)
 - [Gerenciar processos favoritos](./pages/FAVORITOS.md)
@@ -49,37 +51,19 @@ Você ainda pode [Desativar funções da extensão](./pages/DESATIVARFUNCOES.md)
 
 Instale a extensão para o Google Chrome em:
 
-> [https://chrome.google.com/webstore/detail/sei-pro/pdbbapplhjopafpgidbgceccbbmehcjj](https://chrome.google.com/webstore/detail/sei-pro/pdbbapplhjopafpgidbgceccbbmehcjj)
+> [https://chrome.google.com/webstore/detail/antaq-pro/](https://chrome.google.com/webstore/detail/antaq-pro/)
 
 Ou para o Mozilla Firefox em:
 
-> [https://addons.mozilla.org/pt-BR/firefox/addon/sei-pro/](https://addons.mozilla.org/pt-BR/firefox/addon/sei-pro/)
+> [https://addons.mozilla.org/pt-BR/firefox/addon/antaq-pro/](https://addons.mozilla.org/pt-BR/firefox/addon/antaq-pro/)
 
 
 ## Encontrou um erro?
 
-Caso deseja reportar um erro, acesse [Issue](https://github.com/pedrohsoaresadv/sei-pro/issues) no [Projeto GitHub](https://github.com/pedrohsoaresadv/sei-pro/) e adicione sua requisição.
+Caso deseja reportar um erro, acesse [Issue](https://github.com/ANTAQGovBr/antaq-pro/issues/) no [Projeto GitHub](https://github.com/ANTAQGovBr/antaq-pro/) e adicione sua requisição.
 
-Ou envie um e-mail para [pedrohsoares.adv@gmail.com](mailto:pedrohsoares.adv@gmail.com)
-
-## Deseja contribuir?
-
-Envie sua sugestão de nova funcionalidade em [https://seipro.changecrab.com/suggestions](https://seipro.changecrab.com/suggestions)
-Vote nas sugestões que mais queria ver no SEI Pro!
-
-## Grupo SEI Lab
-
-Participe do laboratorio de ideias sobre inovações para o SEI, automações e boas práticas.
-
-> <img src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/whatsapp.png" data-canonical-src="https://github.com/pedrohsoaresadv/sei-pro/raw/master/img/whatsapp.png" width="16"/> [http://bit.ly/SEI_Lab](http://bit.ly/SEI_Lab)
-
-## Novidades e dicas
-
-Receba em primeira mão sobre novidades e atualizações do SEI Pro. 
-
-Inscreva-se na nossa Lista de e-mail: [http://eepurl.com/hjHh45](http://eepurl.com/hjHh45) ou
-
-Siga-me no Instagram [@phsoares_adv](https://www.instagram.com/phsoares_adv/)
+Servidor da ANTAQ? Abra um chamado na nossa Canais para Solicitações de Serviços [ANTAQ@tende](https://antaqatende.antaq.gov.br/assystnet/) 
+ou no telefone 0800 941 8121
 
 ## Histórico de versões
 
