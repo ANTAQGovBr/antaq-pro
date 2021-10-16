@@ -51,7 +51,7 @@ Você ainda pode [Desativar funções da extensão](./pages/DESATIVARFUNCOES.md)
 
 Instale a extensão para o Google Chrome em:
 
-> [https://chrome.google.com/webstore/detail/antaq-pro/](https://chrome.google.com/webstore/detail/antaq-pro/)
+> [https://chrome.google.com/webstore/detail/antaq-pro/mnikpnngogkgbgopcnakaebilkfdmalm?hl=pt-BR](https://chrome.google.com/webstore/detail/antaq-pro/mnikpnngogkgbgopcnakaebilkfdmalm?hl=pt-BR)
 
 Ou para o Mozilla Firefox em:
 
