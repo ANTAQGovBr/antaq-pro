@@ -2,11 +2,9 @@
 
 ## ![ANTAQ Pro Remover paginação de processos](../img/icon-removerpaginacao.png) Remover paginação de processos
 
-Essa funcionalidade adiciona à tela inicial do SEI a capacidade de remover paginação da lista de processos.
+Essa funcionalidade divide as informações do documento na árvore do processo em duas linhas.
 
 > ![Tela Remover paginação de processos](../img/tela-removerpaginacao.gif)  
-
-(...)
 
 ## Próximo item
 
