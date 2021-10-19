@@ -10,4 +10,5 @@ Essa funcionalidade adiciona à árvore do processo a capacidade de criar anota�
 
 ## Próximo item
 
-> [Desativar funções da extensão](../pages/DESATIVARFUNCOES.md)
+> [Remover paginação de processos  ](../pages/REMOVERPAGINACAO.md)
+
