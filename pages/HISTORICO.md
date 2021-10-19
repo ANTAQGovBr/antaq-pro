@@ -153,3 +153,5 @@
 - [Histórico de processos visitados](../pages/HISTORICOPROC.md)
 - [Informações adicionais na árvore do processo](../pages/INFOARVORE.md)
 - [Anotação diretamente pela árvore do processo](../pages/NOTAARVORE.md)
+- [Remover paginação de processos  ](../pages/REMOVERPAGINACAO.md)
+
