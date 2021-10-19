@@ -10,5 +10,5 @@ Essa funcionalidade adiciona à árvore do processo a capacidade de criar anota�
 
 ## Próximo item
 
-> [Remover paginação de processos  ](../pages/REMOVERPAGINACAO.md)
+> [Remover paginação de processos  ](../pages/REMOVEPAGINACAO.md)
 
