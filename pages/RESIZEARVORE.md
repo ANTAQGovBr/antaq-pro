@@ -4,7 +4,7 @@
 
 Essa funcionalidade redimensiona automaticamente a árvore do processo pela sua largura total
 
-> ![Tela Remover paginação de processos](../img/tela-resizearvore.gif)  
+> ![Tela Redimensiona automaticamente a árvore do processo pela sua largura total](../img/tela-resizearvore.gif)  
 
 
 ## Próximo item
