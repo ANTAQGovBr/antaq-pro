@@ -9,4 +9,4 @@ Essa funcionalidade redimensiona automaticamente a árvore do processo pela sua 
 
 ## Próximo item
 
-> [Desativar funções da extensão](../pages/DESATIVARFUNCOES.md)
+> [Utilizar caixas de seleção inteligentes](../pages/SUBSTITUIRSELECAO.md)
