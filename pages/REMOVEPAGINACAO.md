@@ -8,5 +8,5 @@ Essa funcionalidade adiciona à tela inicial do SEI a capacidade de remover pagi
 
 ## Próximo item
 
-> [Dividir as informações do documento na árvore do processo em duas linhas](../pages/DIVIDIRLINHASARVORE.md)
+> [Dividir as informações do documento na árvore do processo em duas linhas](./pages/DIVIDIRLINHASARVORE.md)
 
