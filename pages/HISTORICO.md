@@ -154,4 +154,5 @@
 - [Informações adicionais na árvore do processo](../pages/INFOARVORE.md)
 - [Anotação diretamente pela árvore do processo](../pages/NOTAARVORE.md)
 - [Remover paginação de processos](../pages/REMOVEPAGINACAO.md)
+- [Dividir as informações do documento na árvore do processo em duas linhas](../pages/DIVIDIRLINHASARVORE.md)
 
