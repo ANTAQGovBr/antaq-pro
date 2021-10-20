@@ -42,7 +42,8 @@ Além de gerenciar suas atividades, ele adiciona ao [Sistema Eletrônico de Info
 - [Histórico de processos visitados](./pages/HISTORICOPROC.md)
 - [Informações adicionais na árvore do processo](./pages/INFOARVORE.md)
 - [Anotação diretamente pela árvore do processo](./pages/NOTAARVORE.md)
-- [Remover paginação de processos  ](./pages/REMOVEPAGINACAO.md)
+- [Remover paginação de processos](./pages/REMOVEPAGINACAO.md)
+- [Dividir as informações do documento na árvore do processo em duas linhas](./pages/DIVIDIRLINHASARVORE.md)
  
 
 Você ainda pode [Desativar funções da extensão](./pages/DESATIVARFUNCOES.md) que não deseja utilizar.
