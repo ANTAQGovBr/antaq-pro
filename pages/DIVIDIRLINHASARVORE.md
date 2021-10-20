@@ -4,7 +4,7 @@
 
 Essa funcionalidade divide as informações do documento na árvore do processo em duas linhas
 
-> ![Tela Remover paginação de processos](../img/tela-dividinformacoesarvore.gif)  
+> ![Tela Dividir as informações do documento na árvore do processo em duas linhas](../img/tela-dividinformacoesarvore.gif)  
 
 
 ## Próximo item
