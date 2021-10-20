@@ -44,6 +44,7 @@ Além de gerenciar suas atividades, ele adiciona ao [Sistema Eletrônico de Info
 - [Anotação diretamente pela árvore do processo](./pages/NOTAARVORE.md)
 - [Remover paginação de processos](./pages/REMOVEPAGINACAO.md)
 - [Dividir as informações do documento na árvore do processo em duas linhas](./pages/DIVIDIRLINHASARVORE.md)
+- [Redimensionar automaticamente a árvore do processo pela sua largura total](./pages/RESIZEARVORE.md)
  
 
 Você ainda pode [Desativar funções da extensão](./pages/DESATIVARFUNCOES.md) que não deseja utilizar.
