@@ -2,7 +2,7 @@
 
 ## ![ANTAQ  Utilizar caixas de seleção inteligentes](../img/icon-cursor.png)   Utilizar caixas de seleção inteligentes
 
-Essa funcionalidade muda a opção de utilizar caixas de seleção inteligentes, ao digitar a palavra ele filtra a seleção.
+Essa funcionalidade muda a opção de utilizar caixas de seleção inteligentes, ao digitar a palavra ele filtra a seleção desejada.
 
 > ![Tela Utilizar caixas de seleção inteligentes](../img/tela-substituirselecacao.gif)  
 
