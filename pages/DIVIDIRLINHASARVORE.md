@@ -9,4 +9,4 @@ Essa funcionalidade divide as informações do documento na árvore do processo 
 
 ## Próximo item
 
-> [Desativar funções da extensão](../pages/DESATIVARFUNCOES.md)
+> [Redimensionar automaticamente a árvore do processo pela sua largura total](../pages/RESIZEARVORE.md)
