@@ -1,11 +1,11 @@
 # [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![ANTAQ Redimensionar automaticamente a árvore do processo pela sua largura total](../img/SUBSTITUIRNOMEDOARQUIVO.png)  Redimensionar automaticamente a árvore do processo pela sua largura total
+## ![ANTAQ  Utilizar caixas de seleção inteligentes
+](../img/SUBSTITUIRNOMEDOARQUIVO.png)   Utilizar caixas de seleção inteligentes
 
-Essa funcionalidade redimensiona automaticamente a árvore do processo pela sua largura total
+Essa funcionalidade muda a opção de utilizar caixas de seleção inteligentes
 
 > ![Tela Remover paginação de processos](../img/SUBSTITUIRNOMEDOARQUIVO.gif)  
-
 
 ## Próximo item
 
