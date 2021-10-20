@@ -1,7 +1,6 @@
 # [![Home](../img/home.png)](../) |  ANTAQ Pro ![Icone](../img/icon-32.png)
 
-## ![ANTAQ  Utilizar caixas de seleção inteligentes
-](../img/icon-cursor.png)   Utilizar caixas de seleção inteligentes
+## ![ANTAQ  Utilizar caixas de seleção inteligentes](../img/icon-cursor.png)   Utilizar caixas de seleção inteligentes
 
 Essa funcionalidade muda a opção de utilizar caixas de seleção inteligentes
 
