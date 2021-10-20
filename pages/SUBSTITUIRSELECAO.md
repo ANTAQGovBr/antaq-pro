@@ -2,9 +2,9 @@
 
 ## ![ANTAQ  Utilizar caixas de seleção inteligentes](../img/icon-cursor.png)   Utilizar caixas de seleção inteligentes
 
-Essa funcionalidade muda a opção de utilizar caixas de seleção inteligentes
+Essa funcionalidade muda a opção de utilizar caixas de seleção inteligentes, ao digitar a palavra ele filtra a seleção.
 
-> ![Tela Remover paginação de processos](../img/SUBSTITUIRNOMEDOARQUIVO.gif)  
+> ![Tela Remover paginação de processos](../img/tela-substituirselecacao.gif)  
 
 ## Próximo item
 
