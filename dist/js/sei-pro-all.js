@@ -1,3 +1,58 @@
+var pagesInfiniteSearch = [];
+function getTableInfiniteSearch(ifrView, formID, tableID, index) {
+    if (pagesInfiniteSearch.length == 0 || $.inArray(index, pagesInfiniteSearch) === -1) {
+        var form = ifrView.find(formID);
+        var href = form.attr('action');
+        var param = {};
+            form.find("input, select").map(function () { 
+                if ($(this).attr('name')) {
+                    if ( $(this).is('[type="radio"]') || $(this).is('[type="checkbox"]') ) {
+                        if ($(this).is(':checked')) {
+                            param[$(this).attr('name')] = $(this).val();
+                        }
+                    } else {
+                        param[$(this).attr('name')] = ($(this).val()) ? removeAcentos($(this).val()) : '';
+                    }
+                }
+            });
+            param['hdnInicio'] = index;
+            pagesInfiniteSearch.push(index);
+            ifrView.find('div.paginas').append('<label class="loadRemovePag"><i class="fas fa-sync fa-spin"></i></label>');
+
+        $.ajax({ 
+            method: 'POST',
+            data: param,
+            url: href
+        }).done(function (html) {
+            let $html = $(html);
+            var table = $html.find(tableID);
+            if(table.length > 0) {
+                table.each(function(index){
+                    ifrView.find(tableID).last().after($(this)[0].outerHTML);
+                });
+            } else {
+                param['hdnInicio'] = 0;
+                $.ajax({  method: 'POST', data: param, url: href });
+            }
+            ifrView.find('div.paginas').after($html.find('div.paginas')).remove();
+            startQuickViewSearch();
+            console.log('startQuickViewSearch');
+        });
+    }
+}
+function getInfiniteSearch() {
+    var nrPage = parseInt($('div.paginas b').text()+'0');
+    if ($('div.paginas span.pequeno').last().text() == 'Pr\u00F3xima') {
+        getTableInfiniteSearch($('#divInfraAreaTela'), '#frmPesquisaProtocolo', 'table.resultado', nrPage);
+    }  
+}
+function startPagesInfiniteSearch(index = false) {
+    $(window).scroll(function () { 
+       if ($(window).scrollTop() >= $(document).height() - $(window).height() - 120) {
+            getInfiniteSearch();
+       }
+    });
+}
 function repairLnkControleProcesso() {
     if (typeof $('#lnkControleProcessos').attr('onclick') !== 'undefined') {
         var lnk = $('#lnkControleProcessos').attr('onclick').match(/'(.*?)'/);
@@ -21,7 +76,7 @@ function initRangerSelectShift(TimeOut = 9000) {
 function initHideMenuSistemaView(TimeOut = 9000) {
     if (TimeOut <= 0) { return; }
     if (typeof getOptionsPro !== 'undefined' && typeof hideMenuSistemaView !== 'undefined' && typeof checkConfigValue !== 'undefined' && typeof jmespath !== 'undefined') { 
-        if (checkConfigValue('menususpenso')) {
+        if (verifyConfigValue('menususpenso')) {
             hideMenuSistemaView();
         }
     } else {
@@ -54,6 +109,7 @@ function initTableSorter(TimeOut = 9000) {
         }
     } else {
         setTimeout(function(){ 
+            if (typeof $().tablesorter === 'undefined' && TimeOut == 9000) { $.getScript((URL_SPRO+"js/lib/jquery.tablesorter.combined.min.js")) }
             initTableSorter(TimeOut - 100); 
             console.log('Reload initTableSorter'); 
         }, 500);
@@ -71,13 +127,13 @@ function initInsertNewLinksMenu(TimeOut = 9000) {
     }
 }
 function insertNewLinksMenu() {
-    if ($('#divInfraAreaTelaE #main-menu').find('.newLinksMenuPro').length == 0) {
-        var newLinkMenu =  '<li><a id="pesquisaLinkPermanentePro" class="newLinksMenuPro" onclick="initBoxSearchProtocoloSEI()">Pesquisar Link Permanente</a></li>';
+    if ($(idMenu).find('.newLinksMenuPro').length == 0) {
+        var newLinkMenu =  '<li><a id="pesquisaLinkPermanentePro" class="newLinksMenuPro" onclick="initBoxSearchProtocoloSEI()">'+(isNewSEI ? '<i class="fas fa-history" style="font-size: 1.5em;margin-right: 5px;"></i>' : '')+'<span>Pesquisar Link Permanente</span></a></li>';
 
         if (checkConfigValue('historicoproc')) {
-            newLinkMenu += '<li><a id="historicoProcessosPro" class="newLinksMenuPro" onclick="getHistoryProcessosPro()">Hist\u00F3rico de Processos Visitados</a></li>';
+            newLinkMenu += '<li><a id="historicoProcessosPro" class="newLinksMenuPro" onclick="getHistoryProcessosPro()">'+(isNewSEI ? '<i class="fas fa-link" style="font-size: 1.5em;margin-right: 5px;"></i>' : '')+'<span>Hist\u00F3rico de Processos Visitados</span></a></li>';
         }
-            $('#divInfraAreaTelaE #main-menu').append(newLinkMenu);
+            $(idMenu).append(newLinkMenu);
     }
 }
 function setTableSorter() {
@@ -91,13 +147,14 @@ function setTableSorter() {
             iconFilter.removeClass('active');
         }
     });
-    var tableSorter = $('#divInfraAreaTabela table.infraTable').not('.tabelaControle, #tblTipoProcedimento');
+    var tableSorter = $('#divInfraAreaTabela table.infraTable, #frmEstatisticas table.infraTable').not('.tabelaControle, #tblTipoProcedimento');
     if (tableSorter.length > 0) {
         tableSorter.each(function(){
             if (typeof $(this).attr('id') === 'undefined') {
                 $(this).attr('id','infraTable_'+randomString(4));
             }
         });
+
         tableSorter.each(function(){
             if ($(this).find('table').hasClass('infraTableOrdenacao')) { 
                 $('#divInfraAreaTabela table.infraTable table.infraTableOrdenacao').each(function(){
@@ -105,10 +162,10 @@ function setTableSorter() {
                 });
             }
             corrigeTableSEI(this);
-            $(this).css('background-color','#ccc').find("thead th:eq(0)").data("sorter", false);
+            if (!$('#frmEstatisticas').length) $(this).css('background-color','#ccc').find("thead th:eq(0)").data("sorter", false);
             $(this).find('thead th').each(function(){
-                if ($(this).text().trim() == 'Data/Hora') { $(this).attr('data-date-format','mmddyyyy') }
-            })
+                if ($(this).text().trim().toLowerCase().indexOf('data') !== -1) { $(this).attr('data-date-format','mmddyyyy') }
+            });
 
             var headerTdCheck = ($('#lnkInfraCheck').length > 0) ? { 0: { sorter: false, filter: false } } : null;
             var textExtraction = ($('#tblProcessosDetalhado').length > 0) ? 
@@ -123,9 +180,45 @@ function setTableSorter() {
                                 text_return += prioridade+' '+texttip;
                             });
                             return (text_return == '') ? '3' : text_return;
-                        } 
+                        },
+                        2: function (elem, table, cellIndex) {
+                            var text = $(elem).text();
+                            console.log(elem, table, cellIndex, text);
+                            return text;
+                        }
                     }
-                : null;
+                : {
+                    0: function (elem, table, cellIndex) {
+                        return filterTextExtractDate(elem, table, cellIndex);
+                    },
+                    1: function (elem, table, cellIndex) {
+                        return filterTextExtractDate(elem, table, cellIndex);
+                    },
+                    2: function (elem, table, cellIndex) {
+                        return filterTextExtractDate(elem, table, cellIndex);
+                    },
+                    3: function (elem, table, cellIndex) {
+                        return filterTextExtractDate(elem, table, cellIndex);
+                    },
+                    4: function (elem, table, cellIndex) {
+                        return filterTextExtractDate(elem, table, cellIndex);
+                    },
+                    5: function (elem, table, cellIndex) {
+                        return filterTextExtractDate(elem, table, cellIndex);
+                    },
+                    6: function (elem, table, cellIndex) {
+                        return filterTextExtractDate(elem, table, cellIndex);
+                    },
+                    7: function (elem, table, cellIndex) {
+                        return filterTextExtractDate(elem, table, cellIndex);
+                    },
+                    8: function (elem, table, cellIndex) {
+                        return filterTextExtractDate(elem, table, cellIndex);
+                    },
+                    9: function (elem, table, cellIndex) {
+                        return filterTextExtractDate(elem, table, cellIndex);
+                    }
+                };
 
             $(this).tablesorter({
                 widgets: ["saveSort", "filter"],
@@ -241,36 +334,39 @@ function getTablePesquisaDownload(this_, mode){
 function copyTablePesquisa(this_, table){
     var _this = $(this_);
     var data = _this.data();
-    copyToClipboardHTML(table);
-    _this.find('.text').text('Copiado...');
-    _this.find('i').attr('class','fas fa-thumbs-up');
-    setTimeout(function(){ 
-        _this.find('.text').text(data.value);
-        _this.find('i').attr('class',data.icon);
-    }, 1500);
+        copyToClipboardHTML(table);
+        _this.find('.text').text('Copiado...');
+        _this.find('i').attr('class','fas fa-thumbs-up');
+        setTimeout(function(){ 
+            _this.find('.text').text(data.value);
+            _this.find('i').attr('class',data.icon);
+        }, 1500);
 }
 function downloadTablePesquisa(this_, table){
     var _this = $(this_);
     var data = _this.data();
-    downloadTableCSV(table, 'Pesquisa_SEIPro');
-    _this.find('.text').text('Baixado...');
-    _this.find('i').attr('class','fas fa-thumbs-up');
-    setTimeout(function(){ 
-        _this.find('.text').text(data.value);
-        _this.find('i').attr('class',data.icon);
-    }, 1500);
+        downloadTableCSV(table, 'Pesquisa_SEIPro');
+        _this.find('.text').text('Baixado lista...');
+        _this.find('i').attr('class','fas fa-thumbs-up');
+        setTimeout(function(){ 
+            _this.find('.text').text(data.value);
+            _this.find('i').attr('class',data.icon);
+        }, 1500);
 
 }
 function setTablePesquisaDownload() {
     var htmlFilter =    '<div class="btn-group filterIfraTable" role="group" style="right: 0;top: -40px;z-index: 999;position: absolute;">'+
-                        '   <button type="button" onclick="getTablePesquisaDownload(this, \'download\')" data-icon="fas fa-download" style="padding: 0.1rem .5rem; font-size: 9pt;" data-value="Baixar" class="btn btn-sm btn-light">'+
+                        '   <button type="button" onclick="getTablePesquisaDownload(this, \'download\')" data-icon="fas fa-download" style="padding: 0.1rem .5rem; font-size: 9pt;" data-value="Baixar Lista" class="btn btn-sm btn-light">'+
                         '       <i class="fas fa-download" style="padding-right: 3px; cursor: pointer; font-size: 10pt; color: #888;"></i>'+
-                        '       <span class="text">Baixar</span>'+
+                        '       <span class="text">Baixar Lista</span>'+
                         '   </button>'+
                         '   <button type="button" onclick="getTablePesquisaDownload(this, \'copy\')" data-icon="fas fa-copy" style="padding: 0.1rem .5rem; font-size: 9pt;" data-value="Copiar" class="btn btn-sm btn-light">'+
                         '       <i class="fas fa-copy" style="padding-right: 3px; cursor: pointer; font-size: 10pt; color: #888;"></i>'+
                         '       <span class="text">Copiar</span>'+
                         '   </button>'+
+                        '   <button type="button" onclick="downloadAllDocsSearch(this)" data-icon="fas fa-download" style="padding: 0.1rem .5rem; font-size: 9pt;" data-value="Baixar Documentos" class="btn btn-sm btn-light">'+
+                        '       <i class="fas fa-download" style="padding-right: 3px; cursor: pointer; font-size: 10pt; color: #888;"></i>'+
+                        '       <span class="text">Baixar Documentos</span>'+
                         '   </button>'+
                         '</div>';
 
@@ -280,14 +376,27 @@ function setTablePesquisaDownload() {
         $.getScript(URL_SPRO+"js/lib/moment.min.js"); 
 }
 function initTablePesquisaDownload() {
-    if ($('#frmPesquisaProtocolo').find('#conteudo table.resultado').length > 0) {
+    var resultado = $('#frmPesquisaProtocolo').find('#conteudo table.resultado');
+    if (resultado.length > 0) {
         setTablePesquisaDownload();
+        initScrollToElement();
+    }
+}
+function initScrollToElement(TimeOut = 9000) {
+    if (TimeOut <= 0 || parent.window.name != '') { return; }
+    if (typeof scrollToElement !== 'undefined') {
+        scrollToElement($('html'), $('#frmPesquisaProtocolo').find('#conteudo table.resultado'), 50);
+    } else {
+        setTimeout(function(){ 
+            initScrollToElement(TimeOut - 100); 
+            console.log('Reload initScrollToElement', TimeOut); 
+        }, 500);
     }
 }
 function initAppendIconFavorites(TimeOut = 9000) {
     var table = $('#frmRelBlocoProtocoloLista .infraTable, #frmAcompanhamentoLista .infraTable, #frmProcedimentoSobrestar .infraTable');
     if (TimeOut <= 0 || parent.window.name != '' ||  table.length == 0) { return; }
-    if (typeof getParamsUrlPro !== 'undefined' && typeof checkConfigValue !== 'undefined' && typeof htmlIconFavorites !== 'undefined') {
+    if (typeof getParamsUrlPro !== 'undefined' && typeof checkConfigValue !== 'undefined' && typeof htmlIconFavorites !== 'undefined' && typeof getStoreFavoritePro !== 'undefined') {
         if (checkConfigValue('gerenciarfavoritos')) {
             setAppendIconFavorites();
         }
@@ -313,7 +422,15 @@ function setAppendIconFavorites() {
     }
 }
 function loadScriptEntidade() {
-    $.getScript(URL_SPRO+"js/sei-pro-icons.js");
+    // $.getScript(URL_SPRO+"js/sei-pro-icons.js");
+    /*
+    if (window.location.host.indexOf('.antaq.gov.br') !== -1 && !urlServerAtiv && !userHashAtiv) {
+        initEmptyAtividades();
+        $('.panelHome').find('.iconAtividade_update i').removeClass('fa-spin');
+        $('#tabelaAtivPanel').attr('class','').css('text-align','center').html('<a class="newLink" onclick="getResendKey()" style="transform: scale(1.4);margin: 10px 0;"><i class="fas fa-key laranjaColor"></i> Solicitar chave de acesso</a>');
+    }
+    console.log('loadScriptEntidade');
+    */
 }
 function appendIconEntidade() {
     if ($('.infraTituloLogoSistema').length > 0 && $('#iconEntidade').length == 0) {
@@ -322,7 +439,7 @@ function appendIconEntidade() {
 }
 function initGetConfigHost(TimeOut = 9000) {
     if (TimeOut <= 0 || parent.window.name != '') { return; }
-    if (typeof getConfigHost === 'function') {
+    if (typeof getConfigHost === 'function' && typeof urlServerAtiv !== 'undefined') {
         if (sessionStorage.getItem('configHost_Pro') !== null) {
             setConfigHost(JSON.parse(sessionStorage.getItem('configHost_Pro')), loadScriptEntidade);
         } else {
@@ -339,11 +456,20 @@ function initReplaceSelectAll(TimeOut = 12000) {
     if (TimeOut <= 0 || parent.window.name != '') { return; }
     if (typeof $().chosen !== 'undefined' && typeof verifyConfigValue === 'function') {
         if (parent.verifyConfigValue('substituiselecao') && $('#frmDocumentoGeracaoMultiplo').length == 0 ) { 
-            $('select:visible').not('[multiple="multiple"]').not('[name="selProcedimentos"]').chosen({
-                placeholder_text_single: ' ',
-                no_results_text: 'Nenhum resultado encontrado'
-            });
+            $('select')
+                .not('[multiple]')
+                .not('#selStaIcone')
+                .not('#selMarcador')
+                .filter(function() { 
+                    return !($(this).css('visibility') == 'hidden' || $(this).css('display') == 'none') 
+                })
+                .not('[name="selProcedimentos"]')
+                .chosen({
+                    placeholder_text_single: ' ',
+                    no_results_text: 'Nenhum resultado encontrado'
+                });
             chosenReparePosition();
+            console.log('@@@@ initReplaceSelectAll');
         }
     } else {
         if (typeof $().chosen === 'undefined') { 
@@ -359,7 +485,7 @@ function initReplaceSelectAll(TimeOut = 12000) {
 function appendVersionSEIPro() {
     var logoSEI = $('#divInfraBarraSistemaE img[src*="sei_logo"]');
     if (!logoSEI.hasClass('versionSEIPro')) {
-        logoSEI.attr('title', logoSEI.attr('title', )+' (SEI Pro Vers\u00E3o '+VERSION_SPRO+')').addClass('versionSEIPro');
+        logoSEI.attr('title', logoSEI.attr('title', )+' ('+NAMESPACE_SPRO+': Vers\u00E3o '+VERSION_SPRO+')').addClass('versionSEIPro');
     }
 }
 function filterIfraTable(this_) {
@@ -376,8 +502,306 @@ function filterIfraTable(this_) {
         _this.addClass('active');
     }
 }
+function initRemovePaginacaoAll(TimeOut = 9000) {
+    if (TimeOut <= 0 || parent.window.name != '') { return; }
+    if (typeof verifyConfigValue !== 'undefined') {
+        if (verifyConfigValue('removepaginacao')) {
+            if ($('#frmAcompanhamentoLista').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmAcompanhamentoLista', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmProcedimentoSobrestar').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmProcedimentoSobrestar', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmBlocoLista').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmBlocoLista', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmProtocoloModeloLista').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmProtocoloModeloLista', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmTextoPadraoInternoLista').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmTextoPadraoInternoLista', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmContatoLista').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmContatoLista', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmMarcadorLista').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmMarcadorLista', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmContatoRelatorioTemporarios').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmContatoRelatorioTemporarios', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmProcedimentoRelatorioSigilosos').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmProcedimentoRelatorioSigilosos', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmUnidadeLista').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmUnidadeLista', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmAssinanteLista').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmAssinanteLista', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmGrupoContatoLista').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmGrupoContatoLista', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmGrupoUnidadeLista').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmGrupoUnidadeLista', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmHipoteseLegalLista').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmHipoteseLegalLista', '#divInfraAreaTabela table', 1);
+            } else if ($('#frmUsuarioLista').length > 0) {
+                getTablePaginacao($('#divInfraAreaTela'), '#frmUsuarioLista', '#divInfraAreaTabela table', 1);
+            }
+        }
+    } else {
+        setTimeout(function(){ 
+            initRemovePaginacaoAll(TimeOut - 100); 
+            console.log('Reload initRemovePaginacaoAll', TimeOut); 
+        }, 500);
+    }
+}
+function initPagesInfiniteSearch(TimeOut = 9000) {
+    if (TimeOut <= 0 || parent.window.name != '') { return; }
+    if (typeof verifyConfigValue !== 'undefined') {
+        if (verifyConfigValue('rolageminfinita') && $('#frmPesquisaProtocolo').length > 0) {
+            startPagesInfiniteSearch();
+        }
+    } else {
+        setTimeout(function(){ 
+            initPagesInfiniteSearch(TimeOut - 100); 
+            console.log('Reload initPagesInfiniteSearch', TimeOut); 
+        }, 500);
+    }
+}
+function initQuickViewSearch(TimeOut = 9000) {
+    if (TimeOut <= 0 || parent.window.name != '') { return; }
+    if (typeof verifyConfigValue !== 'undefined') {
+        if ($('#frmPesquisaProtocolo').length > 0) {
+            startQuickViewSearch();
+        }
+    } else {
+        setTimeout(function(){ 
+            initQuickViewSearch(TimeOut - 100); 
+            console.log('Reload initQuickViewSearch', TimeOut); 
+        }, 500);
+    }
+}
+function markQuickViewSearch(this_) {
+    var _this = $(this_);
+    $('#conteudo .resultado tr.infraTrAcessada').removeClass('infraTrAcessada');
+    _this.closest('tr').addClass('infraTrAcessada');
+}
+function startQuickViewSearch() {
+    $('a.quickview').remove();
+    $('#conteudo .resultado a[href*="controlador.php?acao=documento_visualizar"').each(function(){
+        var nrSEI = $(this).closest('tr').find('td.resTituloDireita').text().trim();
+        var html = '<a class="quickview" style="font-size: 12px;" onmouseover="return infraTooltipMostrar(\'Visualiza\u00E7\u00E3o r\u00E1pida\');" onmouseout="return infraTooltipOcultar();" onclick="markQuickViewSearch(this);openSEINrPro(this, \''+nrSEI+'\')"><i style="margin: 0 3px;" class="fas fa-eye azulColor"></i></a>';
+        $(this).after(html);
+    });
+    $('#conteudo .resultado a[href*="controlador.php?acao=documento_download_anexo"').each(function(){
+        var href = $(this).attr('href');
+        var text = $(this).text();
+        var html = '<a class="quickview" style="font-size: 12px;" onmouseover="return infraTooltipMostrar(\'Visualiza\u00E7\u00E3o r\u00E1pida\');" onmouseout="return infraTooltipOcultar();" onclick="markQuickViewSearch(this);openDialogAnexo(this)" data-url="'+href+'" data-title="'+text+'"><i style="margin: 0 3px;" class="fas fa-eye azulColor"></i></a>';
+        $(this).after(html);
+    });
+}
+function downloadAllDocsSearch(this_) {
+    var _this = $(this_);
+    var data = _this.data();
+        _this.find('.text').text('Baixado documentos...');
+        _this.find('i').attr('class','fas fa-thumbs-up');
+        setTimeout(function(){ 
+            _this.find('.text').text(data.value);
+            _this.find('i').attr('class',data.icon);
+        }, 1500);
+
+    $('tr:not(.infraDocBaixado) a.downloadview').remove();
+    $('#conteudo .resultado tr:not(.infraDocBaixado) a[href*="controlador.php?acao=documento_visualizar"], #conteudo .resultado tr:not(.infraDocBaixado) a[href*="controlador.php?acao=documento_download_anexo"]').each(function(index){
+        var text = $(this).text().trim();
+        var href = $(this).attr('href');
+        var nrSEI = $(this).closest('tr').find('td.resTituloDireita').text().trim();
+        var html = '<a class="downloadview" style="font-size: 12px;" onmouseover="return infraTooltipMostrar(\'Baixando documento...\');" onmouseout="return infraTooltipOcultar();"><i style="margin: 0 3px;" class="fas fa-hourglass-half roxoColor"></i></a>';
+        $(this).after(html);
+        var _this = $(this).closest('td').find('.downloadview');
+        setTimeout(function(){
+            if (typeof href !== 'undefined' && href.indexOf('?acao=documento_visualizar') !== -1) {
+                getIDProtocoloSEI(nrSEI,  
+                    function(html){
+                        let $html = $(html);
+                        var param = getParamsUrlPro($html.find('#ifrArvore').attr('src'));
+                            console.log(param);
+                            openDialogDoc(param, true, _this);
+                    }, 
+                    function(){
+                        _this.attr('onmouseover','return infraTooltipMostrar(\'Erro ao baixar documento\')').find('i').attr('class', 'fas fa-exclamation-circle vermelhoColor');
+                    }
+                );
+            } else if (typeof href !== 'undefined' && href.indexOf('?acao=documento_download_anexo') !== -1) {
+                var link = document.createElement('a');
+                link.href = href;
+                link.download = text;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                _this.attr('onmouseover','return infraTooltipMostrar(\'Documento baixado\')').find('i').attr('class', 'fas fa-download verdeColor');
+                _this.closest('tr').addClass('infraTrAcessada').addClass('infraDocBaixado');
+            }
+        }, index*2000);
+    });
+}
+function initObserveUrlPage(TimeOut = 9000) {
+    if (TimeOut <= 0 || parent.window.name != '') { return; }
+    if (typeof getParamsUrlPro !== 'undefined') {
+        observeUrlPage();
+    } else {
+        setTimeout(function(){ 
+            initObserveUrlPage(TimeOut - 100); 
+            console.log('Reload initObserveUrlPage', TimeOut); 
+        }, 500);
+    }
+}
+function observeUrlPage() {
+    var hash = window.location.hash;
+    if (hash != '' && hash.indexOf('#') !== -1 && (hash.indexOf('/') !== -1 || hash.indexOf('@') !== -1) ) {
+        var protocolo = hash.replace('#','');
+            protocolo = (protocolo.indexOf('@') !== -1) ? protocolo.split('@')[1] : protocolo;
+            protocolo = (protocolo == '') 
+                        ? (hash.indexOf('@') !== -1) ? hash.replace('#','').split('@')[0] : protocolo
+                        : protocolo;
+        console.log('observeUrlPage',protocolo);
+        if (typeof protocolo !== 'undefined' && protocolo !== null && protocolo != '') {
+            var xhr = new XMLHttpRequest();
+            var href = $('#frmProtocoloPesquisaRapida').attr('action');
+            $.ajax({ 
+                method: 'POST',
+                data: { txtPesquisaRapida: protocolo },
+                url: href,
+                xhr: function() {
+                    return xhr;
+                },
+                success: function(data) { 
+                    var _return = getParamsUrlPro(xhr.responseURL);
+                    if ( _return.id_protocolo != 0 && typeof _return.id_protocolo !== 'undefined' ) {
+                        window.location.replace(xhr.responseURL);
+                    }
+                }
+            });
+        }
+    }
+}
+function initSlimPro() {
+    var htmlSlimPro =   '       <div id="controlSlimPro" style="display: inline-block;float: right;margin:3px 10px 0 0">'+
+                        '           <div class="onoffswitch" style="display:inline-block;transform:scale(0.7)" onmouseout="return infraTooltipOcultar();" onmouseover="return infraTooltipMostrar(\''+(localStorage.getItem('seiSlim') ? 'Desativar estilo avan\u00E7ado' : 'Ativar estilo avan\u00E7ado')+'\')">'+
+                        '               <input type="checkbox" onchange="changeSlimPro(this)" name="onoffswitch" class="onoffswitch-checkbox" id="changeSlimPro" tabindex="0" '+(localStorage.getItem('seiSlim') ? 'checked' : '')+'>'+
+                        '               <label class="onoffswitch-label" for="changeSlimPro" style="border-color: #ffffff7a;"></label>'+
+                        '           </div>'+
+                        '           <i onclick="openStyleBoxSlimPro()" onmouseout="return infraTooltipOcultar();" onmouseover="return infraTooltipMostrar(\''+(localStorage.getItem('seiSlim') ? 'Escolher cor principal' : 'Ativar estilo avan\u00E7ado')+'\')" class="fas fa-palette brancoColor" style="float: right;font-size: 16pt;cursor: pointer;"></i> '+
+                        '       </div>';
+    $('#controlSlimPro').remove();
+    $('#divInfraBarraSistemaD').append(htmlSlimPro);
+    initStyleBoxSlimPro();
+}
+function initStyleBoxSlimPro(TimeOut = 9000) {
+    if (TimeOut <= 0) { return; }
+    if (typeof sessionStorageRestorePro !== 'undefined' ) { 
+        if (sessionStorageRestorePro('seiSlim_openBox')) { 
+            openStyleBoxSlimPro();
+        }
+        if (getOptionsPro('colorSlimPro')) {
+            setColorSlimPro(getOptionsPro('colorSlimPro'));
+        }
+        $(document).ready(function () { initToolbarOnTop() });
+    } else {
+        setTimeout(function(){ 
+            initStyleBoxSlimPro(TimeOut - 100); 
+            console.log('Reload initStyleBoxSlimPro'); 
+        }, 500);
+    }
+}
+function initMarcadorUserColor(TimeOut = 9000) {
+    if (TimeOut <= 0) { return; }
+    if (typeof extractHexColor !== 'undefined' ) { 
+        if (checkConfigValue('coresmarcadores')) {
+            setMarcadorUserColor();
+        }
+    } else {
+        setTimeout(function(){ 
+            initMarcadorUserColor(TimeOut - 100); 
+            console.log('Reload initMarcadorUserColor'); 
+        }, 500);
+    }
+}
+function setMarcadorUserColor() {
+    if ($('#frmMarcadorCadastro').length) {
+        var txtNome = $('#txtNome');
+        var oldColor = extractHexColor(txtNome.val());
+            oldColor = (oldColor !== null) ? oldColor : '';
+        var htmlUserColor = '<div style="position: absolute;top: 0;left: 63%;">'+
+                            '   <label id="lblUserColor" for="txaUserColor" style="display: block;" class="infraLabelOpcional">Cor Personalizada:</label>'+
+                            '   <input onchange="changeMarcadorUserColor(this)" type="color" value="'+oldColor+'">'+
+                            '</div>';
+        txtNome.after(htmlUserColor);
+        replaceColorsIcons($('#selStaIcone a.dd-option'));
+        replaceColorsIcons($('#selStaIcone a.dd-selected'));
+    } else if ($('#frmGerenciarMarcador').length) {
+        replaceColorsIcons($('#selMarcador a.dd-option'));
+        replaceColorsIcons($('#selMarcador a.dd-selected'));
+    } else if ($('#frmProcedimentoControlar #tblMarcadores').length) {
+        $('span.infraImgPro[data-img*="/marcador_"]').each(function() { 
+            var titleMarcador = $(this).closest('td').next().text().trim();
+            $(this).addClass('tagUserColorPro').attr('data-color',true).find('img').attr('title',titleMarcador);
+            $(this).closest('td').next().text(titleMarcador.replace(extractHexColor(titleMarcador),''));
+        });
+        replaceColorsIcons($('.tagUserColorPro[data-color="true"]'));        
+    } else if ($('#frmMarcadorLista').length) {
+        replaceColorsIcons($('#frmMarcadorLista td:nth-child(2) a[href="#"]'));
+    } else {
+        replaceColorsIcons($('a[href*="andamento_marcador_gerenciar"]'));
+        if ($('#btnLiberarMarcador').length) {
+            $('#btnLiberarMarcador').each(function() { 
+                var titleMarcador = $(this).attr('title');
+                $(this).addClass('tagUserColorPro').attr('data-color',true).find('img').attr('title',titleMarcador);
+            });
+            replaceColorsIcons($('#btnLiberarMarcador[data-color="true"]'));
+        }
+    }
+}
+function changeMarcadorUserColor(this_) {
+    var _this = $(this_);
+    var txtNome = $('#txtNome');
+    var oldColor = extractHexColor(txtNome.val());
+    var newText = (oldColor !== null && oldColor != '') ? txtNome.val().replace(oldColor[0], _this.val()) : txtNome.val()+' '+_this.val();
+        txtNome.val(newText);
+}
+function checkBlankPageSEI() {
+    var title = $('#divInfraBarraLocalizacao').text();
+    var content = $('#divInfraAreaDados').text();
+    var urlHome = $('#main-menu').find('a[href*="controlador.php?acao=procedimento_controlar"]').attr('href');
+    setTimeout(function(){ 
+        if (window.location.hash == '' && typeof title !== 'undefined' && typeof content !== 'undefined' && title.trim() == '' && content.trim() == '' && typeof urlHome !== 'undefined' && window.location.href.indexOf('controlador.php') === -1) {
+            console.log('redirect checkBlankPageSEI'); 
+            window.location.href = urlHome;
+        }
+    }, 3000);
+}
+function initCheckLoadJqueryUI() {
+    setTimeout(function(){ 
+        checkLoadJqueryUI();
+    }, 2000);
+}
+function checkPageParent() {
+    if ($('#frmProcedimentoCadastro').length > 0 && $('#frmProcedimentoCadastro').attr('action').indexOf('acao=procedimento_gerar&acao_origem=procedimento_gerar') !== -1) {
+        $('body').addClass('seiSlim_view');
+        var checkMenu = $('#divInfraAreaTelaE').is(':visible');
+        $('#divInfraAreaTelaD').attr('style',(checkMenu ? 'width: 78% !important' : 'width: 99% !important'));
+    }
+}
+function initInfraImg(TimeOut = 9000) {
+    if (TimeOut <= 0) { return; }
+    if (typeof setInfraImg !== 'undefined' ) { 
+        setInfraImg();
+    } else {
+        setTimeout(function(){ 
+            initInfraImg(TimeOut - 100); 
+            console.log('Reload initInfraImg'); 
+        }, 500);
+    }
+}
+function initQRCodeLib() {
+    if ($('#ifrArvore').length > 0 && typeof $().qrcode !== 'function' ) {
+        $.getScript(URL_SPRO+"js/lib/jquery-qrcode-0.18.0.min.js");
+    }
+}
 function initSeiProAll() {
-    appendIconEntidade();
+    initInfraImg();
+    checkPageParent();
+    initMarcadorUserColor();
+    // appendIconEntidade();
     appendVersionSEIPro();
     initTableSorter();
     repairLnkControleProcesso();
@@ -388,7 +812,16 @@ function initSeiProAll() {
     initTablePesquisaDownload();
     initReplaceSelectAll();
     initAppendIconFavorites();
+    // initReplaceNewIconsBar();
+    initRemovePaginacaoAll();
+    initPagesInfiniteSearch();
+    initQuickViewSearch();
     // observeIfrArvore();
+    initObserveUrlPage();
+    initSlimPro();
+    //checkBlankPageSEI();
+    initCheckLoadJqueryUI();
+    initQRCodeLib();
     console.log('initSeiProAll');
 }
 $(document).ready(function () { initSeiProAll() });

@@ -48,16 +48,21 @@ function setOptionsSEIPro(option_key, option_value) {
     chrome.storage.sync.get({
         dataValues: ''
     }, function(items) {
-        var dataValues = ( items.dataValues != '' ) ? JSON.parse(items.dataValues) : [];  
+        var dataValues = ( items.dataValues != '' ) ? JSON.parse(items.dataValues) : []; 
         for (i = 0; i < dataValues.length; i++) {
             if (typeof dataValues[i]['configGeral'] !== 'undefined') {
                 var configGeral = dataValues[i]['configGeral'];
+                var checkChangeConfig = false;
                 for (j = 0; j < configGeral.length; j++) {
                     if (configGeral[j]['name'] == option_key) {
                         option_value = (option_value == 'true') ? true : option_value;
                         option_value = (option_value == 'false') ? false : option_value;
                         dataValues[i]['configGeral'][j]['value'] = option_value;
+                        checkChangeConfig = true;
                     }
+                }
+                if (!checkChangeConfig) {
+                    dataValues[i]['configGeral'].push({name: option_key, value: option_value});
                 }
             }
         }
@@ -66,6 +71,7 @@ function setOptionsSEIPro(option_key, option_value) {
                 dataValues: JSON.stringify(dataValues)
             }, function() {
                 console.log('dataValues', dataValues);
+                localStorage.setItem('configBasePro', JSON.stringify(dataValues)); 
             });
         }
     });
@@ -143,9 +149,10 @@ function changeBasePro() {
 }
 function observeAcaoPro() {
     var param = getParamsUrlPro(window.location.href);
+    var manifest = getManifestExtension();
     if (typeof param.acao_pro !== 'undefined' && param.acao_pro == 'set_database' && typeof param.token !== 'undefined' && typeof param.url !== 'undefined') {
         if (param.base == 'atividades') {
-            var baseName = 'SEI Pro Atividades';
+            var baseName = manifest.short_name;
             var typeconnect = (param.token == '') ? 'googleapi' : 'api';
             var client_id = (param.token == '') ? param.client_id : '';
             var alert = (param.token == '') ? false : true;
@@ -167,9 +174,30 @@ function observeAcaoPro() {
             };
             // console.log(data);
             getOptionsSEIPro(data);
-        } else if (typeof param.acao_pro !== 'undefined' && param.acao_pro == 'set_option' && typeof param.option_key !== 'undefined' && typeof param.option_value !== 'undefined') {
-            setOptionsSEIPro(param.option_key, param.option_value);
         }
+    } else if (typeof param.acao_pro !== 'undefined' && param.acao_pro == 'set_database' && typeof param.client_id !== 'undefined') {
+        if (param.base == 'projetos') {
+            var baseName = manifest.short_name;
+            var data = { 
+                type: "NEW_BASE", 
+                mode: param.mode, 
+                base: param.base, 
+                alert: true, 
+                newItem: {
+                    "baseName": param.base_name,
+                    "baseTipo": param.base,
+                    "conexaoTipo": 'sheets',
+                    "CLIENT_ID": param.client_id,
+                    "API_KEY": param.api_key,
+                    "spreadsheetId": param.sheet_id,
+                    "URL_API": "",
+                    "KEY_USER": ""
+                }
+            };
+            getOptionsSEIPro(data);
+        }
+    } else if (typeof param.acao_pro !== 'undefined' && param.acao_pro == 'set_option' && typeof param.option_key !== 'undefined' && typeof param.option_value !== 'undefined') {
+        setOptionsSEIPro(param.option_key, param.option_value);
     }
 }
 function getManifestExtension() {
@@ -186,9 +214,46 @@ function loadScriptProDB() {
 }
 if (getManifestExtension().short_name == 'SPro') {
     setTimeout(function(){ 
-        if (sessionStorage.getItem('other_extension') === null){
+        if (sessionStorage.getItem('new_extension') === null){
             loadScriptProDB();
         } else {
+            console.log('######### new_extension');
+            chrome.storage.sync.get({
+                dataValues: ''
+            }, function(items) {
+                var dataValues = ( items.dataValues != '' ) ? JSON.parse(items.dataValues) : [];  
+                console.log(dataValues); 
+                sessionStorage.setItem('config_transition',  JSON.stringify(dataValues));
+                // $.getScript(getUrlExtension("js/sei-pro-db-transition.js"));
+                /*
+                if (data.mode == 'insert') {
+                    for (i = 0; i < dataValues.length; i++) {
+                        if ( dataValues[i]['baseTipo'] == data.base) {
+                            dataValues.splice(i,1);
+                            i--;
+                        }
+                    }
+                }
+                dataValues.push(newItem);
+                console.log(dataValues);
+                chrome.storage.sync.set({
+                    dataValues: JSON.stringify(dataValues)
+                }, function() {
+                    if (data.alert) { alert('Configura\u00e7\u00f5es carregadas com sucesso!'); }
+                    if (typeof window.jQuery !== 'undefined') {
+                        var urlHome = $('#main-menu').find('a[href*="controlador.php?acao=procedimento_controlar"]').attr('href');
+                        if (typeof urlHome !== 'undefined') {
+                            // localStorage.setItem('configBasePro_atividades', JSON.stringify({URL_API: newItem.url, KEY_USER: newItem.token}));
+                            console.log({URL_API: newItem.url, KEY_USER: newItem.token});
+                            setTimeout(function(){ 
+                                console.log('saved OptionsSEIPro'); 
+                                window.location.href = urlHome;
+                            }, 1500);
+                        }
+                    }
+                });
+                */
+            });
         }
     }, 1000);
 } else {

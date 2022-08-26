@@ -175,9 +175,19 @@ function restore_options() {
         } else {
             $('#uploadDoc_sortBefore').hide();
         }
+        if(jmespath.search(dataValuesConfig, "[?name=='certidaosigilo'].value | [0]") || jmespath.search(dataValuesConfig, "[?name=='certidaosigilo'].value | [0]") === null) {
+            $('#getDocCertidao_docName').show();
+        } else {
+            $('#getDocCertidao_docName').hide();
+        }
         if (jmespath.search(dataValuesConfig, "[?name=='newdocname'].value | [0]") !== null) { 
             $('#itemConfigGeral_newdocname')
                 .val(jmespath.search(dataValuesConfig, "[?name=='newdocname'].value | [0]"))
+                .closest('tr').find('.iconPopup').addClass('azulColor').removeClass('cinzaColor');
+        }
+        if (jmespath.search(dataValuesConfig, "[?name=='certidaosigilo_nomedoc'].value | [0]") !== null) { 
+            $('#itemConfigGeral_certidaosigilo_nomedoc')
+                .val(jmespath.search(dataValuesConfig, "[?name=='certidaosigilo_nomedoc'].value | [0]"))
                 .closest('tr').find('.iconPopup').addClass('azulColor').removeClass('cinzaColor');
         }
         if (jmespath.search(dataValuesConfig, "[?name=='newdocobs'].value | [0]") !== null) { 
@@ -192,6 +202,29 @@ function restore_options() {
         }
         if (jmespath.search(dataValuesConfig, "[?name=='citacaodoc'].value | [0]") !== null) { 
             $('#itemConfigGeral_citacaodoc').val(jmespath.search(dataValuesConfig, "[?name=='citacaodoc'].value | [0]"));
+        }
+        if (jmespath.search(dataValuesConfig, "[?name=='combinacaoteclas'].value | [0]") !== null) { 
+            $('#itemConfigGeral_combinacaoteclas').val(jmespath.search(dataValuesConfig, "[?name=='combinacaoteclas'].value | [0]"));
+        }
+        if (jmespath.search(dataValuesConfig, "[?name=='salvamentoautomatico'].value | [0]") !== null) { 
+            $('#itemConfigGeral_salvamentoautomatico').val(jmespath.search(dataValuesConfig, "[?name=='salvamentoautomatico'].value | [0]"));
+        }
+        if (jmespath.search(dataValuesConfig, "[?name=='qualidadeimagens'].value | [0]") !== null) { 
+            $('#itemConfigGeral_qualidadeimagens').val(jmespath.search(dataValuesConfig, "[?name=='qualidadeimagens'].value | [0]"));
+        }
+        if (jmespath.search(dataValuesConfig, "[?name=='newdocsigilo'].value | [0]") !== null) { 
+            var valueNewDocSigilo = jmespath.search(dataValuesConfig, "[?name=='newdocsigilo'].value | [0]");
+                valueNewDocSigilo = (valueNewDocSigilo != '' && valueNewDocSigilo.indexOf('|') !== -1) ? valueNewDocSigilo.split('|') : false;
+                if (valueNewDocSigilo) {
+                    $('#itemConfigGeral_newdocsigilo').append('<option value="'+valueNewDocSigilo[0]+'" selected>'+valueNewDocSigilo[2]+'</option>');
+                    $('#itemConfigGeral_newdocsigilo').val(valueNewDocSigilo[0]);
+                }
+        }
+        if(jmespath.search(dataValuesConfig, "[?name=='newdocnivel'].value | [0]") || jmespath.search(dataValuesConfig, "[?name=='newdocnivel'].value | [0]") === null) {
+            $('#newDoc_sigilo').hide();
+            $('#itemConfigGeral_newdocsigilo').html('<option value=""></option>').val(''); 
+        } else {
+            $('#newDoc_sigilo').show();
         }
         addActionsProfile();
     });
@@ -274,6 +307,11 @@ function changeConfigGeral() {
             arrayShowItensMenu.push({name: $(this).attr('data-name'), value: $(this).val()});
         }
     });
+    $('#options-functions').find('input[type="number"]').each(function(){
+        if ($(this).val() != '') {
+            arrayShowItensMenu.push({name: $(this).attr('data-name'), value: parseInt($(this).val())});
+        }
+    });
     $('#options-functions').find('select').each(function(){
         if ($(this).val() != '') {
             arrayShowItensMenu.push({name: $(this).attr('data-name'), value: $(this).val()});
@@ -285,6 +323,17 @@ function changeConfigGeral() {
     } else { 
         $('#uploadDoc_sortBefore').hide(); 
         $('#itemConfigGeral_sortbeforeupload').prop('checked',false); 
+    }
+    if ($('#itemConfigGeral_certidaosigilo').is(':checked')) { 
+        $('#getDocCertidao_docName').show(); 
+    } else { 
+        $('#getDocCertidao_docName').hide(); 
+    }
+    if ($('#itemConfigGeral_newdocnivel').is(':checked')) { 
+        $('#newDoc_sigilo').hide(); 
+        $('#itemConfigGeral_newdocsigilo').html('<option value=""></option>').val(''); 
+    } else { 
+        $('#newDoc_sigilo').show(); 
     }
     return arrayShowItensMenu;
 }
@@ -317,6 +366,26 @@ function passReveal(this_){
     to.val(from.val()).show();
     _this.attr('class', showing ? 'option-ref passRevealBtn fas fa-eye' : 'option-ref passRevealBtn fas fa-eye-slash');
 }
+function getManifestExtension() {
+    if (typeof browser === "undefined") {
+        return chrome.runtime.getManifest();
+    } else {
+        return browser.runtime.getManifest();
+    }
+}
+function setNamePage() {
+    var manifest = getManifestExtension();
+    var NAMESPACE_SPRO = manifest.short_name;
+    var URLPages_SPRO = manifest.homepage_url;
+    // var title = 'Configura\u00E7\u00F5es Gerais | '+NAMESPACE_SPRO;
+    $('.title .name-space').text(NAMESPACE_SPRO);
+    $('a.manual').each(function(){
+        $(this).attr('href', URLPages_SPRO+$(this).attr('href'));
+    });
+    if (NAMESPACE_SPRO == 'SEI Pro Lab') {
+        $('body').addClass('SEIPro_lab');
+    }
+}
 $('#options-functions').find('input[type="text"]').on("keyup", function () {
     if ($(this).val() != '') {
         $(this).closest('tr').find('.iconPopup').addClass('azulColor').removeClass('cinzaColor');
@@ -333,4 +402,5 @@ $('#new').click(function() { addProfile() });
 $(function(){
     restore_options();
     $('#options-tabs').tabs();
+    setNamePage();
 });

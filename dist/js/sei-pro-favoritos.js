@@ -812,6 +812,11 @@ function setPanelFavorites(mode) {
     var statusIconShow = ( getOptionsPro('favoritesProDiv') == 'hide' ) ? '' : 'display:none;';
     var statusIconHide = ( getOptionsPro('favoritesProDiv') == 'hide' ) ? 'display:none;' : '';
     var storeFavorites = getStoreFavoritePro()['favorites'];
+        storeFavorites.forEach(function(fav){
+            if (fav.order === null) {
+                fav.order = -1;
+            }
+        });
         storeFavorites = (checkObjHasProperty(storeFavorites, 'order')) ? jmespath.search(storeFavorites, "sort_by([*],&order)") : storeFavorites;
     var arrayProcessosUnidade = getProcessoUnidadePro();
     var selectedCategoryView = (getOptionsPro('panelFavoritosView')) ? getOptionsPro('panelFavoritosView') : '';
@@ -821,19 +826,19 @@ function setPanelFavorites(mode) {
     var checkMaps = (jmespath.search(storeFavorites, "length([?not_null(latlng)])") > 0) ? true : false;
 
     if (listFavorite !== null && listFavorite.length > 0) {
-        var htmlTableFavorites =    '<table class="tableInfo tableZebra tableFollow tableFavoritos tabelaControle" data-name-table="Favoritos" data-tabletype="favoritos" id="favoriteTablePro">'+
+        var htmlTableFavorites =    '<table class="tableInfo tableZebra infraTable tableFollow tableFavoritos tabelaControle" data-name-table="Favoritos" data-tabletype="favoritos" id="favoriteTablePro">'+
                                     '   <caption class="infraCaption" style="text-align: left;">'+countFavorite+'</caption>'+
                                     '   <thead>'+
                                     '       <tr class="tableHeader">'+
-                                    '           <th class="tituloControle" style="width: 50px;" align="center"><label class="lblInfraCheck" for="lnkInfraCheck" accesskey=";"></label><a id="lnkInfraCheck" onclick="getSelectAllTr(this, \'SemGrupo\');"><img src="/infra_css/imagens/check.gif" id="imgRecebidosCheck" title="Selecionar Tudo" alt="Selecionar Tudo" class="infraImg"></a></th>'+
-                                    '           <th class="tituloControle" style="width: 210px;">Processo</th>'+
-                                    '           <th class="tituloControle tituloFilter" data-filter-type="date" style="width: 150px;">Prazo</th>'+
-                                    '           <th class="tituloControle tituloFilter" data-filter-type="etiqueta" style="width: 150px;">Etiqueta</th>'+
-                                    '           <th class="tituloControle tituloFilter" data-filter-type="etiqueta" style="width: 80px;">Mapa</th>'+
-                                    '           <th class="tituloControle">Especifica\u00E7\u00E3o</th>'+
-                                    '           <th class="tituloControle">Tipo de Processo</th>'+
-                                    '           <th class="tituloControle">Categoria</th>'+
-                                    '           <th class="tituloControle" style="width: 50px;" align="center"><i class="fas fa-sort-numeric-up"></i></th>'+
+                                    '           <th class="tituloControle '+(isNewSEI ? 'infraTh' : '')+'" style="width: 50px;" align="center"><label class="lblInfraCheck" for="lnkInfraCheck" accesskey=";"></label><a id="lnkInfraCheck" onclick="getSelectAllTr(this, \'SemGrupo\');"><img src="/infra_css/'+(isNewSEI ? 'svg/check.svg': 'imagens/check.gif')+'" id="imgRecebidosCheck" title="Selecionar Tudo" alt="Selecionar Tudo" class="infraImg"></a></th>'+
+                                    '           <th class="tituloControle '+(isNewSEI ? 'infraTh' : '')+'" style="width: 210px;">Processo</th>'+
+                                    '           <th class="tituloControle '+(isNewSEI ? 'infraTh' : '')+' tituloFilter" data-filter-type="date" style="width: 150px;">Prazo</th>'+
+                                    '           <th class="tituloControle '+(isNewSEI ? 'infraTh' : '')+' tituloFilter" data-filter-type="etiqueta" style="width: 150px;">Etiqueta</th>'+
+                                    '           <th class="tituloControle '+(isNewSEI ? 'infraTh' : '')+' tituloFilter" data-filter-type="etiqueta" style="width: 80px;">Mapa</th>'+
+                                    '           <th class="tituloControle '+(isNewSEI ? 'infraTh' : '')+'">Especifica\u00E7\u00E3o</th>'+
+                                    '           <th class="tituloControle '+(isNewSEI ? 'infraTh' : '')+'">Tipo de Processo</th>'+
+                                    '           <th class="tituloControle '+(isNewSEI ? 'infraTh' : '')+'">Categoria</th>'+
+                                    '           <th class="tituloControle '+(isNewSEI ? 'infraTh' : '')+'" style="width: 50px;" align="center"><i class="fas fa-sort-numeric-up"></i></th>'+
                                     '       </tr>'+
                                     '   </thead>'+
                                     '   <tbody>';
@@ -841,7 +846,7 @@ function setPanelFavorites(mode) {
                 var linkDoc = url_host+'?acao=procedimento_trabalhar&id_procedimento='+value.id_procedimento;
                 var tagsFav = (typeof value.etiquetas !== 'undefined' && value.etiquetas !== null) ? (value.etiquetas.length > 0 ? value.etiquetas.join(';') : value.etiquetas[0]) : '';
                 var tagsFavHtml = (typeof value.etiquetas !== 'undefined') ? $.map(listFavorite[index].etiquetas, function (i) { return getHtmlEtiqueta(i,'fav') }).join('') : '';
-                var tagsFavClass = (typeof value.etiquetas !== 'undefined') ? $.map(listFavorite[index].etiquetas, function (i) { return 'tagTableName_'+removeAcentos(i).replace(/\ /g, '').toLowerCase(); }).join(' ') : '';   
+                var tagsFavClass = (typeof value.etiquetas !== 'undefined') ? $.map(listFavorite[index].etiquetas, function (i) { return 'tagTableName_'+normalizeNameTag(i); }).join(' ') : '';   
                 var datesFav = (typeof value.configdate !== 'undefined' && value.configdate !== null && typeof value.configdate.date !== 'undefined' && value.configdate.date !== null) ? value.configdate.date : '';
                 if (typeof value.configdate !== 'undefined' && value.configdate !== null && typeof value.configdate.dateTo !== 'undefined' && value.configdate.dateTo !== null) { value.configdate.dateTo = moment().format('YYYY-MM-DD') }
                 var datesFavHtml = (typeof value.configdate !== 'undefined' && value.configdate !== null) ? getDatesPreview(value.configdate) : ''; 
@@ -856,8 +861,8 @@ function setPanelFavorites(mode) {
                     htmlTableFavorites +=   '       <tr data-tagname="SemGrupo" data-index="'+index+'" data-id_procedimento="'+value.id_procedimento+'" class="'+tagsFavClass+' '+tagDatesFavClass+'">'+
                                             '           <td align="center"><input type="checkbox" onclick="followSelecionarItens(this)" id="favoritePro_'+value.id_procedimento+'" name="favoritePro" value="'+value.id_procedimento+'"></td>'+
                                             '           <td align="left">'+
-                                            '               <a class="followLinkProcesso" style="text-decoration: underline; color: #00c;" href="'+linkDoc+'">'+
-                                            '               <i class="'+iconProcesso+'" style="color: #00c;text-decoration: underline;"  onmouseover="return infraTooltipMostrar(\''+tipsProcesso+'\');" onmouseout="return infraTooltipOcultar();"></i> '+
+                                            '               <a class="followLinkProcesso bLink" style="text-decoration: underline;" href="'+linkDoc+'">'+
+                                            '               <i class="'+iconProcesso+' bLink" style="text-decoration: underline;"  onmouseover="return infraTooltipMostrar(\''+tipsProcesso+'\');" onmouseout="return infraTooltipOcultar();"></i> '+
                                             '               '+value.processo+'</a>'+
                                             '               <a class="newLink followLink followLinkNewtab" href="'+linkDoc+'" onmouseover="return infraTooltipMostrar(\'Abrir em nova aba\');" onmouseout="return infraTooltipOcultar();" target="_blank"><i class="fas fa-external-link-alt" style="font-size: 90%; text-decoration: underline;"></i></a>'+
                                             '               <div class="info_icons_fav">'+htmlIconsHome+'</div>'+
@@ -891,7 +896,7 @@ function setPanelFavorites(mode) {
                                             '               <a class="newLink followLink followLinkMaps followLinkMapsEdit" onclick="openBoxSingleMap(this)" onmouseover="return infraTooltipMostrar(\'Editar mapa\');" onmouseout="return infraTooltipOcultar();"><i class="fas fa-pencil-alt" style="font-size: 100%;"></i></a>'+
                                             '               <a class="newLink followLink followLinkMaps followLinkMapsAdd" onclick="openBoxSingleMap(this)" onmouseover="return infraTooltipMostrar(\'Adicionar mapa\');" onmouseout="return infraTooltipOcultar();"><i class="fas fa-map-marker-alt" style="font-size: 100%;"></i></a>'+
                                             '           </td>'+
-                                            '           <td class="tdfav_desc">'+
+                                            '           <td class="content_desc">'+
                                             '               <span class="info_txt" style="display:none"><input onblur="saveFollowDesc(this, \'fav\')" onkeypress="keyFollowDesc(event, \'fav\')" value="'+value.descricao+'"></span>'+
                                             '               <span class="info">'+value.descricao+'</span>'+
                                             '               <a class="newLink followLink followLinkDesc" onclick="editFollowDesc(this, \'fav\')" onmouseover="return infraTooltipMostrar(\'Editar especifica\u00E7\u00E3o\');" onmouseout="return infraTooltipOcultar();"><i class="fas fa-pencil-alt" style="font-size: 100%;"></i></a>'+
@@ -925,8 +930,8 @@ function setPanelFavorites(mode) {
                                 '   <div class="infraBarraLocalizacao titlePanelHome">'+
                                 '       <i class="fas fa-star starGold" style="margin: 0 5px; font-size: 1.1em;"></i>'+
                                 '       Favoritos'+
-                                '       <a class="newLink" id="favoritesProDiv_showIcon" onclick="toggleTablePro(\'favoritesProDiv\',\'show\')" onmouseover="return infraTooltipMostrar(\'Mostrar Tabela\');" onmouseout="return infraTooltipOcultar();" style="font-size: 11pt; '+statusIconShow+'"><i class="fas fa-plus-square cinzaColor"></i></a>'+
-                                '       <a class="newLink" id="favoritesProDiv_hideIcon" onclick="toggleTablePro(\'favoritesProDiv\',\'hide\')" onmouseover="return infraTooltipMostrar(\'Recolher Tabela\');" onmouseout="return infraTooltipOcultar();" style="font-size: 11pt; '+statusIconHide+'"><i class="fas fa-minus-square cinzaColor"></i></a>'+
+                                '       <a class="newLink" id="favoritesProDiv_showIcon" onclick="toggleTablePro(\'#favoritesProDiv\',\'show\')" onmouseover="return infraTooltipMostrar(\'Mostrar Tabela\');" onmouseout="return infraTooltipOcultar();" style="font-size: 11pt; '+statusIconShow+'"><i class="fas fa-plus-square cinzaColor"></i></a>'+
+                                '       <a class="newLink" id="favoritesProDiv_hideIcon" onclick="toggleTablePro(\'#favoritesProDiv\',\'hide\')" onmouseover="return infraTooltipMostrar(\'Recolher Tabela\');" onmouseout="return infraTooltipOcultar();" style="font-size: 11pt; '+statusIconHide+'"><i class="fas fa-minus-square cinzaColor"></i></a>'+
                                 '   </div>'+
                                 '   <div id="favoritesProDiv" class="panelHome" style="width: 98%; '+statusView+'">'+
                                 '   	<div id="favoritosProActions" style="top:0; position: absolute; z-index: 9999; left: 190px; width: calc(100% - 230px)">'+
@@ -977,6 +982,7 @@ function setPanelFavorites(mode) {
         initFunctionsPanelFav();
         checkFileSystemInit();
         appendStarOnProcess();
+        console.log('setPanelFavorites');
     } else {
         checkFileLocalFav();
         appendStarOnProcess();
@@ -1013,7 +1019,7 @@ function checkFileSystemInit() {
     }
 }
 function checkFileRemoteFav(mode, data = false) {
-    if (mode == 'get') {
+    if (mode == 'get' && typeof getServerAtividades !== 'undefined' && (typeof checkLoadFavoritesProcPro === 'undefined' || !checkLoadFavoritesProcPro) ) {
         var action = 'check_favoritos';
         var param = {
             action: action
@@ -1023,15 +1029,17 @@ function checkFileRemoteFav(mode, data = false) {
         if (data) {
             var storeFavorites = getStoreFavoritePro();
             var datetime_server = moment(data.datetime,'YYYY-MM-DD HH:mm:ss');
-            var datetime_local = moment(storeFavorites.config.datetime,'YYYY-MM-DD HH:mm:ss');
+            var datetime_local = moment(storeFavorites.datetime,'YYYY-MM-DD HH:mm:ss');
             if (statusLoadRemoteFile && datetime_server.isValid() && datetime_local.isValid() && datetime_server > datetime_local.add(1,'minutes')) {
                 getConfigDatetimeFav();
-                getRemoteFileFav();
-                statusLoadRemoteFile = false;
                 setTimeout(function(){
-                    statusLoadRemoteFile = true;
-                }, 5000);
-                console.log('getRemoteFileFav');
+                    getRemoteFileFav();
+                    statusLoadRemoteFile = false;
+                    setTimeout(function(){
+                        statusLoadRemoteFile = true;
+                    }, 5000);
+                    console.log('getRemoteFileFav', storeFavorites, datetime_server.format('YYYY-MM-DD HH:mm:ss'), datetime_local.add(1,'minutes').format('YYYY-MM-DD HH:mm:ss'));
+                }, 3000);
             }
         }
     }
@@ -1199,6 +1207,7 @@ function initFunctionsPanelFav(TimeOut = 9000) {
             });
             checkboxRangerSelectShift();
             checkFileRemoteFav('get');
+            console.log('initFunctionsPanelFav',TimeOut);
         }, 500);
 
         var filterFav = tableFavorites.find('.tablesorter-filter-row').get(0);
@@ -1238,6 +1247,8 @@ function initFunctionsPanelFav(TimeOut = 9000) {
         }
     } else {
         setTimeout(function(){ 
+            if (typeof $().tagsInput === 'undefined' && TimeOut == 9000) { $.getScript((URL_SPRO+"js/lib/jquery.tagsinput-revisited.js")) }
+            if (typeof $().tablesorter === 'undefined' && TimeOut == 9000) { $.getScript((URL_SPRO+"js/lib/jquery.tablesorter.combined.min.js")) }
             initFunctionsPanelFav(TimeOut - 100); 
             console.log('Reload initFunctionsPanelFav'); 
         }, 500);
@@ -1340,9 +1351,9 @@ function getFavoritesEnviarProcesso() {
                         favoritosLabelOptions(id_procedimento)+
                         '   </div>'+
                         '</div>';
-    ifrVisualizacao.find('#frmAtividadeListar').prepend(htmlAddFav);
+    ifrVisualizacao.find('#frmAtividadeListar').append(htmlAddFav);
     loadStylePro(URL_SPRO+"css/sei-pro.css", ifrVisualizacao.find('head'), ifrVisualizacao);
-    loadStylePro(URL_SPRO+"css/fontawesome.min.css", ifrVisualizacao.find('head'), ifrVisualizacao);
+    loadStylePro((localStorage.getItem('seiSlim') ? URL_SPRO+"css/fontawesome.pro.min.css" : URL_SPRO+"css/fontawesome.min.css"), ifrVisualizacao.find('head'), ifrVisualizacao);
     loadScriptFavoriteTag(ifrVisualizacao);
 }
 function favoritosLabelOptions(id_procedimento) {
@@ -1638,7 +1649,7 @@ function setMultipleMap() {
 
         L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
             maxZoom: 18,
-            attribution: '<a href="https://seipro.app" target="_blank">SEI Pro</a> | Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            attribution: '<a href="https://seipro.app" target="_blank">'+NAMESPACE_SPRO+'</a> | Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
             id: 'mapbox/streets-v11',
             tileSize: 512,
             zoomOffset: -1

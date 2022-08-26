@@ -11,15 +11,37 @@ function loadAPIGooglePro() {
         $(htmlScript).appendTo('head');
     }
 }
+/*
+function loadAPIGooglePro(client_id) {
+    $('[data-script-name="googleapi"]').remove();
+    var tagScriptApi = '<script data-script-name="googleapi" src="https://apis.google.com/js/api.js" async defer></script>';
+    var tagScriptLogin = '<script data-script-name="googleapi" src="https://accounts.google.com/gsi/client" async defer></script>';
+    var metaLogin = '<div class="sheetsLoginPro" style="display: inline-block;vertical-align: middle;">'+
+                    '   <div id="g_id_onload" '+
+                    '       data-callback="handleClientLoadPro" '+
+                    '       data-client_id="444596184286-2g4m3ktqc2neuntba0a3j9eh5rk5r4c8.apps.googleusercontent.com"'+
+                    '       data-context="use"'+
+                    '       data-ux_mode="popup"'+
+                    '       data-auto_prompt="true"'+
+                    '       data-auto_select="true"'+
+                    '   ></div>'+
+                    '   <div class="g_id_signin" '+
+                    '       data-type="icon"'+
+                    '       data-shape="circle"'+
+                    '       data-theme="outline"'+
+                    '       data-text="$ {button.text}"'+
+                    '       data-size="large"'+
+                    '   ></div>'+
+                    '</div>';
+    $('.sheetsLoginPro').remove();
+    $(tagScriptApi+tagScriptLogin).appendTo('head');
+    $('#divInfraBarraSistemaD').prepend(metaLogin);
+}
+*/
 function divIconsLoginPro() {
     var html_initLogin = '<div class="infraAcaoBarraSistema sheetsLoginPro" style="display: inline-block;">'
                             +'  <a id="authorizeButtonPro" href="#" data-tippy-content="Conectar Base de Dados (SeiPro)" onmouseover="return infraTooltipMostrar(\'Conectar Base de Dados (SeiPro)\');" onmouseout="return infraTooltipOcultar();" style="display: none;"><i class="fas fa-toggle-off brancoColor"></i></a>'
                             +'  <a id="signoutButtonPro" href="#" data-tippy-content="Desconectar Base de Dados (SeiPro)" onmouseover="return infraTooltipMostrar(\'Conectado! Clique para desconectar Base de Dados (SeiPro)\');" onmouseout="return infraTooltipOcultar();" style="display: none;"><i class="fas fa-toggle-on brancoColor"></i></a>'
-                            +'  <div id="alertaBoxPro" style="display: none;"></div>'
-                            +'  <div id="dialogBoxPro" style="display: none;"></div>'
-                            +'  <div id="configBoxPro" style="display: none;"></div>'
-                            +'  <div id="iframeBoxPro" style="display: none;"></div>'
-                            +'  <div id="editorBoxPro" style="display: none;"></div>'
                             +'</div>';
     if ($('#divInfraBarraSistemaD').length > 0) {
         $('#divInfraBarraSistemaD').append(html_initLogin);
@@ -33,14 +55,9 @@ function classBodyPro() {
         $('body').addClass('SeiPro_'+acao_pro);
     }
 }
-function divDialogsPro() {
-    var html_Dialog = '  <div id="alertaBoxPro" style="display: none;"></div>'
-                        +'  <div id="dialogBoxPro" style="display: none;"></div>';
-    $('#divInfraBarraSistemaD').append(html_Dialog);
-}
 function getUrlExtension(url) {
     if (typeof browser === "undefined") {
-        return chrome.extension.getURL(url);
+        return chrome.runtime.getURL(url);
     } else {
         return browser.runtime.getURL(url);
     }
@@ -72,11 +89,24 @@ function loadConfigPro() {
 function loadScriptDataBasePro(dataValues) { 
     var dataValues = localStorageRestorePro('configBasePro');
     var dataValues_ProjetosSheets = jmespath.search(dataValues, "[?baseTipo=='projetos'] | [?conexaoTipo=='sheets'] | [?API_KEY!='']");
+    var dataValues_FormulariosSheets = jmespath.search(dataValues, "[?baseTipo=='formularios'] | [?conexaoTipo=='sheets'] | [?API_KEY!='']");
+    var dataValues_ProcessosSheets = jmespath.search(dataValues, "[?baseTipo=='processos'] | [?conexaoTipo=='sheets'] | [?API_KEY!='']");
     var dataValues_AtividadesAPI = jmespath.search(dataValues, "[?baseTipo=='atividades'] | [?conexaoTipo=='api'||conexaoTipo=='googleapi']");
+    // console.log(dataValues, dataValues_ProjetosSheets);
     if (dataValues_ProjetosSheets.length > 0 && checkConfigValue('gerenciarprojetos')) {
         loadDataBaseSheetsProjetosPro(dataValues_ProjetosSheets);
     } else {
         localStorageRemovePro('loadEtapasSheet');
+    }
+    if (dataValues_FormulariosSheets.length > 0 && checkConfigValue('gerenciarformularios')) {
+        loadDataBaseSheetsFormulariosPro(dataValues_FormulariosSheets);
+    } else {
+        localStorageRemovePro('loadFormulariosSheet');
+    }
+    if (dataValues_ProcessosSheets.length > 0 && checkConfigValue('sincronizarprocessos')) {
+        loadDataBaseSheetsProcessosPro(dataValues_ProcessosSheets);
+    } else {
+        localStorageRemovePro('loadSyncProcessosSheet');
     }
     if (dataValues_AtividadesAPI.length > 0 && checkConfigValue('gerenciaratividades')) {
         loadDataBaseApiAtividadesPro(dataValues_AtividadesAPI);
@@ -122,12 +152,66 @@ function loadDataBaseSheetsProjetosPro(dataValues) {
             $(scriptText).appendTo('head');
 
     if ( typeof dataPerfil.spreadsheetId !== 'undefined' ) {
-            loadAPIGooglePro();
+            loadAPIGooglePro(CLIENT_ID_PRO);
             $.getScript(getUrlExtension("js/sei-gantt.js"));
         } else {
             console.log('loadDataBaseSheetsProjetosPro','ERROR!!!');
             localStorage.removeItem('loadEtapasSheet');
             removeOptionsPro('configBaseSelectedPro');
+        }
+}
+function loadDataBaseSheetsFormulariosPro(dataValues) { 
+        var dataPerfil = [];
+        var perfilSelected = (getOptionsPro('configBaseSelectedFormPro')) ? getOptionsPro('configBaseSelectedFormPro') : 0;
+        for (var i = 0; i < dataValues.length; i++) {
+            if ( dataValues[i].baseName == perfilSelected || ( perfilSelected == 0 && i == 0 ) ) { dataPerfil = dataValues[i]; }
+        }
+
+        var spreadsheetIdFormularios_Pro = ( typeof dataPerfil.spreadsheetId !== 'undefined' ) ? "'"+dataPerfil.spreadsheetId+"'" : 'false';
+        var CLIENT_ID_PRO = ( typeof dataPerfil.CLIENT_ID !== 'undefined' ) ? "'"+dataPerfil.CLIENT_ID+"'" : 'false';
+        var API_KEY_PRO = ( typeof dataPerfil.API_KEY !== 'undefined' ) ? "'"+dataPerfil.API_KEY+"'" : 'false';
+
+            var scriptText =    "<script data-config='base-formularios-seipro'>\n"+
+                                "   var CLIENT_ID_PRO = "+CLIENT_ID_PRO+";\n"+
+                                "   var API_KEY_PRO = "+API_KEY_PRO+";\n"+
+                                "   var spreadsheetIdFormularios_Pro = "+spreadsheetIdFormularios_Pro+";\n"+
+                                "</script>";
+            $(scriptText).appendTo('head');
+
+    if ( typeof dataPerfil.spreadsheetId !== 'undefined' ) {
+            loadAPIGooglePro(CLIENT_ID_PRO);
+            $.getScript(getUrlExtension("js/sei-forms.js"));
+        } else {
+            console.log('loadDataBaseSheetsFormulariosPro','ERROR!!!');
+            localStorage.removeItem('loadFormulariosSheet');
+            removeOptionsPro('configBaseSelectedFormPro');
+        }
+}
+function loadDataBaseSheetsProcessosPro(dataValues) { 
+        var dataPerfil = [];
+        var perfilSelected = (getOptionsPro('configBaseSelectedProcessosPro')) ? getOptionsPro('configBaseSelectedProcessosPro') : 0;
+        for (var i = 0; i < dataValues.length; i++) {
+            if ( dataValues[i].baseName == perfilSelected || ( perfilSelected == 0 && i == 0 ) ) { dataPerfil = dataValues[i]; }
+        }
+
+        var spreadsheetIdSyncProcessos_Pro = ( typeof dataPerfil.spreadsheetId !== 'undefined' ) ? "'"+dataPerfil.spreadsheetId+"'" : 'false';
+        var CLIENT_ID_PRO = ( typeof dataPerfil.CLIENT_ID !== 'undefined' ) ? "'"+dataPerfil.CLIENT_ID+"'" : 'false';
+        var API_KEY_PRO = ( typeof dataPerfil.API_KEY !== 'undefined' ) ? "'"+dataPerfil.API_KEY+"'" : 'false';
+
+            var scriptText =    "<script data-config='base-processos-seipro'>\n"+
+                                "   var CLIENT_ID_PRO = "+CLIENT_ID_PRO+";\n"+
+                                "   var API_KEY_PRO = "+API_KEY_PRO+";\n"+
+                                "   var spreadsheetIdSyncProcessos_Pro = "+spreadsheetIdSyncProcessos_Pro+";\n"+
+                                "</script>";
+            $(scriptText).appendTo('head');
+
+    if ( typeof dataPerfil.spreadsheetId !== 'undefined' ) {
+            loadAPIGooglePro(CLIENT_ID_PRO);
+            $.getScript(getUrlExtension("js/sei-sync-processos.js"));
+        } else {
+            console.log('loadDataBaseSheetsProcessosPro','ERROR!!!');
+            localStorage.removeItem('loadSyncProcessosSheet');
+            removeOptionsPro('configBaseSelectedFormPro');
         }
 }
 function loadDataBaseProStorage(items) { 
@@ -142,33 +226,54 @@ function loadDataBaseProStorage(items) {
         removeLocalStorageAtividades();
     }
 }
-function loadFontIcons(elementTo) {
-    if ($('link[data-style="seipro-fonticon"]').length == 0 && $('style[data-style="seipro-fonticon"]').length == 0) {
+function loadFontIcons(elementTo, target = $('html')) {
+    var iconBoxSlim = (localStorage.getItem('seiSlim')) ? true : false;
+    var pathExtension = pathExtensionSEIPro();
+    if (target.find('link[data-style="seipro-fonticon"]').length == 0 && target.find('style[data-style="seipro-fonticon"]').length == 0) {
         $("<link/>", {
-        rel: "stylesheet",
-        type: "text/css",
-        datastyle: "seipro-fonticon",
-        href: getUrlExtension("css/fontawesome.min.css")
-            
-        }).appendTo(elementTo);
-        $('head').prepend("<style type='text/css' data-style='seipro-fonticon'>"
-                        +"   @font-face {\n"
-                        +"    font-family: \"Font Awesome 5 Free SEIPro\";\n"
-                        +"    font-style: normal;\n"
-                        +"    font-weight: 900;\n"
-                        +"    font-display: block;\n"
-                        +"    src: url("+pathExtensionSEIPro()+"webfonts/fa-solid-900.eot);\n"
-                        +"    src: url("+pathExtensionSEIPro()+"webfonts/fa-solid-900.eot?#iefix) format(\"embedded-opentype\"),url("+pathExtensionSEIPro()+"webfonts/fa-solid-900.woff2) format(\"woff2\"),url("+pathExtensionSEIPro()+"webfonts/fa-solid-900.woff) format(\"woff\"),url("+pathExtensionSEIPro()+"webfonts/fa-solid-900.ttf) format(\"truetype\"),url("+pathExtensionSEIPro()+"webfonts/fa-solid-900.svg#fontawesome) format(\"svg\")\n"
-                        +"}\n"
-                        +"@font-face {\n"
-                        +"    font-family: \"Font Awesome 5 Free SEIPro\";\n"
-                        +"    font-style: normal;\n"
-                        +"    font-weight: 400;\n"
-                        +"    font-display: block;\n"
-                        +"    src: url("+pathExtensionSEIPro()+"webfonts/fa-regular-400.eot);\n"
-                        +"    src: url("+pathExtensionSEIPro()+"webfonts/fa-regular-400.eot?#iefix) format(\"embedded-opentype\"),url("+pathExtensionSEIPro()+"webfonts/fa-regular-400.woff2) format(\"woff2\"),url("+pathExtensionSEIPro()+"webfonts/fa-regular-400.woff) format(\"woff\"),url("+pathExtensionSEIPro()+"webfonts/fa-regular-400.ttf) format(\"truetype\"),url("+pathExtensionSEIPro()+"webfonts/fa-regular-400.svg#fontawesome) format(\"svg\")\n"
-                        +"}\n"
-                        +"</style>");
+            rel: "stylesheet",
+            type: "text/css",
+            datastyle: "seipro-fonticon",
+            href: getUrlExtension(iconBoxSlim ? "css/fontawesome.pro.min.css" : "css/fontawesome.min.css") 
+        }).appendTo(target.find(elementTo));
+        
+        var htmlStyleFont = '<style type="text/css" data-style="seipro-fonticon" data-index="5">'+
+                            '    @font-face {\n'+
+                            '       font-family: "Font Awesome 5 '+(iconBoxSlim ? 'Pro' : 'Free')+'";\n'+
+                            '       font-style: normal;\n'+
+                            '       font-weight: 900;\n'+
+                            '       font-display: block;\n'+
+                            '       src: url('+pathExtension+'webfonts'+(iconBoxSlim ? "/pro/" : "/")+'fa-solid-900.eot) !important;\n'+
+                            '       src: url('+pathExtension+'webfonts'+(iconBoxSlim ? "/pro/" : "/")+'fa-solid-900.eot?#iefix) format("embedded-opentype"),url('+pathExtension+'webfonts'+(iconBoxSlim ? "/pro/" : "/")+'fa-solid-900.woff2) format("woff2"),url('+pathExtension+'webfonts'+(iconBoxSlim ? "/pro/" : "/")+'fa-solid-900.woff) format("woff"),url('+pathExtension+'webfonts'+(iconBoxSlim ? "/pro/" : "/")+'fa-solid-900.ttf) format("truetype"),url('+pathExtension+'webfonts'+(iconBoxSlim ? "/pro/" : "/")+'fa-solid-900.svg#fontawesome) format("svg") !important;\n'+
+                            '   }\n'+
+                            '   @font-face {\n'+
+                            '       font-family: \"Font Awesome 5 '+(iconBoxSlim ? 'Pro' : 'Free')+'";\n'+
+                            '       font-style: normal;\n'+
+                            '       font-weight: 400;\n'+
+                            '       font-display: block;\n'+
+                            '       src: url('+pathExtension+'webfonts'+(iconBoxSlim ? "/pro/" : "/")+'fa-regular-400.eot) !important;\n'+
+                            '       src: url('+pathExtension+'webfonts'+(iconBoxSlim ? "/pro/" : "/")+'fa-regular-400.eot?#iefix) format("embedded-opentype"),url('+pathExtension+'webfonts'+(iconBoxSlim ? "/pro/" : "/")+'fa-regular-400.woff2) format("woff2"),url('+pathExtension+'webfonts'+(iconBoxSlim ? "/pro/" : "/")+'fa-regular-400.woff) format("woff"),url('+pathExtension+'webfonts'+(iconBoxSlim ? "/pro/" : "/")+'fa-regular-400.ttf) format("truetype"),url('+pathExtension+'webfonts'+(iconBoxSlim ? "/pro/" : "/")+'fa-regular-400.svg#fontawesome) format("svg") !important;\n'+
+                            '   }\n'+
+                            (iconBoxSlim ?
+                            '   @font-face { \n'+
+                            '       font-family: "Font Awesome 5 Pro";\n'+
+                            '       font-style: normal;\n'+
+                            '       font-weight: 300;\n'+
+                            '       font-display: block;\n'+
+                            '       src: url('+pathExtension+'webfonts/pro/fa-light-300.eot) !important;\n'+
+                            '       src: url('+pathExtension+'webfonts/pro/fa-light-300.eot?#iefix) format("embedded-opentype"), url('+pathExtension+'webfonts/pro/fa-light-300.woff2) format("woff2"), url('+pathExtension+'webfonts/pro/fa-light-300.woff) format("woff"), url('+pathExtension+'webfonts/pro/fa-light-300.ttf) format("truetype"), url('+pathExtension+'webfonts/pro/fa-light-300.svg#fontawesome) format("svg") !important; }\n'+
+                            '   }\n'+
+                            '   @font-face {\n'+
+                            '       font-family: \"Font Awesome 5 Duotone\";\n'+
+                            '       font-style: normal;\n'+
+                            '       font-weight: 900;\n'+
+                            '       font-display: block;\n'+
+                            '       src: url('+pathExtension+'webfonts/pro/fa-duotone-900.eot) !important;\n'+
+                            '       src: url('+pathExtension+'webfonts/pro/fa-duotone-900.eot?#iefix) format(\"embedded-opentype\"), url('+pathExtension+'webfonts/pro/fa-duotone-900.woff2) format("woff2"), url('+pathExtension+'webfonts/pro/fa-duotone-900.woff) format("woff"), url('+pathExtension+'webfonts/pro/fa-duotone-900.ttf) format("truetype"), url('+pathExtension+'webfonts/pro/fa-duotone-900.svg#fontawesome) format("svg") !important; }\n'+
+                            '   }\n'
+                            : '')
+                            '</style>';
+        target.find('head').append(htmlStyleFont);
     }
 }
 function loadStylePro(url, elementTo) {
@@ -189,12 +294,37 @@ function loadScriptArvorePro() {
         $('#ifrArvore').on("load", function() {
             var iframeObjArvore = $('#ifrArvore').contents().find('head');
             var scriptArvore =  "<script data-config='config-seipro-arvore'>"+
-                                "   parent.execArvorePro(initSeiProArvore);\n"+
+                                "   $(document).ready(function () { \n"+
+                                "       function initLoadSeiProArvore(TimeOut = 1000) { \n"+
+                                "           if (TimeOut <= 0) { return; } \n"+
+                                "           if (typeof initSeiProArvore !== 'undefined' ) {  \n"+
+                                "               parent.execArvorePro(initSeiProArvore); \n"+
+                                "           } else { \n"+
+                                "               setTimeout(function(){  \n"+
+                                "                   initLoadSeiProArvore(TimeOut - 100);  \n"+
+                                "                   console.log('Reload initLoadSeiProArvore');  \n"+
+                                "               }, 500); \n"+
+                                "           } \n"+
+                                "       } \n"+
+                                "       initLoadSeiProArvore(); \n"+
+                                "   });\n"+
+                                // "   parent.execArvorePro(initSeiProArvore);\n"+
                                 "</script>";
             $(scriptArvore).prependTo(iframeObjArvore);
         });
     }
 }
+
+function loadStyleDesign(body = $('body'), secondClass = false) {
+    if (localStorage.getItem('seiSlim')) {
+        body.addClass("seiSlim");
+        if (secondClass) body.addClass("seiSlim_"+secondClass);
+        if (localStorage.getItem('darkModePro')) {
+            body.addClass("dark-mode");
+        }
+    }
+}
+loadStyleDesign();
 function loadScriptVisualizacaoPro() {
     if ( $('#ifrVisualizacao').length ) {
         $('#ifrVisualizacao').on("load", function() {
@@ -205,6 +335,8 @@ function loadScriptVisualizacaoPro() {
                                         "   parent.checkPageFavoritosVisualizacao();\n"+
                                         "</script>";
             $(scriptVisualizacao).prependTo(iframeObjVisualizacao);
+            loadStyleDesign($('#ifrVisualizacao').contents().find('body'), 'view');
+            loadFontIcons('head', $('#ifrVisualizacao').contents());
         });
     }
 }
@@ -219,18 +351,19 @@ function getPathExtensionPro() {
         var manifest = getManifestExtension();
         var VERSION_SPRO = manifest.version;
         var NAMESPACE_SPRO = manifest.short_name;
+        var URLPAGES_SPRO = manifest.homepage_url;
         var scriptText =    "<script data-config='config-seipro'>\n"+
                             "   var URL_SPRO = '"+URL_SPRO+"';\n"+
                             "   var VERSION_SPRO = '"+VERSION_SPRO+"';\n"+
                             "   var NAMESPACE_SPRO = '"+NAMESPACE_SPRO+"';\n"+
+                            "   var URLPAGES_SPRO = '"+URLPAGES_SPRO+"';\n"+
                             "</script>";
         $(scriptText).appendTo('head');
-
-        if (NAMESPACE_SPRO != 'SPro') {
-            sessionStorage.setItem('other_extension', URL_SPRO);
-            console.log(manifest);
-        }
+        setSessionNameSpace({URL_SPRO: URL_SPRO, NAMESPACE_SPRO: NAMESPACE_SPRO, URLPAGES_SPRO: URLPAGES_SPRO, VERSION_SPRO: VERSION_SPRO, ICON_SPRO: manifest.icons});
     }
+}
+function setSessionNameSpace(param) {
+    sessionStorage.setItem((param.NAMESPACE_SPRO != 'SPro' ? 'new_extension' : 'old_extension'),  JSON.stringify(param));
 }
 function loadScriptPro() {
     getPathExtensionPro();
@@ -241,11 +374,11 @@ function loadScriptPro() {
                 $.getScript(getUrlExtension("js/lib/moment.min.js"));
                 $.getScript(getUrlExtension("js/lib/jquery-qrcode-0.18.0.min.js"));
                 $.getScript(getUrlExtension("js/sei-pro-editor.js"));
+                $.getScript(getUrlExtension("js/sei-legis.js"));
                 console.log('loadScriptPro-Editor');
         	});
 	    },500);
 	} else {
-        divDialogsPro();
         classBodyPro();
         loadFilesUI();
         loadFontIcons('head');
@@ -270,11 +403,16 @@ function loadScriptPro() {
 }
 if (getManifestExtension().short_name == 'SPro') {
     setTimeout(function(){ 
-        if (sessionStorage.getItem('other_extension') === null){
+        if (sessionStorage.getItem('new_extension') === null){
             loadScriptPro();
             console.log('@@@ LOADING SPRO');
         } else {
             console.log('&&&&&&& RECUSE SPRO');
+            var URL_SPRO = pathExtensionSEIPro();
+            var manifest = getManifestExtension();
+            var VERSION_SPRO = manifest.version;
+            var NAMESPACE_SPRO = manifest.short_name;
+            setSessionNameSpace({URL_SPRO: URL_SPRO, NAMESPACE_SPRO: NAMESPACE_SPRO, VERSION_SPRO: VERSION_SPRO, ICON_SPRO: manifest.icons});
         }
     }, 1000);
 } else {

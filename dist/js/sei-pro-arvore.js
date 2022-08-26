@@ -1,10 +1,13 @@
 var arrayLinksArvore = [];
+var arrayLinksArvoreAll = [];
+var arrayIconsView = [];
 var arrayLinksPage = [];
 var arvoreDropzone = false;
 var containerUpload = 'body';
 var delayAjax = false;
 var selectedItensPanelArvore = false;
 var stickNoteDivSelected = 0;
+var pathArvore = parent.isNewSEI ? '/infra_js/arvore/24/' : '/infra_js/arvore/';
 
 function initCSSArvore() {
     if ( $('head').find('style[data-style="seipro"]').length == 0 ) {
@@ -19,16 +22,28 @@ function initCSSArvore() {
             +"</style>");
     }
 }
-function initToolbarDocs() {
-    var selectedItensMenu = ( typeof localStorageRestorePro('configViewFlashMenuPro') !== 'undefined' && !$.isEmptyObject(localStorageRestorePro('configViewFlashMenuPro')) ) ? localStorageRestorePro('configViewFlashMenuPro') : [['Copiar n\u00FAmero do processo'],['Copiar link do processo'],['Enviar Documento Externo'],['Atribuir Processo']];
+
+function initToolbarDocs(TimeOut = 9000) {
+    if (TimeOut <= 0) { return; }
+    if (typeof jmespath !== 'undefined') { 
+        setToolbarDocs();
+    } else {
+        setTimeout(function(){ 
+            initToolbarDocs(TimeOut - 100); 
+            console.log('Reload initToolbarDocs'); 
+        }, 500);
+    }
+}
+function setToolbarDocs() {
+    var selectedItensMenu = ( typeof localStorageRestorePro('configViewFlashMenuPro') !== 'undefined' && !$.isEmptyObject(localStorageRestorePro('configViewFlashMenuPro')) ) ? localStorageRestorePro('configViewFlashMenuPro') : [['Copiar n\u00FAmero do processo'],['Copiar link do processo'],['Enviar Documento Externo'],['A\u00E7\u00F5es em lote'],['Atribuir Processo']];
     var selectedItensDocMenu = ( typeof localStorageRestorePro('configViewFlashDocMenuPro') !== 'undefined' && !$.isEmptyObject(localStorageRestorePro('configViewFlashDocMenuPro')) ) ? localStorageRestorePro('configViewFlashDocMenuPro') : [['Copiar n\u00FAmero SEI'],['Copiar nome do documento'],['Copiar link do documento'],['Duplicar documento'],['Copiar para...']];
     var selectedItensDocArvore = ( typeof localStorageRestorePro('configViewFlashDocArvorePro') !== 'undefined' && !$.isEmptyObject(localStorageRestorePro('configViewFlashDocArvorePro')) ) ? localStorageRestorePro('configViewFlashDocArvorePro') : [["Copiar n\u00FAmero SEI"],["Copiar link do documento"],["Duplicar documento"]];
-        selectedItensPanelArvore = ( typeof localStorageRestorePro('configViewFlashPanelArvorePro') !== 'undefined' && !$.isEmptyObject(localStorageRestorePro('configViewFlashPanelArvorePro')) ) ? localStorageRestorePro('configViewFlashPanelArvorePro') : [["Anota\u00E7\u00F5es"],["Tipo de Procedimento"],["Assuntos"],["Interessados"],["Atribui\u00E7\u00E3o"],["N\u00EDvel de Acesso"],["Observa\u00E7\u00F5es"]];
+        selectedItensPanelArvore = ( typeof localStorageRestorePro('configViewFlashPanelArvorePro') !== 'undefined' && !$.isEmptyObject(localStorageRestorePro('configViewFlashPanelArvorePro')) ) ? localStorageRestorePro('configViewFlashPanelArvorePro') : [["Anota\u00E7\u00F5es"],["Marcador"],["Tipo de Procedimento"],["Assuntos"],["Interessados"],["Atribui\u00E7\u00E3o"],["N\u00EDvel de Acesso"],["Observa\u00E7\u00F5es"]];
     
     var htmlToolbarProc =   '<div id="toolbar-options-proc" class="hidden">';
         if (getOptionsPro('optionsFlashMenu_menuproc') != 'disabled') {
             $.each(selectedItensMenu,function(index, value){
-                var data = jmespath.search(arrayLinksArvore, "[?name=='"+value[0]+"'] | [0]");
+                var data = (typeof jmespath !== 'undefined') ? jmespath.search(arrayLinksArvore, "[?name=='"+value[0]+"'] | [0]") : null;
                 if ( data !== null ) {
                     var valueAlt = ( data.alt != '' ) ? data.alt : data.name;
                     htmlToolbarProc +=  '   <a href="#" data-action="linksArvore" style="width: 175px;"><i class="fa '+data.icon+'"></i><span class="info" title="'+data.name+'" alt="'+valueAlt+'">'+valueAlt+'</span></a>';
@@ -42,10 +57,11 @@ function initToolbarDocs() {
     if (getOptionsPro('optionsFlashMenu_menudoc') != 'disabled') {
         htmlToolbarDoc =    '<div id="toolbar-options-doc" class="hidden">';
         $.each(selectedItensDocMenu,function(index, value){
-            var data = jmespath.search(iconsFlashDocMenu, "[?name=='"+value[0]+"'] | [0]");
+            var data = (typeof jmespath !== 'undefined') ? jmespath.search(iconsFlashDocMenu, "[?name=='"+value[0]+"'] | [0]") : null;
             if ( data !== null ) {
                 var valueAlt = ( data.alt != '' ) ? data.alt : data.name;
-                htmlToolbarDoc +=  '   <a href="#" data-action="linksArvore" style="width: 175px;"><i class="fa '+data.icon+'"></i><span class="info" title="'+data.name+'" alt="'+valueAlt+'">'+valueAlt+'</span></a>';
+                var show = (data.show) ? '' : 'display:none;';
+                htmlToolbarDoc +=  '   <a href="#" data-action="linksArvore" style="width: 175px;'+show+'"><i class="fa '+data.icon+'"></i><span class="info" title="'+data.name+'" alt="'+valueAlt+'">'+valueAlt+'</span></a>';
             }
         });
         htmlToolbarDoc +=  '</div>';
@@ -53,7 +69,7 @@ function initToolbarDocs() {
 
     if (getOptionsPro('optionsFlashMenu_iconstree') != 'disabled') {
         $.each(reverseArray(selectedItensDocArvore),function(index, value){
-            var data = jmespath.search(iconsFlashDocArvore, "[?name=='"+value[0]+"'] | [0]");
+            var data = (typeof jmespath !== 'undefined') ? jmespath.search(iconsFlashDocArvore, "[?name=='"+value[0]+"'] | [0]") : null;
             if ( data !== null ) {
                 addIconActionsArvore({name: data.name, mode: data.mode, action: data.action, icon: data.icon, alt: data.alt});
             }
@@ -112,6 +128,9 @@ function actionToolbarPro(this_, triggerButton) {
         } else if ( button_txt == 'Copiar n\u00FAmero SEI' ) {
             callActionsArvore(doc, 'copy');
             button_clicktxt = 'N\u00FAmero copiado!';
+        } else if ( button_txt == 'A\u00E7\u00F5es em lote' ) {
+            parent.getDocumentosActions();
+            closeToolbarPro();
         } else if ( button_txt == 'Enviar Documento Externo' ) {
             openModalDropzone();
             closeToolbarPro();
@@ -129,9 +148,59 @@ function actionToolbarPro(this_, triggerButton) {
         } else if ( button_txt == 'Copiar nome com link' ) {
             callActionsArvore(doc, 'namelink');
             button_clicktxt = 'Nome e link copiado!';
+        } else if ( button_txt == 'Copiar n\u00FAmero com link' ) {
+            callActionsArvore(doc, 'numberlink');
+            button_clicktxt = 'Nome e link copiado!';
         } else if ( button_txt == 'Copiar link do documento' ) {
             callActionsArvore(doc, 'link');
-            button_clicktxt = 'Link copiado!';
+        } else if ( button_txt == 'Imprimir Web' ) {
+            callActionsArvore(doc, 'print');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Visualizar em nova aba' ) {
+            callActionsArvore(doc, 'view');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Consultar documento' ) {
+            callActionsArvore(doc, 'doc_view');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Incluir em bloco' ) {
+            callActionsArvore(doc, 'doc_bloco');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Cancelar documento' ) {
+            callActionsArvore(doc, 'doc_cancelar');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Vers\u00F5es do documento' ) {
+            callActionsArvore(doc, 'doc_versoes');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Gerar circular' ) {
+            callActionsArvore(doc, 'doc_circular');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Assinatura externa' ) {
+            callActionsArvore(doc, 'doc_assinatura_externa');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Excluir documento' ) {
+            callActionsArvore(doc, 'doc_excluir');
+            button_clicktxt = 'Excluindo...';
+        } else if ( button_txt == 'Editar documento' ) {
+            callActionsArvore(doc, 'doc_editar');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Assinar documento' ) {
+            callActionsArvore(doc, 'doc_assinar');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Adicionar aos favoritos' ) {
+            callActionsArvore(doc, 'doc_favorito');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Ci\u00EAncia' ) {
+            callActionsArvore(doc, 'doc_ciencia');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Enviar por e-mail' ) {
+            callActionsArvore(doc, 'doc_email');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Mover p/ outro processo' ) {
+            callActionsArvore(doc, 'doc_mover');
+            button_clicktxt = 'Abrindo...';
+        } else if ( button_txt == 'Intima\u00E7\u00E3o eletr\u00F4nica' ) {
+            callActionsArvore(doc, 'doc_intimacao');
+            button_clicktxt = 'Abrindo...';
         } else {
             parent.targetIfrVisualizacaoPro(url);
         }
@@ -193,8 +262,42 @@ function getToolbarPro(click) {
             }).on('toolbarShown', function( event ) {
                 $(event.currentTarget).addClass('highlight');
                 $(event.currentTarget).next().addClass('highlight');
+                var id_documento = $(event.currentTarget).attr('id');
+                    id_documento = (typeof id_documento !== 'undefined') ? parseInt(id_documento.replace('anchorImg','')) : false;
+                var listLinks = (id_documento) ? arrayLinksArvoreAll.filter(function(v){ return v.indexOf('id_documento='+id_documento) !== -1 }) : [];
+                    setTimeout(function () { 
+                        var toolbar = $('.tool-container.tool-bottom.toolbar-menu.animate-standard:visible');
+                        if (id_documento && listLinks.length > 0 && toolbar.length > 0) {
+                                updateLinksToolbar(toolbar, listLinks, id_documento, false);
+                                var doc = listLinks.filter(function(v){ return (v.indexOf('acao=arvore_visualizar') !== -1 && v.indexOf('id_documento='+id_documento) !== -1) });
+                                if (doc.length > 0) {
+                                    setTimeout(function () { 
+                                        if (toolbar.is(':visible') && !delayAjax) {
+                                            delayAjax = true;
+                                            setTimeout(function(){ delayAjax = false }, 1000);
+                                            $.ajax({ url: doc[0] }).done(function (html) {
+                                                var $html = $(html);
+                                                var textLink = $html.filter('script').not('[src*="js"]').text();
+                                                var arrayLinksArvoreDoc = getLinksInText(textLink);
+
+                                                var objIndexLink = (typeof arrayLinksArvoreAll === 'undefined' || arrayLinksArvoreAll.length == 0) ? -1 : arrayLinksArvoreAll.findIndex((obj => obj == doc[0]));
+                                                if (objIndexLink !== -1) {
+                                                    arrayLinksArvoreAll.splice(objIndexLink, 1);
+                                                }
+
+                                                $.merge(arrayLinksArvoreAll, arrayLinksArvoreDoc);
+                                                setTimeout(function () {
+                                                    updateLinksToolbar(toolbar, arrayLinksArvoreAll.filter(function(v){ return v.indexOf('id_documento='+id_documento) !== -1 }), id_documento, true);
+                                                    // console.log(arrayLinksArvoreAll.filter(function(v){ return v.indexOf('id_documento='+id_documento) !== -1 }));
+                                                }, 300);
+                                            });
+                                        }
+                                    }, 300);
+                                }
+                        }
+                    }, 300);
                 if (click) {
-                checkToolbarToClose();
+                    checkToolbarToClose();
                 }
                 setTimeout(function () { 
                     if ( $('.tool-container.tool-bottom.toolbar-menu.animate-standard:visible').length > 0 ) {
@@ -214,6 +317,90 @@ function getToolbarPro(click) {
             });  
         }
     }
+}
+
+function getLinksArvorePasta(nomePasta) {
+    var href = (nomePasta) ? arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('procedimento_paginar') !== -1 && v.indexOf('no_pai='+nomePasta) !== -1) }) : [];
+    if (href.length > 0) {
+        $.ajax({ 
+            method: 'POST',
+            url: href[0],
+            data: {
+                hdnArvore: $('#hdnArvore').val(),
+                hdnPastaAtual: $('#hdnPastaAtual').val(),
+                hdnProtocolos: $('#hdnProtocolos').val(),
+            }
+        }).done(function (html) {
+            var newLinks = getLinksInText(html);
+                $.merge(newLinks, arrayLinksArvoreAll);
+                newLinks = uniqPro(newLinks);
+                arrayLinksArvoreAll = newLinks;
+        });
+    }
+}
+function getLinksInText(text) {
+    var array = [];
+    text.split("'").filter(function(el) { return el.indexOf('controlador.php') !== -1 }).map(function(v){
+        if (v.indexOf('\"') !== -1) {
+            v.split('"').filter(function(i){ return i.indexOf('controlador.php') !== -1}).map(function(j){
+                var link = j.replace(/[\\"]/g, '');
+                array.push(link);
+            });
+            return false;
+        } else {
+            var link = v.replace(/[\\"]/g, '');
+            array.push(link);
+            return false;
+        }
+    });
+    array = (array.length > 0) 
+        ?   array.sort().filter(function(item, pos, ary) {
+                return !pos || item != ary[pos - 1];
+            }) 
+        : [];
+    return array;
+}
+function updateLinksToolbar(toolbar, listLinks, id_documento, checkIconsView = false) {
+    var listIconsView = (checkIconsView && arrayIconsView.length > 0) ? jmespath.search(arrayIconsView, "[?id_documento==`"+id_documento+"`] | [0].icones") : null;
+        listIconsView = (listIconsView === null) ? [] : listIconsView;
+        
+        toolbar.find('.tool-item').each(function(){
+        var a = $(this);
+        if (a.text() == 'Imprimir Web' && listLinks.filter(function(v){ return v.indexOf('documento_imprimir_web') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Visualizar em nova aba' && listLinks.filter(function(v){ return v.indexOf('documento_visualizar') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Consultar documento' && listLinks.filter(function(v){ return v.indexOf('documento_alterar') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Incluir em bloco' && listLinks.filter(function(v){ return v.indexOf('bloco_escolher') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Cancelar documento' && listLinks.filter(function(v){ return v.indexOf('documento_cancelar') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Vers\u00F5es do documento' && listLinks.filter(function(v){ return v.indexOf('documento_versao_listar') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Gerar circular' && listLinks.filter(function(v){ return v.indexOf('documento_gerar_circular') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Assinatura externa' && listLinks.filter(function(v){ return v.indexOf('assinatura_externa_gerenciar') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Excluir documento' && (!checkIconsView || listIconsView.filter(function(v){ return v.indexOf('sei_lixeira') !== -1 }).length > 0) && listLinks.filter(function(v){ return v.indexOf('documento_excluir') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Editar documento' && (!checkIconsView || listIconsView.filter(function(v){ return v.indexOf('sei_editar_conteudo') !== -1 }).length > 0) && listLinks.filter(function(v){ return v.indexOf('editor_montar') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Assinar documento' && (!checkIconsView || listIconsView.filter(function(v){ return v.indexOf('sei_assinar') !== -1 }).length > 0) && listLinks.filter(function(v){ return v.indexOf('documento_assinar') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Adicionar aos favoritos' && (!checkIconsView || listIconsView.filter(function(v){ return v.indexOf('sei_documento_modelo') !== -1 }).length > 0) && listLinks.filter(function(v){ return v.indexOf('protocolo_modelo_cadastrar') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Ci\u00EAncia' && (!checkIconsView || listIconsView.filter(function(v){ return v.indexOf('sei_ciencia') !== -1 }).length > 0) && listLinks.filter(function(v){ return v.indexOf('documento_ciencia') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Enviar por e-mail' && (!checkIconsView || listIconsView.filter(function(v){ return v.indexOf('sei_email') !== -1 }).length > 0) && listLinks.filter(function(v){ return v.indexOf('email_encaminhar') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Mover p/ outro processo' && (!checkIconsView || listIconsView.filter(function(v){ return v.indexOf('sei_mover_documento') !== -1 }).length > 0) && listLinks.filter(function(v){ return v.indexOf('documento_mover') !== -1 }).length > 0 ) {
+            a.show();
+        } else if (a.text() == 'Intima\u00E7\u00E3o eletr\u00F4nica' && (!checkIconsView || listIconsView.filter(function(v){ return v.indexOf('intimacao_eletronica_gerar') !== -1 }).length > 0) && listLinks.filter(function(v){ return v.indexOf('md_pet_intimacao_cadastrar') !== -1 }).length > 0 ) {
+            a.show();
+        }
+
+    });
 }
 function getLinksArvore() {
     var linksArvore = [];
@@ -239,14 +426,34 @@ function getLinksArvore() {
                     linksArvore.push(value);
                 });
             }
+            $.each(text.split('\n'), function(ind, val){
+                if (val.indexOf("].acoes = '") !== -1) {
+                    var arrayIconsAcoes = [];
+                    if (val.indexOf('"') !== -1) {
+                        var id_documento = (val.indexOf('id_documento') !== -1) ? val.match(/id_documento=([^&]*)/)[1] : false;
+                        if (id_documento) {
+                            val.split('"').filter(function(i){ return i.indexOf('imagens/') !== -1}).map(function(j){
+                                arrayIconsAcoes.push(j);
+                            });
+                            arrayIconsView.push({id_documento: parseInt(id_documento), icones: arrayIconsAcoes});
+                        }
+                    }
+                }
+            });
         }
     });
+    var textLink = $('script').not('[src*="js"]').text();
+    arrayLinksArvoreAll = getLinksInText(textLink);
+
     if ( typeof parent.iconsFlashMenu !== 'undefined' ) {
         linksArvore.push(parent.iconsFlashMenu[0]); 
         linksArvore.push(parent.iconsFlashMenu[1]); 
         linksArvore.push(parent.iconsFlashMenu[2]); 
         if (parent.checkConfigValue('uploaddocsexternos')) {
             linksArvore.push(parent.iconsFlashMenu[3]); 
+        }
+        if (parent.checkConfigValue('acoesemlote')) {
+            linksArvore.push(parent.iconsFlashMenu[4]); 
         }
     }
     return linksArvore;
@@ -309,7 +516,7 @@ function getActionsArvore(this_) {
 function callActionsArvore(doc, mode) {
     var nameDoc = doc.text().trim();
     var nr_sei = getNrSei(nameDoc);
-    var documento = getNomeSei(nameDoc);
+    var documento = parent.getNomeSei(nameDoc);
     var citacaoDoc = getCitacaoDoc();
     var id_documento = doc.attr('id').replace('anchor','');
     var id_procedimento = getParamsUrlPro(window.location.href).id_procedimento;
@@ -325,30 +532,108 @@ function callActionsArvore(doc, mode) {
     } else if (mode == 'copy') {
         copyToClipboard(nr_sei);
     } else if (mode == 'name') {
-        copyToClipboard(documento+' ('+citacaoDoc+nr_sei+')');
+        if (getConfigValue('citacaodoc') == 'citacaodoc_4') {
+            copyToClipboard(nr_sei);
+        } else {
+            copyToClipboard(documento+' ('+citacaoDoc+nr_sei+')');
+        }
     } else if (mode == 'namelink') {
-        copyToClipboardHTML(documento+' ('+citacaoDoc+'<a href="'+linkDoc+'" target="_blank">'+nr_sei+'</a>)');
+        if (getConfigValue('citacaodoc') == 'citacaodoc_4') {
+            copyToClipboardHTML('<a href="'+linkDoc+'" target="_blank">'+nr_sei+'</a>');
+        } else {
+            copyToClipboardHTML(documento+' ('+citacaoDoc+'<a href="'+linkDoc+'" target="_blank">'+nr_sei+'</a>)');
+        }
+    } else if (mode == 'numberlink') {
+        copyToClipboardHTML('<a href="'+linkDoc+'" target="_blank">'+nr_sei+'</a>');
     } else if (mode == 'linkproc') {
         copyToClipboard(linkProc);
+    } else if (mode == 'print') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('documento_imprimir_web') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.openLinkNewTab(url_host.replace('controlador.php','')+link[0]);
+        }
+    } else if (mode == 'view') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('documento_visualizar') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.openLinkNewTab(url_host.replace('controlador.php','')+link[0]);
+        }
+    } else if (mode == 'doc_view') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('documento_alterar') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.document.getElementById('ifrVisualizacao').setAttribute("src",link[0]);
+        }
+    } else if (mode == 'doc_bloco') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('bloco_escolher') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.document.getElementById('ifrVisualizacao').setAttribute("src",link[0]);
+        }
+    } else if (mode == 'doc_cancelar') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('documento_cancelar') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.document.getElementById('ifrVisualizacao').setAttribute("src",link[0]);
+        }
+    } else if (mode == 'doc_versoes') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('documento_versao_listar') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.document.getElementById('ifrVisualizacao').setAttribute("src",link[0]);
+        }
+    } else if (mode == 'doc_circular') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('documento_gerar_circular') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.document.getElementById('ifrVisualizacao').setAttribute("src",link[0]);
+        }
+    } else if (mode == 'doc_assinatura_externa') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('assinatura_externa_gerenciar') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.document.getElementById('ifrVisualizacao').setAttribute("src",link[0]);
+        }
+    } else if (mode == 'doc_excluir') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('documento_excluir') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.document.getElementById('ifrVisualizacao').setAttribute("src",link[0]);
+        }
+    } else if (mode == 'doc_editar') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('editor_montar') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.openLinkNewTab(url_host.replace('controlador.php','')+link[0]);
+        }
+    } else if (mode == 'doc_assinar') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('documento_assinar') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.openLinkNewTab(url_host.replace('controlador.php','')+link[0]);
+        }
+    } else if (mode == 'doc_favorito') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('protocolo_modelo_cadastrar') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.document.getElementById('ifrVisualizacao').setAttribute("src",link[0]);
+        }
+    } else if (mode == 'doc_ciencia') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('documento_ciencia') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.document.getElementById('ifrVisualizacao').setAttribute("src",link[0]);
+        }
+    } else if (mode == 'doc_email') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('email_encaminhar') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.openLinkNewTab(url_host.replace('controlador.php','')+link[0]);
+        }
+    } else if (mode == 'doc_mover') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('documento_mover') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.document.getElementById('ifrVisualizacao').setAttribute("src",link[0]);
+        }
+    } else if (mode == 'doc_intimacao') {
+        var link = arrayLinksArvoreAll.filter(function(v){ return (v.indexOf('id_documento='+id_documento) !== -1 && v.indexOf('md_pet_intimacao_cadastrar') !== -1) });
+        if (link.length > 0 && link[0] !== '') {
+            parent.document.getElementById('ifrVisualizacao').setAttribute("src",link[0]);
+        }
     } else if (mode == 'link') {
         copyToClipboard(linkDoc);
     }
     // console.log('copyToClipboard', {id_documento: id_documento, mode: mode, nameDoc: nameDoc, nr_sei: nr_sei, documento: documento});
     // console.log(mode, doc.text(), nr_sei);
 }
-function getNrSei(nameDoc) {
-    var nr_sei = nameDoc.split(' ');
-        nr_sei = (nameDoc.indexOf(' ') !== -1) ? nr_sei[nr_sei.length-1] : '';
-        nr_sei = (nr_sei.indexOf('(') !== -1) ? nr_sei.replace(')','').replace('(','').trim() : nr_sei;
-    return nr_sei;
-}
-function getNomeSei(nameDoc) {
-    var documento = nameDoc.split(' ');
-    var nr_sei = (nameDoc.indexOf(' ') !== -1) ? documento[documento.length-1] : '';
-        documento = (documento.indexOf(nr_sei) !== -1) ? nameDoc.replace(nr_sei,'').trim() : nameDoc;
-    return documento;
-}
-function getDadosDoc(doc, newproc = false) {    
+function getDadosDoc(doc, newproc = false, openEditor = true, callback = false, callback_error = false) {    
     var paraUrl = getParamsUrlPro(doc.attr('href'));
     var nameDoc = doc.text().trim();
     var hrefConsulta = false;
@@ -384,17 +669,19 @@ function getDadosDoc(doc, newproc = false) {
                     paramDoc['txaObservacoes'] = $htmlConsulta.find('#txaObservacoes').val();
                     paramDoc['rdoNivelAcesso'] = $htmlConsulta.find('input[name="rdoNivelAcesso"]:checked').val();
                     paramDoc['selHipoteseLegal'] = $htmlConsulta.find('#selHipoteseLegal').val();
+                    paramDoc['urlHipoteseLegal'] = parent.getUrlHipoteseLegal(html);
                 // console.log(nameDoc, paraUrl.id_documento, paramDoc);
-                getDuplicateDoc(nameDoc, paramDoc, newproc);
+                getDuplicateDoc(nameDoc, paramDoc, newproc, openEditor, callback, callback_error);
             }).fail(function(data){
-                getDuplicateDoc(nameDoc, false, newproc);
+                getDuplicateDoc(nameDoc, false, newproc, openEditor, callback, callback_error);
             })
         } else {
-            getDuplicateDoc(nameDoc, false, newproc);
+            getDuplicateDoc(nameDoc, false, newproc, openEditor, callback, callback_error);
         }
     }
 }
-function getDuplicateDoc(nameDoc = false, paramDoc = false, newproc = false) {
+function getDuplicateDoc(nameDoc = false, paramDoc = false, newproc = false, openEditor = true, callback = false, callback_error = false) {
+    // console.log('getDuplicateDoc', nameDoc, paramDoc, newproc);
     if (newproc) {
         var arrayCurrentCloneDoc = {
             nameDoc: nameDoc, 
@@ -411,15 +698,16 @@ function getDuplicateDoc(nameDoc = false, paramDoc = false, newproc = false) {
         } else {
             alert('Por favor, permita popups para essa p\u00E1gina');
         } 
-        // console.log(nameDoc, paramDoc, arrayCurrentCloneDoc, newproc);
+        // console.log('getDuplicateDoc === true', nameDoc, paramDoc, arrayCurrentCloneDoc, newproc);
     } else {
         if (nameDoc && nameDoc != '') {
+            var itemSelected = false;
             var nr_sei = getNrSei(nameDoc);
             var href = jmespath.search(arrayLinksArvore, "[?name=='Incluir Documento'].url | [0]");
+            // console.log('getDuplicateDoc === else', nameDoc, nr_sei, href, arrayLinksArvore);
             if (href !== null) {
                 $.ajax({ url: href }).done(function (html) {
                     let $html = $(html);
-                    var itemSelected = false;
                     $html.find('#tblSeries tbody tr').each(function (v) {
                         var text = $(this).data('desc').trim();
                         var value = $(this).find('input').val();
@@ -516,18 +804,21 @@ function getDuplicateDoc(nameDoc = false, paramDoc = false, newproc = false) {
                                                         idUser = v.split("_")[1];
                                                     }
                                                 });
-                                                if (urlEditor.length > 0 && idUser) {
-                                                    openWindowEditor(urlEditor[0], idUser);
+                                                if (urlEditor.length > 0 && idUser && openEditor) {
+                                                    parent.openWindowEditor(urlEditor[0], idUser);
                                                 }
-                                                if (urlReload) {
-                                                    window.location.href = urlReload;
-                                                } else {
-                                                    window.location.reload();
+                                                if (openEditor) {
+                                                    if (urlReload) {
+                                                        window.location.href = urlReload;
+                                                    } else {
+                                                        window.location.reload();
+                                                    }
                                                 }
+                                                if (typeof callback === 'function') callback();
                                             } else {
-                                                // console.log(status);
                                                 class_icon = 'fas fa-exclamation-circle vermelhoColor';
                                                 text_icon = 'Erro ao duplicar o documento';
+                                                if (typeof callback_error === 'function') callback_error();
                                             }
                                             if (class_icon != '') {
                                                 $(containerUpload).find('.loading-action-doc').attr('onmouseover','return infraTooltipMostrar(\''+text_icon+'\');').attr('onmouseout', 'return infraTooltipOcultar();').find('i').attr('class', class_icon);
@@ -539,23 +830,28 @@ function getDuplicateDoc(nameDoc = false, paramDoc = false, newproc = false) {
                             }
                         }
                     });
-                    if (!itemSelected) { $(containerUpload).find('.loading-action-doc').attr('onmouseover','return infraTooltipMostrar(\'Erro ao selecionar o tipo de documento\');').attr('onmouseout', 'return infraTooltipOcultar();').find('i').attr('class', 'fas fa-exclamation-circle vermelhoColor') }
+                    if (!itemSelected) { 
+                        openAlertDuplicateDoc('Erro ao selecionar o tipo de documento');
+                    }
                 });
             } else {
-                if (!itemSelected) { $(containerUpload).find('.loading-action-doc').attr('onmouseover','return infraTooltipMostrar(\'Erro ao localizar o link de inserir documento\');').attr('onmouseout', 'return infraTooltipOcultar();').find('i').attr('class', 'fas fa-exclamation-circle vermelhoColor') }
+                if (!itemSelected) { 
+                    openAlertDuplicateDoc('Erro ao localizar o link de inserir documento. Verifique se o processo encontra-se aberto em sua unidade!');
+                }
             }
         } else {
-            if (!itemSelected) { $(containerUpload).find('.loading-action-doc').attr('onmouseover','return infraTooltipMostrar(\'Erro ao encontrar o documento de modelo\');').attr('onmouseout', 'return infraTooltipOcultar();').find('i').attr('class', 'fas fa-exclamation-circle vermelhoColor') }
+            if (!itemSelected) { 
+                openAlertDuplicateDoc('Erro ao encontrar o documento de modelo');
+            }
         }
     }
 }
-function openWindowEditor(urlEditor, idUser) {
-    var id_documento = getParamsUrlPro(urlEditor).id_documento
-    var janelaEditor = infraAbrirJanela('', 'janelaEditor_'+idUser+'_'+id_documento, parent.infraClientWidth(), parent.infraClientHeight(), 'location=0,status=0,resizable=1,scrollbars=1', false);
-    if (janelaEditor.location=='about:blank') {
-        janelaEditor.location.href = urlEditor;
+function openAlertDuplicateDoc(textAlert) {
+    if ($(containerUpload).find('.loading-action-doc').length > 0) {
+        $(containerUpload).find('.loading-action-doc').attr('onmouseover','return infraTooltipMostrar(\''+textAlert+'\');').attr('onmouseout', 'return infraTooltipOcultar();').find('i').attr('class', 'fas fa-exclamation-circle vermelhoColor') 
+    } else {
+        parent.alertaBoxPro('Error', 'exclamation-triangle', textAlert);
     }
-    janelaEditor.focus();
 }
 function setLoadingActionDoc(id_documento) {
     var html = '<span class="loading-action-doc" data-id="'+id_documento+'"><i class="fas fa-cog fa-spin" style="color: #017FFF; font-size: 10pt;"></i></span>';
@@ -583,10 +879,10 @@ function loadUploadArvore() {
                             '       <span class="dz-progress">'+
                             '           <span class="dz-upload" data-dz-uploadprogress></span>'+
                             '       </span>'+
-                            ($(containerUpload).find('a[id*="anchorImgPASTA"]').length > 0 ? '<img style="margin-left: -3px;" src="/infra_js/arvore/empty.gif" align="absbottom">' : '')+
-                            '       <img src="/infra_js/arvore/join.gif" align="absbottom">'+
-                            '       <a id="anchorImgID" style="margin-left: -4px;" class="clipboard" title="Clique para copiar o n\u00FAmero do protocolo para a \u00E1rea de transfer\u00EAncia">'+
-                            '           <img class="dz-link-icon" src="/infra_css/imagens/pdf.gif" align="absbottom" id="iconID">'+
+                            ($(containerUpload).find('a[id*="anchorImgPASTA"]').length > 0 ? '<img style="margin-left: -3px;" src="'+pathArvore+'empty.gif" align="absbottom">' : '')+
+                            '       <span class="anchorJoinPro" data-img="'+pathArvore+'joinbottom.gif"><img src="'+pathArvore+'join.gif" align="absbottom"></span>'+
+                            '       <a id="anchorImgID" data-img="'+(parent.isNewSEI ? 'svg/documento_pdf.svg' : 'imagens/pdf.gif')+'" style="margin-left: -4px;" class="clipboard" title="Clique para copiar o n\u00FAmero do protocolo para a \u00E1rea de transfer\u00EAncia">'+
+                            '           <img class="dz-link-icon" src="/infra_css/'+(parent.isNewSEI ? 'svg/documento_pdf.svg' : 'imagens/pdf.gif')+'" align="absbottom" id="iconID">'+
                             '       </a>'+
                             '       <span class="dz-progress-mark"><i class="fas fa-cog fa-spin" style="color: #017FFF; font-size: 10pt;"></i></span>'+
                             '       <a id="anchorID" target="ifrVisualizacao" class="dz-filename">'+
@@ -609,7 +905,6 @@ function loadUploadArvore() {
     });
     arvoreDropzone.on("addedfiles", function(files) {
         dropzoneCancelInfo();
-        console.log()
         if (verifyConfigValue('sortbeforeupload') && arvoreDropzone.getQueuedFiles().length > 1) {
             sortUploadArvore();
         } else {
@@ -650,9 +945,9 @@ function statusUploadArvore(this_) {
 }
 function sortUploadArvore() {
     var htmlUpload =    '<div id="divUploadDoc" class="panelDadosArvore" style="margin-top: 15px; padding: 1.2em 0 0 0 !important;">'+
-                        '   <a style="cursor:pointer;" onclick="sendUploadArvore(\'upload\'); statusUploadArvore(this)" class="newLink">'+
+                        '   <a style="cursor:pointer;" onclick="sendUploadArvore(\'upload\'); statusUploadArvore(this)" class="newLink newLink_confirm">'+
                         '       <i class="fas fa-upload azulColor"></i>'+
-                        '       <span style="font-size:1.2em"> Enviar documentos</span>'+
+                        '       <span style="font-size:1.2em;color: #fff;"> Enviar documentos</span>'+
                         '   </a>'+
                         '</div>';
 
@@ -790,18 +1085,29 @@ function sendUploadArvore(mode, result = false) {
                             nameDoc = (nameDoc.length > 50) ? nameDoc.replace(/^(.{50}[^\s]*).*/, "$1") : nameDoc;
                             nameDoc = (nameDoc.length > 50) ? nameDoc.substring(0,49) : nameDoc;
 
+                        var valueSigilo = parent.getConfigValue('newdocsigilo');
+                            valueSigilo = (valueSigilo != '' && valueSigilo.indexOf('|') !== -1) ? valueSigilo.split('|') : false;
+
+                        var valueNivelAcesso = (checkConfigValue('newdocnivel')) 
+                            ? "0" 
+                            : (valueSigilo) ? valueSigilo[1] : "0";
+
                         param.selSerie = selSerie;
                         param.hdnIdSerie = selSerie;
-                        param.rdoNivelAcesso = (form.find('input[name="rdoNivelAcesso"]:checked').length > 0) ? form.find('input[name="rdoNivelAcesso"]:checked').val() : "0";
+                        param.rdoNivelAcesso = (form.find('input[name="rdoNivelAcesso"]:checked').length > 0) 
+                            ? form.find('input[name="rdoNivelAcesso"]:checked').val() 
+                            : valueNivelAcesso;
                         param.hdnStaNivelAcessoLocal = param.rdoNivelAcesso; //
                         param.rdoFormato = (parent.checkConfigValue('newdocformat') && parent.getConfigValue('newdocformat') && parent.getConfigValue('newdocformat').indexOf('digitalizado') !== -1) ? "D": "N";
                         param.hdnFlagDocumentoCadastro = "2";
-                        param.hdnIdHipoteseLegal = param.selHipoteseLegal;
+                        // param.hdnIdHipoteseLegal = param.selHipoteseLegal;
+                        param.hdnIdHipoteseLegal = (valueSigilo) ? valueSigilo[0] : param.selHipoteseLegal;
+                        param.selHipoteseLegal = param.hdnIdHipoteseLegal;
                         param.selTipoConferencia = (parent.checkConfigValue('newdocformat') && parent.getConfigValue('newdocformat') && parent.getConfigValue('newdocformat').indexOf('digitalizado') !== -1 && parent.getConfigValue('newdocformat').indexOf('_') !== -1) ? getConfigValue('newdocformat').split('_')[1] : "";
                         param.hdnIdTipoConferencia = param.selTipoConferencia;
                         param.txaObservacoes = "";
                         param.txtDataElaboracao = txtDataElaboracao;
-                        param.txtNumero = nameDoc;
+                        param.txtNumero = escapeComponent(nameDoc);
                         // console.log(parent.checkConfigValue('newdocformat'), parent.getConfigValue('newdocformat'), param.rdoFormato, param.hdnIdTipoConferencia);
                         arvoreDropzone.options.url = urlUpload;
                         arvoreDropzone.options.params = {
@@ -886,7 +1192,7 @@ function dropzoneAlertBoxInfo() {
     var htmlNotify =    '<div>'+
                         '   <span id="no_notify" class="no_notifyPro" data-notify="upload" style="font-size: 8pt; margin: 10px 0; display: block;">'+
                         '       <input onchange="noNotifyPro(this)" type="checkbox" id="no_notifyPro_input">'+
-                        '       <label style="color: #404040;" id="no_notifyPro_label" for="no_notifyPro_input">'+
+                        '       <label class="txt_cinza" id="no_notifyPro_label" for="no_notifyPro_input">'+
                         '           Ok, n\u00E3o avisar novamente.'+
                         '       </label>'+
                         '   </span>'+
@@ -922,21 +1228,21 @@ function dropzoneCancelInfo(e) {
     return false;
 }
 function dropzoneNormalizeImg(file) {
-    var urlIcon = '/infra_css/imagens/pdf.gif';
-        urlIcon = (file.type.indexOf('image/') !== -1) ? '/infra_css/imagens/imagem.gif' : urlIcon;
-        urlIcon = (file.type.indexOf('video/') !== -1) ? '/infra_css/imagens/video.gif' : urlIcon;
-        urlIcon = (file.type.indexOf('audio/') !== -1) ? '/infra_css/imagens/audio.gif' : urlIcon;
-        urlIcon = (file.type.indexOf('application/zip') !== -1) ? '/infra_css/imagens/zip.gif' : urlIcon;
-        urlIcon = (file.type.indexOf('text/htm') !== -1) ? '/infra_css/imagens/html.gif' : urlIcon;
-        urlIcon = (file.type.indexOf('text/plain') !== -1) ? '/infra_css/imagens/txt.gif' : urlIcon;
-        urlIcon = (file.type.indexOf('word') !== -1) ? '/infra_css/imagens/doc.gif' : urlIcon;
-        urlIcon = (file.type.indexOf('officedocument.presentation') !== -1) ? '/infra_css/imagens/pps.gif' : urlIcon;
-        urlIcon = (file.type.indexOf('text/csv') !== -1) ? '/infra_css/imagens/xls.gif' : urlIcon;
-        urlIcon = (file.type.indexOf('sheet') !== -1) ? '/infra_css/imagens/xls.gif' : urlIcon;
+    var urlIcon = parent.isNewSEI ? 'svg/documento_pdf.svg' : '/infra_css/imagens/pdf.gif' +'pdf.gif';
+        urlIcon = (file.type.indexOf('image/') !== -1) ? (parent.isNewSEI ? 'svg/documento_imagem.svg' : '/infra_css/imagens/imagem.gif') : urlIcon;
+        urlIcon = (file.type.indexOf('video/') !== -1) ? (parent.isNewSEI ? 'svg/documento_video.svg' : '/infra_css/imagens/video.gif') : urlIcon;
+        urlIcon = (file.type.indexOf('audio/') !== -1) ? (parent.isNewSEI ? 'svg/documento_audio.svg' : '/infra_css/imagens/audio.gif') : urlIcon;
+        urlIcon = (file.type.indexOf('application/zip') !== -1) ? (parent.isNewSEI ? 'svg/documento_zip.svg' : '/infra_css/imagens/zip.gif') : urlIcon;
+        urlIcon = (file.type.indexOf('text/htm') !== -1) ? (parent.isNewSEI ? 'svg/documento_html.svg' : '/infra_css/imagens/html.gif') : urlIcon;
+        urlIcon = (file.type.indexOf('text/plain') !== -1) ? (parent.isNewSEI ? 'svg/documento_txt.svg' : '/infra_css/imagens/txt.gif') : urlIcon;
+        urlIcon = (file.type.indexOf('word') !== -1) ? (parent.isNewSEI ? 'svg/documento_doc.svg' : '/infra_css/imagens/doc.gif') : urlIcon;
+        urlIcon = (file.type.indexOf('officedocument.presentation') !== -1) ? (parent.isNewSEI ? 'svg/documento_powerpoint.svg' : '/infra_css/imagens/pps.gif') : urlIcon;
+        urlIcon = (file.type.indexOf('text/csv') !== -1) ? (parent.isNewSEI ? 'svg/documento_excel.svg' : '/infra_css/imagens/xls.gif') : urlIcon;
+        urlIcon = (file.type.indexOf('sheet') !== -1) ? (parent.isNewSEI ? 'svg/documento_excel.svg' : '/infra_css/imagens/xls.gif') : urlIcon;
 
-    $('#divArvore').find('.dz-preview').last().find('.dz-link-icon').attr('src', urlIcon);
-    $('#divArvore').find('img[src*="joinbottom.gif"]').last().attr('src', '/infra_js/arvore/join.gif');
-    $('#divArvore').find('img[src*="join.gif"]').last().attr('src', '/infra_js/arvore/joinbottom.gif');
+    $('#divArvore').find('.dz-preview').last().find('.dz-link-icon').attr('src', urlIcon).closest('a').attr('data-img',urlIcon);
+    $('#divArvore').find('img[src*="joinbottom.gif"]').last().attr('src', pathArvore+'join.gif');
+    $('#divArvore').find('img[src*="join.gif"]').last().attr('src', pathArvore+'joinbottom.gif');
 }
 function openModalDropzone() {
     $(containerUpload).addClass('dz-drag-hover');
@@ -954,8 +1260,20 @@ function initUploadArvore(TimeOut = 9000) {
         }, 500);
     }
 }
-function initDadosProcessoArvore(TimeOut = 9000) {
-    if (TimeOut <= 0 || parent.window.name != '') { return; }
+function initDadosProcessoArvoreSession() {
+    var dadosProcesso = parent.getDadosProcessoSession();
+    if (dadosProcesso ) {
+        setDadosProcessoArvore(dadosProcesso);
+        parent.updateTitlePage('processo',dadosProcesso);
+    }
+}
+function initDadosProcessoArvore(TimeOut = 1000) {
+    if (TimeOut <= 0 || parent.window.name != '') { 
+        if ($('#ifrArvore').length > 0) {
+            getLisDocsProcessoPro();
+        }
+        return; 
+    }
     if (typeof jmespath !== 'undefined' && typeof parent.dadosProcessoPro !== 'undefined' && typeof parent.dadosProcessoPro.propProcesso !== 'undefined' && typeof getOptionsPro !== 'undefined') {
         setDadosProcessoArvore();
     } else {
@@ -988,7 +1306,7 @@ function sticknoteUpdate(this_, value, type, priority = false, mode = 'insert') 
             } else if (mode == 'increment') {
                 value = iframe.find('#txaDescricao').val()+'\n'+value; 
                 value = value.substring(0,499); 
-                console.log({mode: mode, value: value});
+                // console.log({mode: mode, value: value});
                 iframe.find('#txaDescricao').val(value);
             }
             iframe.find('#chkSinPrioridade').prop('checked', priority);
@@ -1238,10 +1556,15 @@ function formatDadosAnotacao(value, type, paste = false) {
                 }
             });
         } else {
-            result = '<div>'+value+'</div>';
+            if (value != '') {
+                var check = (value.indexOf('[ ]') !== -1) ? ' class="stickNoteCheck"' : '';
+                    check = (value.indexOf('[X]') !== -1) ? ' class="stickNoteCheck stickNoteChecked"' : check;
+                var text = (value.indexOf('[ ]') !== -1) ? value.replace('[ ]','').trim() : value;
+                    text = (value.indexOf('[X]') !== -1) ? value.replace('[X]','').trim() : text;
+                result = '<div'+check+'>'+text+'</div>';
+            }
         }
     }
-    // console.log(result);
     return result;
 }
 function setDadosAnotacao(anotacaoTxt, checkPrioridade) {
@@ -1262,11 +1585,11 @@ function setDadosAnotacao(anotacaoTxt, checkPrioridade) {
                         '       <i class="fas fa-edit azulColor editStickNote" style="cursor: pointer;" onclick="sticknoteEdit(this)" onmouseover="return infraTooltipMostrar(\'Editar Anota\u00E7\u00E3o\');" onmouseout="return infraTooltipOcultar();"></i>'+
                         '       <i class="fas fa-save azulColor saveStickNote" style="cursor: pointer; display:none" onclick="sticknoteSave(this)" onmouseover="return infraTooltipMostrar(\'Salvar Anota\u00E7\u00E3o\');" onmouseout="return infraTooltipOcultar();"></i>'+
                         '       <span class="countLimit" style="font-size: 8pt; color: #666;"></span>'+
-                        '       <i class="fas fa-trash-alt removeStickNote" style="margin-top: 2px; cursor: pointer;float: right;font-size: 90%;color: #929292;" onclick="sticknoteRemove(this)" onmouseover="return infraTooltipMostrar(\'Remover Anota\u00E7\u00E3o\');" onmouseout="return infraTooltipOcultar();"></i>'+
-                        '       <i class="fas fa-times-circle cancelStickNote" style="cursor: pointer;float: right;font-size: 90%; display:none;color: #929292;" onclick="sticknoteCancel(this)" onmouseover="return infraTooltipMostrar(\'Cancelar Edi\u00E7\u00E3o\');" onmouseout="return infraTooltipOcultar();"></i>'+
+                        '       <i class="fas fa-trash-alt removeStickNote" style="margin-top: 2px; cursor: pointer;float: right;font-size: 90%;" onclick="sticknoteRemove(this)" onmouseover="return infraTooltipMostrar(\'Remover Anota\u00E7\u00E3o\');" onmouseout="return infraTooltipOcultar();"></i>'+
+                        '       <i class="fas fa-times-circle cancelStickNote" style="cursor: pointer;float: right;font-size: 90%; display:none;" onclick="sticknoteCancel(this)" onmouseover="return infraTooltipMostrar(\'Cancelar Edi\u00E7\u00E3o\');" onmouseout="return infraTooltipOcultar();"></i>'+
                         '       <i class="fas fa-calendar-plus azulColor setDateStickNote" style="cursor: pointer;float: right;margin-right: 10px;" onclick="sticknoteSetDate(this)" onmouseover="return infraTooltipMostrar(\'Inserir Data\');" onmouseout="return infraTooltipOcultar();"></i>'+
                         '       <span class="setDateStickNote_input" style="display:none"><input onkeypress="sticknoteSetDateKey(event, this)" type="date"></span>'+
-                        '       <span style="cursor: pointer;float: right;margin: -2px 10px 0 0; display:none;" class="checkStickNote" onclick="sticknoteCheck(this)"><i class="fas fa-check-square azulColor" style="font-size: 90%;"></i> <span style="color: #4285f4; font-size: 80%;">Checklist</span></span>'+
+                        '       <span style="cursor: pointer;float: right;margin: -2px 10px 0 0; display:none;" class="checkStickNote" onclick="sticknoteCheck(this)"><i class="fas fa-check-square azulColor" style="font-size: 90%;"></i> <span  class="checkListStickNote" style="font-size: 80%;">Checklist</span></span>'+
                         '       <i class="fas fa-exclamation-circle priorityStickNote" style="cursor: pointer;float: right;margin-right: 10px;" onclick="sticknotePriority(this)" onmouseover="return infraTooltipMostrar(\'Prioridade\');" onmouseout="return infraTooltipOcultar();"></i>'+
                         '   </div>'+
                         '</div>';
@@ -1284,10 +1607,10 @@ function sticknotePosition() {
         stickNoteDivSelected = $(window.getSelection().anchorNode).closest('div').index();
         stickNoteDivSelected = (stickNoteDivSelected > $('.stickNotePro div').length-1) ? 0 : stickNoteDivSelected;
     }
-    console.log(stickNoteDivSelected);
+    // console.log(stickNoteDivSelected);
 }
 function sticknoteCheck(this_) {
-    console.log(stickNoteDivSelected);
+    // console.log(stickNoteDivSelected);
     if (typeof stickNoteDivSelected == 'object') {
         $('.stickNotePro div').each(function(index){
             if (index >= stickNoteDivSelected.start && index <= stickNoteDivSelected.end) {
@@ -1304,7 +1627,7 @@ function sticknoteToggleCheck(id) {
         selected.removeClass('stickNoteCheck').removeClass('stickNoteChecked');
     } else {
         selected.addClass('stickNoteCheck');
-        console.log('sticknoteToggleCheck', id, selected.text().trim());
+        // console.log('sticknoteToggleCheck', id, selected.text().trim());
         if (selected.text().trim() == '') {
             selected.text(' ')
             setTimeout(function() {
@@ -1366,7 +1689,7 @@ function getDadosInteressadosArvore(this_) {
                     iframe.find('#selTipoProcedimentoPesquisa').val(data.tipoProcedimento);
                 }
                 iframe.find('#chkSinTramitacao').prop('checked', data.tramiteUnidade);
-                console.log({interessado: data.interessado, natureza: data.mesmaNatureza, tipo: data.tipoProcedimento, tramite: data.tramiteUnidade});
+                // console.log({interessado: data.interessado, natureza: data.mesmaNatureza, tipo: data.tipoProcedimento, tramite: data.tramiteUnidade});
                 $(this).unbind().on('load', function(){
                     $(this).unbind();
                     _this.find('i.iconInteressadosProcesso').toggleClass('fa-folder-open fa-spinner').removeClass('fa-spin');
@@ -1424,7 +1747,7 @@ function getDadosInteressadosArvore(this_) {
                                             '</div>';
                         })
                         _this.closest('.dadosInteressados').find('.dadosInteressados_result').html(htmlResult).show();
-                        console.log(count, result);
+                        // console.log(count, result);
                 });
                 iframe.find('#sbmPesquisar').trigger('click');
         });
@@ -1435,7 +1758,7 @@ function optionSearchInteressado(this_) {
     var data = _this.data();
     var _parent = _this.closest('.dadosInteressados');
     var checkbox = _this.find('i').hasClass('fa-check-square') ? false : true;
-    console.log('checkbox',checkbox);
+    // console.log('checkbox',checkbox);
     if (data.type == 'tramiteUnidade') {
         _parent.find('a.interessadosProcesso').data('tramite-unidade',checkbox).trigger('click');
         setOptionsPro('panelDadosArvoreInteressados_tramiteUnidade', checkbox);
@@ -1445,9 +1768,14 @@ function optionSearchInteressado(this_) {
     }
     _this.find('i').toggleClass('fa-check-square fa-square');
 }
-function setDadosProcessoArvore() {
-    var prop = parent.dadosProcessoPro.propProcesso;
+function setDadosProcessoArvore(dadosProcessoPro = false) {
+    var id_procedimento = getParamsUrlPro(window.location.href).id_procedimento;
+        id_procedimento = (typeof id_procedimento === 'undefined') ? getParamsUrlPro(window.location.href).id_protocolo : id_procedimento;
+        id_procedimento = (typeof id_procedimento !== 'undefined') ? id_procedimento : false;
 
+    var prop = (dadosProcessoPro) ? dadosProcessoPro.propProcesso : parent.dadosProcessoPro.propProcesso;
+    var processoAberto = (jmespath.search(arrayLinksArvore, "[?name=='Consultar/Alterar Processo'] | [0]") !== null) ? true : false;
+    var txtDescricao = typeof prop !== 'undefined' && typeof prop.txtDescricao !== 'undefined' && prop.txtDescricao ? prop.txtDescricao : false;
     var htmlDescricao =  '<div class="panelDadosArvorePro panelDadosArvore" data-type="descricao">'+
                                 '   <label class="newLink" style="margin-bottom: 10px; display: block;">'+
                                 '      <i class="fas fa-comment-dots azulColor iconDadosProcesso"></i>'+
@@ -1455,9 +1783,57 @@ function setDadosProcessoArvore() {
                                 '      <i class="fas fa-chevron-'+(getOptionsPro('panelDadosArvorePro_descricao') == 'hide' ? 'right' : 'down')+' azulColor" style="float: right; cursor:pointer; margin-right: 20px;" onclick="togglePanelDadosArvore(this)"></i>'+
                                 '   </label>'+
                                 '   <div class="infoDadosArvore" style="'+(getOptionsPro('panelDadosArvorePro_descricao') == 'hide' ? 'display:none' : '')+'">'+
-                                '       <a class="newLink" style="cursor:pointer" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+prop.txtDescricao+'</a>'+
+                                '       <a class="newLink '+(txtDescricao && txtDescricao.toLowerCase().indexOf('(urgente)') !== -1 ? 'urgentePro' : '')+'" style="cursor:pointer;max-width: calc(100% - 70px);" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+(txtDescricao && txtDescricao.toLowerCase().indexOf('(urgente)') !== -1 ? '<div class="urgentePro"></div>' : '')+(txtDescricao ? txtDescricao : '')+'</a>'+
+                                (processoAberto ?
+                                '       <a class="newLink" maxlength="100" data-mode="descricao" style="cursor:pointer;float: right;" onclick="parent.editDadosArvorePro(this)" onmouseover="return infraTooltipMostrar(\'Clique para editar\');" onmouseout="return infraTooltipOcultar();"><i class="fas fa-edit"></i></a>'+
+                                '' : '')+
                                 '   </div>'+
                                 '</div>';
+    var htmlMarcador = parent.getHtmlMarcador(id_procedimento, processoAberto);
+    var iconMarcador = htmlMarcador.icon;
+    var linkPrazo = htmlMarcador.prazo;
+    var dataMarcador = htmlMarcador.data;
+
+    if (prop.txtDescricao && prop.txtDescricao.toLowerCase().indexOf('(urgente)') !== -1) {
+        $('#topmenu a[target="ifrVisualizacao"][href*="controlador.php?acao=arvore_visualizar"]').addClass('urgentePro').find('div.urgentePro').remove().end().prepend('<div class="urgentePro"></div>');
+    } else {
+        $('#topmenu a[target="ifrVisualizacao"][href*="controlador.php?acao=arvore_visualizar"]').removeClass('urgentePro').find('div.urgentePro').remove();
+    }
+    /*
+    var listMarcadores = sessionStorageRestorePro('dadosMarcadoresProcessoPro');
+    var dataMarcador = (id_procedimento && listMarcadores) ? jmespath.search(listMarcadores, "[?id_procedimento=='"+id_procedimento+"'] | [0]") : null;
+        dataMarcador = (dataMarcador !== null) ? dataMarcador : false;
+    var iconMarcador = (processoAberto) ? '<i class="fas fa-spinner fa-spin"></i>' : '';
+    var linkPrazo = '';
+    if (dataMarcador) {
+        var regex = /(\d{1,2})\/(\d{1,2})\/(\d{4})/i;
+        var time = (typeof dataMarcador.name !== 'undefined' && dataMarcador.name !== null) ? dataMarcador.name.match(/(\d{1,2}:\d{2})/img) : null;
+            time = (time !== null) ? ' '+time[0] : '';
+        var regexDue = /(ate )(\d{1,2})\/(\d{1,2})\/(\d{4})/i;
+        var checkDateDue = (typeof dataMarcador.name !== 'undefined') ? regexDue.exec(removeAcentos(dataMarcador.name.trim()).toLowerCase().replaceAll('  ',' ')) : null;
+            datePrazoDue = (checkDateDue !== null) ? moment(checkDateDue[0]+time, 'DD/MM/YYYY HH:mm').format('YYYY-MM-DD HH:mm:ss') : false;
+        var checkDate = (typeof dataMarcador.name !== 'undefined') ? regex.exec(removeAcentos(dataMarcador.name.trim())) : null;
+            datePrazo = (checkDateDue === null && checkDate !== null) ? moment(checkDate[0]+time, 'DD/MM/YYYY HH:mm').format('YYYY-MM-DD HH:mm:ss') : false;
+            iconPrazo = (datePrazo) ? parent.getDatesPreview({date: datePrazo}) : false;
+            iconPrazo = (datePrazoDue) ? parent.getDatesPreview({date: datePrazoDue}) : iconPrazo;
+            linkPrazo = (iconPrazo) ? '<a class="newLink" style="cursor:pointer;max-width: calc(100% - 70px);" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+iconPrazo+'</a>' : '';
+            iconMarcador = (typeof dataMarcador.icon !== 'undefined') ? '<img src="'+dataMarcador.icon+'" class="imagemStatus"> '+dataMarcador.tag+(dataMarcador.name ? ': '+dataMarcador.name.replace(/\\r\\n/g, "<br>") : '') : 'Nenhum marcador';
+    }
+    */
+    var htmlMarcador =  '<div class="panelDadosArvorePro panelDadosArvore" data-type="marcador">'+
+                                '   <label class="newLink" style="margin-bottom: 10px; display: block;">'+
+                                '      <i class="fas fa-tags azulColor iconDadosProcesso"></i>'+
+                                '      Marcador:'+
+                                '      <i class="fas fa-chevron-'+(getOptionsPro('panelDadosArvorePro_marcador') == 'hide' ? 'right' : 'down')+' azulColor" style="float: right; cursor:pointer; margin-right: 20px;" onclick="togglePanelDadosArvore(this)"></i>'+
+                                '   </label>'+
+                                '   <div class="infoDadosArvore" style="'+(getOptionsPro('panelDadosArvorePro_marcador') == 'hide' ? 'display:none' : '')+'">'+
+                                '       <a class="newLink" style="cursor:pointer;max-width: calc(100% - 70px);" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+iconMarcador+'</a>'+linkPrazo+
+                                (processoAberto ?
+                                '       <a class="newLink" maxlength="100" data-mode="marcador" style="cursor:pointer;float: right;" onclick="parent.editDadosArvorePro(this)" onmouseover="return infraTooltipMostrar(\'Clique para editar\');" onmouseout="return infraTooltipOcultar();"><i class="fas fa-edit"></i></a>'+
+                                '' : '')+
+                                '   </div>'+
+                                '</div>';
+        htmlMarcador = ($.inArray("Marcador",jmespath.search(selectedItensPanelArvore,"[]")) !== -1) ? htmlMarcador : '';
 
     var htmlTipoProcedimento =  '<div class="panelDadosArvorePro panelDadosArvore" data-type="tipo_procedimento">'+
                                 '   <label class="newLink" style="margin-bottom: 10px; display: block;">'+
@@ -1466,7 +1842,10 @@ function setDadosProcessoArvore() {
                                 '      <i class="fas fa-chevron-'+(getOptionsPro('panelDadosArvorePro_tipo_procedimento') == 'hide' ? 'right' : 'down')+' azulColor" style="float: right; cursor:pointer; margin-right: 20px;" onclick="togglePanelDadosArvore(this)"></i>'+
                                 '   </label>'+
                                 '   <div class="infoDadosArvore" style="'+(getOptionsPro('panelDadosArvorePro_tipo_procedimento') == 'hide' ? 'display:none' : '')+'">'+
-                                '       <a class="newLink" style="cursor:pointer" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+prop.hdnNomeTipoProcedimento+'</a>'+
+                                '       <a class="newLink" style="cursor:pointer;max-width: calc(100% - 70px);" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+prop.hdnNomeTipoProcedimento+'</a>'+
+                                (processoAberto ?
+                                '       <a class="newLink" data-mode="tipo_procedimento" style="cursor:pointer;float: right;" onclick="parent.editDadosArvorePro(this)" onmouseover="return infraTooltipMostrar(\'Clique para editar\');" onmouseout="return infraTooltipOcultar();"><i class="fas fa-edit"></i></a>'+
+                                '' : '')+
                                 '   </div>'+
                                 '</div>';
         htmlTipoProcedimento = ($.inArray("Tipo de Procedimento",jmespath.search(selectedItensPanelArvore,"[]")) !== -1) ? htmlTipoProcedimento : '';
@@ -1484,7 +1863,10 @@ function setDadosProcessoArvore() {
                             '      <i class="fas fa-chevron-'+(getOptionsPro('panelDadosArvorePro_nivel_acesso') == 'hide' ? 'right' : 'down')+' azulColor" style="float: right; cursor:pointer; margin-right: 20px;" onclick="togglePanelDadosArvore(this)"></i>'+
                             '   </label>'+
                             '   <div class="infoDadosArvore" style="'+(getOptionsPro('panelDadosArvorePro_nivel_acesso') == 'hide' ? 'display:none' : '')+'">'+
-                            '      <a class="newLink" style="cursor:pointer" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+dataNivelAcesso.name+'</a>'+
+                            '      <a class="newLink" style="cursor:pointer;max-width: calc(100% - 70px);" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+dataNivelAcesso.name+'</a>'+
+                            (processoAberto ?
+                            '       <a class="newLink" data-mode="nivel_acesso" style="cursor:pointer;float: right;" onclick="parent.editDadosArvorePro(this)" onmouseover="return infraTooltipMostrar(\'Clique para editar\');" onmouseout="return infraTooltipOcultar();"><i class="fas fa-edit"></i></a>'+
+                            '' : '')+
                             '   </div>'+
                             '</div>';
         htmlNivelAcesso = ($.inArray("N\u00EDvel de Acesso",jmespath.search(selectedItensPanelArvore,"[]")) !== -1) ? htmlNivelAcesso : '';
@@ -1500,10 +1882,10 @@ function setDadosProcessoArvore() {
                                             var return_ = ((prop.selInteressadosProcedimento_list.length-1) != i && prop.selInteressadosProcedimento_list.length > 1) ? '<div style="border-bottom: 1px solid #ececec;" class="dadosInteressados">' : '<div class="dadosInteressados">';
                                             if (v.name.indexOf('(') !== -1) {
                                                 return_ += $.map(v.name.split('('), function(int){
-                                                                return '<a class="newLink" style="cursor:pointer" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+int.trim().replace(')','')+'</a>';
+                                                                return '<a class="newLink" style="cursor:pointer;max-width: calc(100% - 70px);" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+int.trim().replace(')','')+'</a>';
                                                             }).join('');
                                             } else {
-                                                return_ += '<a class="newLink" style="cursor:pointer" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+v.name+'</a>';
+                                                return_ += '<a class="newLink" style="cursor:pointer;max-width: calc(100% - 70px);" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+v.name+'</a>';
                                             }
                                                 return_ +=  '<a class="newLink interessadosProcesso" style="cursor:pointer;float: right;" data-interessado="'+v.value+'" data-tramite-unidade="'+(getOptionsPro('panelDadosArvoreInteressados_tramiteUnidade') ? 'true' : 'false' )+'" data-tipo-procedimento="'+prop.hdnIdTipoProcedimento+'" data-mesma-natureza="'+(getOptionsPro('panelDadosArvoreInteressados_mesmaNatureza') ? 'true' : 'false' )+'" onclick="getDadosInteressadosArvore(this)" onmouseover="return infraTooltipMostrar(\'Pesquisar processos relacionados\');" onmouseout="return infraTooltipOcultar();">'+
                                                             '   <i class="fas fa-folder-open azulColor iconInteressadosProcesso"></i><i class="fas fa-search azulColor" style="margin-left: -10px;"></i>'+
@@ -1523,7 +1905,7 @@ function setDadosProcessoArvore() {
                         '      <i class="fas fa-chevron-'+(getOptionsPro('panelDadosArvorePro_assuntos') == 'hide' ? 'right' : 'down')+' azulColor" style="float: right; cursor:pointer; margin-right: 20px;" onclick="togglePanelDadosArvore(this)"></i>'+
                         '   </label>'+
                         '   <div class="infoDadosArvore" style="'+(getOptionsPro('panelDadosArvorePro_assuntos') == 'hide' ? 'display:none' : '')+'">'+
-                               $.map(prop.selAssuntos_select, function(v){ return '<div><a class="newLink" style="cursor:pointer" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+v+'</a></div>' }).join('')+
+                               $.map(prop.selAssuntos_select, function(v){ return '<div><a class="newLink" style="cursor:pointer;max-width: calc(100% - 70px);" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+v+'</a></div>' }).join('')+
                         '   </div>'+
                         '</div>';
         htmlAssuntos = ($.inArray("Assuntos",jmespath.search(selectedItensPanelArvore,"[]")) !== -1) ? htmlAssuntos : '';
@@ -1535,14 +1917,48 @@ function setDadosProcessoArvore() {
                             '      <i class="fas fa-chevron-'+(getOptionsPro('panelDadosArvorePro_observacoes') == 'hide' ? 'right' : 'down')+' azulColor" style="float: right; cursor:pointer; margin-right: 20px;" onclick="togglePanelDadosArvore(this)"></i>'+
                             '   </label>'+
                             '   <div class="infoDadosArvore" style="'+(getOptionsPro('panelDadosArvorePro_observacoes') == 'hide' ? 'display:none' : '')+'">'+
-                                    $.map(prop.txaObservacoes, function(v){ return '<div><a class="newLink" style="cursor:pointer" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+v.unidade+': '+v.observacao+'</a></div>' }).join('')+
+                                    $.map(prop.txaObservacoes, function(v){ return '<div><a class="newLink" style="cursor:pointer;max-width: calc(100% - 70px);" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+v.unidade+': '+v.observacao+'</a></div>' }).join('')+
                             '   </div>'+
                             '</div>';
         htmlObservacoes = ($.inArray("Observa\u00E7\u00F5es",jmespath.search(selectedItensPanelArvore,"[]")) !== -1) ? htmlObservacoes : '';
 
     $('.panelDadosArvorePro').remove();
-    $('#frmArvore').append(htmlDescricao+htmlTipoProcedimento+htmlNivelAcesso+htmlInteressados+htmlAssuntos+htmlObservacoes);  
+    $('#frmArvore').append(htmlMarcador+htmlDescricao+htmlTipoProcedimento+htmlNivelAcesso+htmlInteressados+htmlAssuntos+htmlObservacoes);  
     parent.forceOnLoadBodyPage();  
+    if (!dataMarcador && processoAberto) {
+        getDataMarcadorProcesso();
+    }
+    if (typeof parent.setCapaProcesso === 'function') {
+        parent.setCapaProcesso();
+    }
+    if (typeof replaceColorsIcons !== 'undefined' && checkConfigValue('coresmarcadores')) {
+        replaceColorsIcons($('a[href*="andamento_marcador_gerenciar"], .tagUserColorPro'));
+    }
+}
+function getDataMarcadorProcesso() {
+    var href = jmespath.search(arrayLinksArvore, "[?name=='Gerenciar Marcador'].url");
+    if (href !== null) {
+        $.ajax({ 
+            url: href
+        }).done(function (html) {
+            var $html = $(html);
+            var marcador =  {
+                id_procedimento: getParamsUrlPro(window.location.href).id_procedimento,
+                icon: $html.find('#selMarcador').find('option:selected').data('imagesrc'),
+                tag: $html.find('#selMarcador').find('option:selected').text(),
+                name: $html.find('#txaTexto').val()
+            }
+            console.log(marcador);
+            var listMarcadores = sessionStorageRestorePro('dadosMarcadoresProcessoPro');
+                listMarcadores = (listMarcadores) ? listMarcadores : [];
+                listMarcadores.push(marcador);
+            sessionStorageStorePro('dadosMarcadoresProcessoPro',listMarcadores);
+            setDadosProcessoArvore();
+            if (typeof replaceColorsIcons !== 'undefined' && checkConfigValue('coresmarcadores')) {
+                replaceColorsIcons($('a[href*="andamento_marcador_gerenciar"], .tagUserColorPro'));
+            }
+        });
+    }
 }
 function initAtividadesProcesso(TimeOut = 9000) {
     if (TimeOut <= 0 || parent.window.name != '') { return; }
@@ -1562,7 +1978,8 @@ function initAtividadesProcesso(TimeOut = 9000) {
 }
 function setAtividadesProcesso() {
     var htmlAtividades = getAtividadesProcessoArvore();
-    $('.panelDadosArvore_atividades').after(htmlAtividades).remove();
+    $('.panelDadosArvore_atividades').remove();
+    $('.panelDadosArvore').eq(0).before(htmlAtividades);
 
     if (htmlAtividades != '') {
         $('.kanban-item .checklist_progress').each(function(){
@@ -1610,7 +2027,7 @@ function getAtividadesProcessoArvore() {
             var htmlActionsAtividade = parent.actionsAtividade(value.id_demanda, 'icon');
             var kanbanItem = parent.getKanbanItem(value);
             
-                htmlInfoAtividades +=   '<div class="kanban-item '+kanbanItem.class.join(' ')+'">'+
+                htmlInfoAtividades +=   '<div class="kanban-item '+kanbanItem.class.join(' ')+'" data-eid="_id_'+value.id_demanda+'">'+
                                         '   '+kanbanItem.title+
                                         (htmlActionsAtividade.action == 'info' ? '' :
                                         '   <span class="info_dates_fav" style="display: block;padding: 0;margin: 10px 0 0 0;">'+
@@ -1672,11 +2089,15 @@ function stylePanelArvore() {
         if (infoResponsaveis != '') {
             $.each(infoResponsaveis.split('<br />'), function(i, v){
                 var result = $('<div/>').html(v).contents();
-                if (result.text().trim() != '') {
+                var result_text = result.text().trim();
+                if (result_text != '') {
                     var naoAtribuido = ($('<div/>').append(result).find('a.ancoraSigla').length == 1) ? ' <span class="infoAlerta">(n\u00E3o atribu\u00EDdo)</span>' : '';
+                    var iconEdit = (result_text.indexOf($('#selInfraUnidades', window.parent.document).find('option:selected').text()) !== -1) 
+                                    ? '<a class="newLink" data-mode="responsaveis" data-text="'+result_text+'" style="cursor:pointer;float: right;" onclick="parent.editDadosArvorePro(this)" onmouseover="return infraTooltipMostrar(\'Clique para editar\');" onmouseout="return infraTooltipOcultar();"><i class="fas fa-edit"></i></a>' 
+                                    : ''
                     htmlInfoResponsaveis += '<div>'+
-                                            '   <a class="newLink" style="cursor:pointer" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+
-                                            '   '+result.text().trim()+naoAtribuido+
+                                            '   <a class="newLink" style="cursor:pointer;max-width: calc(100% - 70px);" onclick="parent.copyTextThis(this)" onmouseover="return infraTooltipMostrar(\'Clique para copiar\');" onmouseout="return infraTooltipOcultar();">'+
+                                            '   '+result_text+naoAtribuido+iconEdit+
                                             '   </a>'+
                                             '</div>';
                 }
@@ -1701,6 +2122,7 @@ function stylePanelArvore() {
         $('#frmArvore').append(htmlAtividades+htmlResponsaveis);
 
         initDadosProcessoArvore();
+        initDadosProcessoArvoreSession();
 
         if (htmlAtividades != '') {
             $('.kanban-item .checklist_progress').each(function(){
@@ -1734,7 +2156,9 @@ function initStylePanelArvore(TimeOut = 9000) {
         }
     } else {
         setTimeout(function(){ 
-            parent.initNameConst();
+            if (typeof parent.initNameConst === 'function') {
+                parent.initNameConst();
+            }
             initStylePanelArvore(TimeOut - 100); 
             console.log('Reload initStylePanelArvore', TimeOut); 
         }, 500);
@@ -1750,9 +2174,9 @@ function breakDocTwoLines() {
         var nrSEI = $(this).text().trim();
             nrSEI = (nrSEI.indexOf(' ') !== -1) ? nrSEI.split(' ') : '';
             nrSEI = (nrSEI != '') ? '<span style="font-size:9pt">'+nrSEI[nrSEI.length-1]+'</span>' : '';
-        var imgDivPasta = (checkFolder && !checkLast && !checkLastFolder ) ? '<img src="/infra_js/arvore/line.gif" align="absbottom">' : '';
+        var imgDivPasta = (checkFolder && !checkLast && !checkLastFolder ) ? '<img src="'+pathArvore+'line.gif" align="absbottom">' : '';
         var paddingLastFolder = (checkFolder && checkLastFolder) ? '<span style="margin-left: 18px;"></span>' : '';
-        var imgDiv = (checkLast || checkLastItemFolder) ? '<img src="/infra_js/arvore/joinbottom.gif" align="absbottom" style="margin-left: 18px;">' : '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAASCAYAAAAzI3woAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyVpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ4IDc5LjE2NDAzNiwgMjAxOS8wOC8xMy0wMTowNjo1NyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIxLjAgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MkIxNDk0NTBFQzFCMTFFQkFERjBGQzQ1Qjk0MkFCNUEiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MkIxNDk0NTFFQzFCMTFFQkFERjBGQzQ1Qjk0MkFCNUEiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDoxRkIyMEY3NUVDMUExMUVCQURGMEZDNDVCOTQyQUI1QSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDoxRkIyMEY3NkVDMUExMUVCQURGMEZDNDVCOTQyQUI1QSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PpIKuNMAAABISURBVHjaYvj//z8DLtzQ0PAfnzwxmFQzGEHEYAJM+CQbGxspdi2pZoyG0GgIjYbQaAiNhtBAhRCx9MgLIVLBaAgNuRACCDAA4Zq1PU3G1rcAAAAASUVORK5CYII=" />';
+        var imgDiv = (checkLast || checkLastItemFolder) ? '<img src="'+pathArvore+'joinbottom.gif" align="absbottom" style="margin-left: 18px;">' : '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAASCAYAAAAzI3woAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyVpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ4IDc5LjE2NDAzNiwgMjAxOS8wOC8xMy0wMTowNjo1NyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIxLjAgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MkIxNDk0NTBFQzFCMTFFQkFERjBGQzQ1Qjk0MkFCNUEiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MkIxNDk0NTFFQzFCMTFFQkFERjBGQzQ1Qjk0MkFCNUEiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDoxRkIyMEY3NUVDMUExMUVCQURGMEZDNDVCOTQyQUI1QSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDoxRkIyMEY3NkVDMUExMUVCQURGMEZDNDVCOTQyQUI1QSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PpIKuNMAAABISURBVHjaYvj//z8DLtzQ0PAfnzwxmFQzGEHEYAJM+CQbGxspdi2pZoyG0GgIjYbQaAiNhtBAhRCx9MgLIVLBaAgNuRACCDAA4Zq1PU3G1rcAAAAASUVORK5CYII=" />';
             
         $(this).after('<span class="breackline_doc"><br>'+paddingLastFolder+imgDivPasta+imgDiv+nrSEI+'</span>');
     });
@@ -1768,7 +2192,37 @@ function initBreakDocTwoLines(TimeOut = 9000) {
         }, 500);
     }
 }
-function initSeiProArvore() {
+function loadStyleDesign() {
+    if (localStorage.getItem('seiSlim')) {
+        var body = document.body;
+        body.classList.add("seiSlim");
+        body.classList.add("seiSlim_arvore");
+        if (localStorage.getItem('darkModePro')) {
+            body.classList.add("dark-mode");
+        }
+        initAnchorImg();
+        initOnClickPasta();
+    }
+}
+function initAnchorImg() {
+    $('a[id*="anchorImg"], a[id*="anchorA"], a[id*="ancjoinPASTA"]').each(function(){
+        var img = $(this).find('img').attr('src');
+        if (img !== null) $(this).attr('data-img', img);
+    });
+    $('img[src*="/join"], img[src*="/line"]').wrap(function(){
+        return ($(this).closest('.anchorJoinPro').length == 0) ? '<span class="anchorJoinPro" data-img="'+$(this).attr('src')+'"></span>' : false;
+    });
+    $('img[src*="/espaco"], img[src*="/empty"]').wrap(function(){
+        return ($(this).closest('.anchorSpacePro').length == 0) ? '<span class="anchorSpacePro" data-img="'+$(this).attr('src')+'"></span>' : false;
+    });
+}
+function initOnClickPasta() {
+    $('a[id*="ancjoinPASTA"], a[id*="anchorImgPASTA"]').on('click', function(){
+        initAnchorImg();
+    });
+}
+function initSeiProArvore(loop = true) {
+    loadStyleDesign();
     arrayLinksArvore = getLinksArvore();
     arrayLinksPage = getLinksPage();
     parent.linksArvore = getLinksPage();
@@ -1787,9 +2241,9 @@ function initSeiProArvore() {
     if (typeof localStorageRestorePro === "function" && typeof parent.verifyConfigValue !== 'undefined'  && parent.verifyConfigValue('duaslinhas') ) { 
         initBreakDocTwoLines();
     }
-    // if (typeof resizeWinArvore === "function" && typeof parent.verifyConfigValue !== 'undefined'  && parent.verifyConfigValue('resizearvore') ) { 
-        // parent.resizeWinArvore();
-    // }
+    if (typeof resizeArvoreMaxWidth === "function" && typeof parent.verifyConfigValue !== 'undefined'  && parent.verifyConfigValue('resizearvore') ) { 
+        parent.resizeArvoreMaxWidth();
+    }
     if (
         (typeof parent.initAtividadesProcesso === 'function' || typeof parent.initAtividadesProcesso !== 'undefined') && 
         parent.checkConfigValue('gerenciaratividades') && localStorage.getItem('configBasePro_atividades') !== null &&
@@ -1809,9 +2263,32 @@ function initSeiProArvore() {
     if (typeof localStorageRestorePro === "function" && typeof parent.checkConfigValue !== 'undefined'  && parent.checkConfigValue('uploaddocsexternos')) {
         initUploadArvore();
     }
-    if (typeof localStorageRestorePro === "function" && typeof parent.checkConfigValue !== 'undefined'  && parent.checkConfigValue('menususpenso')) {
+    if (typeof localStorageRestorePro === "function" && typeof parent.checkConfigValue !== 'undefined'  && parent.verifyConfigValue('menususpenso')) {
         parent.hideMenuSistemaView();
     }
+    if (typeof parent.setClickUrlAmigavel !== 'undefined'  && parent.verifyConfigValue('urlamigavel')) {
+        parent.setClickUrlAmigavel();
+    }
+    if (typeof parent.appendIconsFormArvore !== 'undefined' && typeof parent.dadosFormularioObj !== 'undefined' && parent.verifyConfigValue('gerenciarformularios')) {
+        parent.appendIconsFormArvore();
+    }
+    if (typeof parent.getOptionsPro !== 'undefined' && parent.getOptionsPro('iframeSizeSlimPro') && typeof parent.setSizeIframePro !== 'undefined') {
+        parent.setSizeIframePro(parent.getOptionsPro('iframeSizeSlimPro'));
+    }
+    if (typeof replaceColorsIcons !== 'undefined' && checkConfigValue('coresmarcadores')) {
+        replaceColorsIcons($('a[href*="andamento_marcador_gerenciar"], .tagUserColorPro'));
+    }
+    
+    $('a[id*="anchor"][target="ifrVisualizacao"]').data('arvore-pro', true);
+    $('a[target="ifrVisualizacao"]:contains("(URGENTE)")').addClass('urgentePro').find('div.urgentePro').remove().end().prepend('<div class="urgentePro"></div>');
+
+    setTimeout(function(){ 
+        var arrayCheckActions = $('a[id*="anchor"][target="ifrVisualizacao"]').map(function(){ if (typeof $(this).data('arvore-pro') === 'undefined') return true ; }).get();
+        if (loop && typeof arrayCheckActions !== 'undefined' && arrayCheckActions.length > 0) {
+            initSeiProArvore(false);
+            console.log('Reload initSeiProArvore Loop');
+        } 
+    }, 500);
 }
 
 $(document).ready(function () { initSeiProArvore() });

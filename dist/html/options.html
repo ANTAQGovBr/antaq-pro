@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-    <title>Configura&ccedil;&otilde;es Gerais | SEI Pro</title>
+    <title>Configura&ccedil;&otilde;es Gerais</title>
     <script src="../js/lib/jquery-3.4.1.min.js"></script>
     <script src="../js/lib/jquery-ui.min.js"></script>
     <script src="../js/lib/jmespath.min.js"></script>
     <link rel="stylesheet" type="text/css" href="page.css">
-    <link rel="stylesheet" type="text/css" href="../css/fontawesome.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/fontawesome.pro.min.css">
     <link rel="stylesheet" type="text/css" href="../css/jquery-ui.css">
 </head>
 <body class="SEIPro">
@@ -21,13 +21,13 @@
 			<button class="save button-flat button-light" style="float:right" style="width: 100px"><i class="fas fa-save"></i> Salvar</button>
             <div id="alertaBoxPro" style="display: none;"></div>
         </div>
-        <h1><i class="fas fa-cog icon"></i> Configura&ccedil;&otilde;es Gerais | SEI Pro</h1>
+        <h1><img src="../icons/icon-32.png" style="vertical-align: middle;margin-right: 10px;"> <span class="title"><span class="name-space"></span> | Configura&ccedil;&otilde;es</span></h1>
     </div>
     <div class="panel options-panel options-profile" id="options-tabs">
         <ul>
-            <li><a href="#options-functions">Geral</a></li>
-            <li><a href="#options-database">Base de Dados</a></li>
-            <li><a href="#options-complements">Complementos</a></li>
+            <li><a href="#options-functions"><i class="fas fa-cog"></i> Geral</a></li>
+            <li><a href="#options-database"><i class="fas fa-database"></i> Base de Dados</a></li>
+            <li><a href="#options-complements"><i class="fas fa-puzzle-piece"></i> Complementos</a></li>
         </ul>
         <div id="options-database">
             <div id="options-profile">
@@ -54,6 +54,8 @@
                             <select id="sca-baseTipo-0" class="sca-baseTipo option-ref input-config-pro" data-name-input="baseTipo" style="width: 100%;" required>
                                 <option value="projetos">Projetos</option>
                                 <option value="atividades">Atividades</option>
+                                <option value="formularios">Formul&aacute;rios</option>
+                                <option value="processos">Processos</option>
                             </select>
                         </td>
                     </tr>
@@ -134,7 +136,7 @@
                     <td>
                         <p>
                             <i class="iconPopup fa fa-stethoscope cinzaColor"></i><span class="info">Pesquisa NatJus</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/NAJUS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/NAJUS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -152,7 +154,7 @@
                     <td>
                         <p>
                             <i class="iconPopup fa fa-tasks azulColor"></i><span class="info">Gerenciar Projetos</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/PROJETOS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/PROJETOS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -179,8 +181,36 @@
                 <tr>
                     <td>
                         <p>
+                            <i class="iconPopup fas fa-clipboard-list azulColor"></i><span class="info">Gerenciar Formul&aacute;rios</span>
+                            <a href="/pages/FORMULARIOS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                        </p>
+                    </td>
+                    <td>
+                           <div class="onoffswitch">
+                               <input type="checkbox" data-name="gerenciarformularios" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_gerenciarformularios" tabindex="0" checked>
+                               <label class="onoffswitch-label" for="itemConfigGeral_gerenciarformularios"></label>
+                           </div>
+                    </td>
+                </tr>
+                <tr class="lab">
+                    <td>
+                        <p>
+                            <i class="iconPopup fas fa-folder-open azulColor"></i><span class="info">Sincronizar Base de Processos</span>
+                            <a href="/pages/SYNCPROCESSOS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                        </p>
+                    </td>
+                    <td>
+                           <div class="onoffswitch">
+                               <input type="checkbox" data-name="sincronizarprocessos" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_sincronizarprocessos" tabindex="0" checked>
+                               <label class="onoffswitch-label" for="itemConfigGeral_sincronizarprocessos"></label>
+                           </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
                             <i class="iconPopup fa fa-star azulColor"></i><span class="info">Gerenciar Processos Favoritos</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/FAVORITOS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/FAVORITOS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -193,8 +223,36 @@
                 <tr>
                     <td>
                         <p>
+                            <i class="iconPopup fa fa-clock azulColor"></i><span class="info">Controlar Prazos</span>
+                            <a class="manual" href="/pages/PRAZOS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                        </p>
+                    </td>
+                    <td>
+                           <div class="onoffswitch">
+                               <input type="checkbox" data-name="gerenciarprazos" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_gerenciarprazos" tabindex="0" checked>
+                               <label class="onoffswitch-label" for="itemConfigGeral_gerenciarprazos"></label>
+                           </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            <i class="iconPopup fa fa-cogs azulColor"></i><span class="info">A&ccedil;&otilde;es em Lote</span>
+                            <a class="manual" href="/pages/ACOESEMLOTE.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                        </p>
+                    </td>
+                    <td>
+                           <div class="onoffswitch">
+                               <input type="checkbox" data-name="acoesemlote" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_acoesemlote" tabindex="0" checked>
+                               <label class="onoffswitch-label" for="itemConfigGeral_acoesemlote"></label>
+                           </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
                             <i class="iconPopup fa fa-layer-group azulColor"></i><span class="info">Agrupar lista de processos por marcadores, tipo, respons&aacute;vel ou ponto de controle</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/AGRUPAR.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/AGRUPAR.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -208,7 +266,7 @@
                     <td>
                         <p>
                             <i class="iconPopup fa fa-caret-square-down azulColor"></i><span class="info">Menu r&aacute;pido na &aacute;rvore de documentos</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/MENURAPIDO.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/MENURAPIDO.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -222,7 +280,7 @@
                     <td>
                         <p>
                             <i class="iconPopup fa fa-link azulColor"></i><span class="info">Abrir, editar e remover hiperlinks no editor de documentos</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/ABRIRLINKS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/ABRIRLINKS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -235,8 +293,8 @@
                 <tr>
                     <td>
                         <p>
-                            <i class="iconPopup fa fa-angle-double-right azulColor"></i><span class="info">Remover pagina&ccedil;&atilde;o de processos</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/REMOVEPAGINACAO.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <i class="iconPopup fa fa-angle-double-right cinzaColor"></i><span class="info">Remover pagina&ccedil;&atilde;o de processos e tabelas</span>
+                            <a class="manual" href="/pages/REMOVEPAGINACAO.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -249,8 +307,22 @@
                 <tr>
                     <td>
                         <p>
+                            <i class="iconPopup fa fa-infinity cinzaColor"></i><span class="info">Rolagem infinita na pesquisa de processos</span>
+                            <a class="manual" href="/pages/ROLAGEMINFINITA.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                        </p>
+                    </td>
+                    <td>
+                           <div class="onoffswitch">
+                               <input type="checkbox" data-name="rolageminfinita" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_rolageminfinita" tabindex="0" >
+                               <label class="onoffswitch-label" for="itemConfigGeral_rolageminfinita"></label>
+                           </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
                             <i class="iconPopup fa fa-upload azulColor"></i><span class="info">Enviar M&uacute;ltiplos Documentos Externos</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/UPLOADDOCS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/UPLOADDOCS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -264,7 +336,7 @@
                     <td>
                         <p>
                             <i class="iconPopup far fa-hand-rock cinzaColor"></i><span class="info">Ordernar documentos na &aacute;rvore antes de enviar (N&atilde;o enviar automaticamente)</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/UPLOADDOCS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/UPLOADDOCS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -277,13 +349,13 @@
                 <tr>
                     <td>
                         <p>
-                            <i class="iconPopup fa fa-bars azulColor"></i><span class="info">Menu Suspenso</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/MENUSUSPENSO.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <i class="iconPopup fa fa-bars cinzaColor"></i><span class="info">Menu Suspenso</span>
+                            <a class="manual" href="/pages/MENUSUSPENSO.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
                            <div class="onoffswitch">
-                               <input type="checkbox" data-name="menususpenso" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_menususpenso" tabindex="0" checked>
+                               <input type="checkbox" data-name="menususpenso" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_menususpenso" tabindex="0">
                                <label class="onoffswitch-label" for="itemConfigGeral_menususpenso"></label>
                            </div>
                     </td>
@@ -292,7 +364,7 @@
                     <td>
                         <p>
                             <i class="iconPopup fa fa-sort-alpha-down azulColor"></i><span class="info">Ordernar tabelas ao clicar no seu cabe&ccedil;alho</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/ORDERNARTABELA.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/ORDERNARTABELA.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -306,7 +378,7 @@
                     <td>
                         <p>
                             <i class="iconPopup fa fa-history azulColor"></i><span class="info">Hist&oacute;rico de processos visitados</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/HISTORICOPROC.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/HISTORICOPROC.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -320,7 +392,7 @@
                     <td>
                         <p>
                             <i class="iconPopup fa fa-info azulColor"></i><span class="info">Informa&ccedil;&otilde;es adicionais na &aacute;rvore do processo</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/INFOARVORE.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/INFOARVORE.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -334,7 +406,7 @@
                     <td>
                         <p>
                             <i class="iconPopup fa fa-arrows-alt-h cinzaColor"></i><span class="info">Redimensionar automaticamente a &aacute;rvore do processo pela sua largura total</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/RESIZEARVORE.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/RESIZEARVORE.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -348,7 +420,7 @@
                     <td>
                         <p>
                             <i class="iconPopup fa fa-grip-lines cinzaColor"></i><span class="info">Dividir as informa&ccedil;&otilde;es do documento na &aacute;rvore do processo em duas linhas</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/DIVIDIRLINHASARVORE.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/DIVIDIRLINHASARVORE.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -362,13 +434,69 @@
                     <td>
                         <p>
                             <i class="iconPopup far fa-hand-point-up cinzaColor"></i><span class="info">Utilizar caixas de sele&ccedil;&atilde;o inteligentes</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/SUBSTITUIRSELECAO.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/SUBSTITUIRSELECAO.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
                            <div class="onoffswitch">
                                <input type="checkbox" data-name="substituiselecao" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_substituiselecao" tabindex="0">
                                <label class="onoffswitch-label" for="itemConfigGeral_substituiselecao"></label>
+                           </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            <i class="iconPopup far fa-window-maximize cinzaColor"></i><span class="info">Utilizar endere&ccedil;os amig&aacute;veis em processos e documentos</span>
+                            <a class="manual" href="/pages/URLAMIGAVEL.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                        </p>
+                    </td>
+                    <td>
+                           <div class="onoffswitch">
+                               <input type="checkbox" data-name="urlamigavel" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_urlamigavel" tabindex="0">
+                               <label class="onoffswitch-label" for="itemConfigGeral_urlamigavel"></label>
+                           </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            <i class="iconPopup fas fa-pen-alt azulColor"></i><span class="info">Alertar sobre documentos n&atilde;o assinados ao enviar um processo</span>
+                            <a class="manual" href="/pages/DOCSNAOASSINADOS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                        </p>
+                    </td>
+                    <td>
+                           <div class="onoffswitch">
+                               <input type="checkbox" data-name="naoassinados" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_naoassinados" tabindex="0" checked>
+                               <label class="onoffswitch-label" for="itemConfigGeral_naoassinados"></label>
+                           </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            <i class="iconPopup fas fa-tags azulColor"></i><span class="info">Permitir cores personalizadas em Marcadores</span>
+                            <a class="manual" href="/pages/CORESMARCADORES.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                        </p>
+                    </td>
+                    <td>
+                           <div class="onoffswitch">
+                               <input type="checkbox" data-name="coresmarcadores" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_coresmarcadores" tabindex="0" checked>
+                               <label class="onoffswitch-label" for="itemConfigGeral_coresmarcadores"></label>
+                           </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            <i class="iconPopup fas fa-paragraph cinzaColor"></i><span class="info">Visualizar par&aacute;grafos numerados no visualizador de documentos</span>
+                            <a class="manual" href="/pages/PARAGRAFOSNUMERADOS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                        </p>
+                    </td>
+                    <td>
+                           <div class="onoffswitch">
+                               <input type="checkbox" data-name="linhanumerada" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_linhanumerada" tabindex="0">
+                               <label class="onoffswitch-label" for="itemConfigGeral_linhanumerada"></label>
                            </div>
                     </td>
                 </tr>
@@ -386,6 +514,7 @@
                                         <option value="citacaodoc_1">Documento (SEI n&ordm; 0000)</option>
                                         <option value="citacaodoc_2">Documento (SEI 0000)</option>
                                         <option value="citacaodoc_3">Documento (0000)</option>
+                                        <option value="citacaodoc_4">0000</option>
                                     </select>
                                 </td>
                             </tr>
@@ -395,8 +524,122 @@
                 <tr>
                     <td>
                         <p>
+                            <i class="iconPopup fas fa-user-lock azulColor"></i><span class="info">Gerar Certid&atilde;o de Documento Oficial com Sigilo</span>
+                            <a class="manual" href="/pages/CERTIDAOSIGILO.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                        </p>
+                    </td>
+                    <td>
+                           <div class="onoffswitch">
+                               <input type="checkbox" data-name="certidaosigilo" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_certidaosigilo" tabindex="0" checked>
+                               <label class="onoffswitch-label" for="itemConfigGeral_certidaosigilo"></label>
+                           </div>
+                    </td>
+                </tr>
+                <tr id="getDocCertidao_docName">
+                    <td colspan="2" style="padding: 0;">
+                        <table>
+                            <tr>
+                                <td style="width: 60%;">
+                                    <span>
+                                        <i class="iconPopup fas fa-file-contract azulColor"></i><span class="info">Nome do tipo de documento do SEI da Certid&atilde;o</span>
+                                        <a class="manual" href="/pages/CERTIDAOSIGILO.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                                    </span>
+                                </td>
+                                <td style="width: 40%; text-align: right;">
+                                    <input type="text" id="itemConfigGeral_certidaosigilo_nomedoc" maxlength="1000" data-name="certidaosigilo_nomedoc" value="Certid&atilde;o">
+                                   </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr style="display:none">
+                    <td colspan="2" style="padding: 0;">
+                        <table>
+                            <tr>
+                                <td style="width: 80%;">
+                                    <span>
+                                        <i class="iconPopup fas fa-save azulColor"></i><span class="info">Intervalo em minutos para o salvamento autom&aacute;tico</span>
+                                        <a class="manual" href="/pages/SALVAMENTOAUTOMATICO.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                                    </span>
+                                </td>
+                                <td style="width: 20%; text-align: right;">
+                                    <input type="number" step="1" id="itemConfigGeral_salvamentoautomatico" max="360" min="1" data-name="salvamentoautomatico" value="5">
+                                   </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr class="lab">
+                    <td>
+                        <p>
+                            <i class="iconPopup fas fa-keyboard azulColor"></i><span class="info">Adicionar teclas de atalhos no editor de documentos</span>
+                            <a href="/pages/TECLASATALHO.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                        </p>
+                    </td>
+                    <td>
+                           <div class="onoffswitch">
+                               <input type="checkbox" data-name="teclasatalho" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_teclasatalho" tabindex="0" checked>
+                               <label class="onoffswitch-label" for="itemConfigGeral_teclasatalho"></label>
+                           </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 0;">
+                        <table>
+                            <tr>
+                                <td style="width: 40%;">
+                                    <span>
+                                        <i class="iconPopup fa fa-grip-horizontal azulColor"></i><span class="info">Combina&ccedil;&atilde;o de teclas de atalho para o editor de documentos</span>
+                                    </span>
+                                </td>
+                                <td style="width: 60%; text-align: right;">
+                                    <select id="itemConfigGeral_combinacaoteclas" data-name="combinacaoteclas">
+                                        <option value="combinacaoteclas_1">CTRL + ALT + SHIFT</option>
+                                        <option value="combinacaoteclas_2">CTRL + SHIFT</option>
+                                        <option value="combinacaoteclas_3">CTRL + ALT</option>
+                                        <option value="combinacaoteclas_4">ALT + SHIFT</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
+                            <i class="iconPopup fas fa-photo-video azulColor"></i><span class="info">Envio, formata&ccedil;&atilde;o e edi&ccedil;&atilde;o avan&ccedil;ada de imagens no editor de documentos</span>
+                            <a class="manual" href="/pages/EDITARIMAGENS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                        </p>
+                    </td>
+                    <td>
+                           <div class="onoffswitch">
+                               <input type="checkbox" data-name="editarimagens" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_editarimagens" tabindex="0" checked>
+                               <label class="onoffswitch-label" for="itemConfigGeral_editarimagens"></label>
+                           </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 0;">
+                        <table>
+                            <tr>
+                                <td style="width: 80%;">
+                                    <span>
+                                        <i class="iconPopup fas fa-images azulColor"></i><span class="info">Reduzir a qualidade das imagens inseridas nos documentos (%)</span>
+                                        <a class="manual" href="/pages/QUALIDADEIMAGENS.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                                    </span>
+                                </td>
+                                <td style="width: 20%; text-align: right;">
+                                    <input type="number" step="1" id="itemConfigGeral_qualidadeimagens" max="100" min="1" data-name="qualidadeimagens" value="60">
+                                   </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>
                             <i class="iconPopup fa fa-mouse-pointer azulColor"></i><span class="info">Selecionar valores padronizados ao inserir um novo documento</span>
-                            <a href="https://sei-pro.github.io/sei-pro/pages/VALDEFAULT.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
+                            <a class="manual" href="/pages/VALDEFAULT.html" target="_blank" style="float: right;"><i class="iconPopup fa fa-info-circle" style="color: #C0C0C0 !important;"></i></a>
                         </p>
                     </td>
                     <td>
@@ -468,6 +711,18 @@
                                        <input type="checkbox" data-name="newdocnivel" name="onoffswitch" class="onoffswitch-checkbox" id="itemConfigGeral_newdocnivel" tabindex="0" checked>
                                        <label class="onoffswitch-label" for="itemConfigGeral_newdocnivel"></label>
                                    </div>
+                            </td>
+                        </tr>
+                        <tr id="newDoc_sigilo">
+                            <td style="width: 60%;">
+                                <span style="padding-left: 40px;">
+                                    <i class="iconPopup fa fa-balance-scale cinzaColor"></i><span class="info">Hip&oacute;tese legal do documento</span>
+                                </span>
+                            </td>
+                            <td style="width: 40%;">
+                                   <select id="itemConfigGeral_newdocsigilo" data-name="newdocsigilo">
+                                       <option value=""></option>
+                                   </select>
                             </td>
                         </tr>
                     </table>
