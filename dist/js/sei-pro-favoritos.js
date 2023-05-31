@@ -624,7 +624,7 @@ function checkDataFavoritePro(this_, mode, id_procedimento, TimeOut = 9000) {
         setTimeout(function(){ 
             var target = (this_) ? $(this_) : $('#ifrArvore').contents().find('#iconFavoritePro_'+id_procedimento);
             target.fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100);
-            console.log('Reload checkDataFavoritePro', TimeOut); 
+            console.log('Reload checkDataFavoritePro => '+TimeOut); 
             if (TimeOut == 9000 && mode == 'add') {
                 getDadosIframeProcessoPro(id_procedimento, 'favorites');
             }
@@ -655,6 +655,7 @@ function storeFavoritePro(mode, id_procedimento) {
             }
         }
         dadosProcessoPro = {};
+        if ($('#processosKanban').is(':visible')) addKanbanProc();
     }
 }
 function removeFavoritePainelPro(this_, id_procedimento = 0) {
@@ -1047,7 +1048,7 @@ function checkFileRemoteFav(mode, data = false) {
 function checkFileLocalFav() {
     getLocalFilePro();
     setTimeout(function(){ 
-        if (fileSystemPro && fileSystemContentPro && typeof fileSystemContentPro === 'object' && fileSystemContentPro.hasOwnProperty('favorites') && fileSystemContentPro.favorites.length > 0 ) {
+        if (fileSystemPro && fileSystemContentPro && typeof fileSystemContentPro === 'object' && typeof moment().isoWeekdayCalc === 'function' && fileSystemContentPro.hasOwnProperty('favorites') && fileSystemContentPro.favorites.length > 0 ) {
             console.log('ok');
             localStorageStorePro('configDataFavoritesPro', fileSystemContentPro);
             saveConfigFav();
@@ -1055,6 +1056,7 @@ function checkFileLocalFav() {
             console.log('backup setPanelFavorites');
         } else if (typeof perfilLoginAtiv !== 'undefined' && perfilLoginAtiv !== null) {
             getRemoteFileFav();
+            if (typeof moment().isoWeekdayCalc !== 'function') $.getScript(URL_SPRO+"js/lib/moment-weekday-calc.js");
         }
     }, 500);
 }
@@ -1067,12 +1069,14 @@ function getRemoteFileFav() {
 }
 function restoreFavServer(data) {
     var storeFavorites = getStoreFavoritePro();
+    if (typeof storeFavorites !== 'undefined' && typeof storeFavorites.favorites !== 'undefined') {
         storeFavorites.favorites = data.favorites;
         storeFavorites.config.colortags = data.config.colortags;
         localStorageStorePro('configDataFavoritesPro', storeFavorites);
         setLocalFilePro(storeFavorites);
         initPanelFavorites();
         console.log('backup setPanelFavorites');
+    }
 }
 function keyDatesFav(e) {
     if(e.which == 13) {
@@ -1118,6 +1122,7 @@ function initFunctionsPanelFav(TimeOut = 9000) {
         initPanelResize('#favoritesProDiv .tabelaPanelScroll', 'favoritesPro');
 
         tableFavorites.tablesorter({
+            sortLocaleCompare : true,
             textExtraction: {
                 2: function (elem, table, cellIndex) {
                   var target = $(elem).find('.dateboxDisplay').eq(0);
@@ -1207,7 +1212,7 @@ function initFunctionsPanelFav(TimeOut = 9000) {
             });
             checkboxRangerSelectShift();
             checkFileRemoteFav('get');
-            console.log('initFunctionsPanelFav',TimeOut);
+            console.log('initFunctionsPanelFav => '+TimeOut);
         }, 500);
 
         var filterFav = tableFavorites.find('.tablesorter-filter-row').get(0);
@@ -1351,7 +1356,7 @@ function getFavoritesEnviarProcesso() {
                         favoritosLabelOptions(id_procedimento)+
                         '   </div>'+
                         '</div>';
-    ifrVisualizacao.find('#frmAtividadeListar').append(htmlAddFav);
+    if (ifrVisualizacao.find('#divSinAdicionarFavoritos').length == 0) ifrVisualizacao.find('#frmAtividadeListar').append(htmlAddFav);
     loadStylePro(URL_SPRO+"css/sei-pro.css", ifrVisualizacao.find('head'), ifrVisualizacao);
     loadStylePro((localStorage.getItem('seiSlim') ? URL_SPRO+"css/fontawesome.pro.min.css" : URL_SPRO+"css/fontawesome.min.css"), ifrVisualizacao.find('head'), ifrVisualizacao);
     loadScriptFavoriteTag(ifrVisualizacao);

@@ -1,5 +1,11 @@
+var logBackup = console.log;
+var logMessages = [];
 var pagesInfiniteSearch = [];
+var frmPesquisaProtocolo = ($('#seiSearch').length) ? '#seiSearch' : '#frmPesquisaProtocolo';
+var divPaginas = isNewSEI ? 'div.pesquisaPaginas' : 'div.paginas';
+
 function getTableInfiniteSearch(ifrView, formID, tableID, index) {
+    console.log(pagesInfiniteSearch, index, pagesInfiniteSearch);
     if (pagesInfiniteSearch.length == 0 || $.inArray(index, pagesInfiniteSearch) === -1) {
         var form = ifrView.find(formID);
         var href = form.attr('action');
@@ -17,7 +23,8 @@ function getTableInfiniteSearch(ifrView, formID, tableID, index) {
             });
             param['hdnInicio'] = index;
             pagesInfiniteSearch.push(index);
-            ifrView.find('div.paginas').append('<label class="loadRemovePag"><i class="fas fa-sync fa-spin"></i></label>');
+            ifrView.find(divPaginas).append('<label class="loadRemovePag"><i class="fas fa-sync fa-spin"></i></label>');
+            console.log(param, href);
 
         $.ajax({ 
             method: 'POST',
@@ -34,23 +41,23 @@ function getTableInfiniteSearch(ifrView, formID, tableID, index) {
                 param['hdnInicio'] = 0;
                 $.ajax({  method: 'POST', data: param, url: href });
             }
-            ifrView.find('div.paginas').after($html.find('div.paginas')).remove();
+            ifrView.find(divPaginas).after($html.find(divPaginas)).remove();
             startQuickViewSearch();
             console.log('startQuickViewSearch');
         });
     }
 }
 function getInfiniteSearch() {
-    var nrPage = parseInt($('div.paginas b').text()+'0');
-    if ($('div.paginas span.pequeno').last().text() == 'Pr\u00F3xima') {
-        getTableInfiniteSearch($('#divInfraAreaTela'), '#frmPesquisaProtocolo', 'table.resultado', nrPage);
+    var nrPage = parseInt($(isNewSEI ? 'div.pesquisaPaginas .pesquisaPaginaSelecionada' : 'div.paginas b').text()+'0');
+    if ($(isNewSEI ? 'div.pesquisaPaginas a' : 'div.paginas span.pequeno').last().text() == 'Pr\u00F3xima') {
+        getTableInfiniteSearch($('#divInfraAreaTela'), frmPesquisaProtocolo, isNewSEI ? 'table.pesquisaResultado' : 'table.resultado', nrPage);
     }  
 }
 function startPagesInfiniteSearch(index = false) {
-    $(window).scroll(function () { 
+    $(isNewSEI ? '#divInfraAreaTelaD' :  window).scroll(function () { 
        if ($(window).scrollTop() >= $(document).height() - $(window).height() - 120) {
             getInfiniteSearch();
-       }
+        }
     });
 }
 function repairLnkControleProcesso() {
@@ -63,7 +70,7 @@ function repairLnkControleProcesso() {
 function initRangerSelectShift(TimeOut = 9000) {
     if (TimeOut <= 0) { return; }
     if (typeof checkboxRangerSelectShift !== 'undefined' ) { 
-        if ($('#frmPesquisaProtocolo').length == 0) { 
+        if ($(frmPesquisaProtocolo).length == 0) { 
             checkboxRangerSelectShift();
         }
     } else {
@@ -89,7 +96,7 @@ function initHideMenuSistemaView(TimeOut = 9000) {
 function initSetMomentPtBr(TimeOut = 9000) {
     if (TimeOut <= 0) { return; }
     else if (TimeOut < 7000) { 
-        $.getScript(URL_SPRO+"js/lib/moment.min.js"); 
+        if (typeof URL_SPRO !== 'undefined') $.getScript(URL_SPRO+"js/lib/moment.min.js"); 
     }
     if (typeof moment !== 'undefined' && typeof setMomentPtBr !== 'undefined') { 
         setMomentPtBr();
@@ -103,13 +110,13 @@ function initSetMomentPtBr(TimeOut = 9000) {
 function initTableSorter(TimeOut = 9000) {
     if (TimeOut <= 0) { return; }
     if (typeof corrigeTableSEI !== 'undefined' && typeof checkConfigValue !== 'undefined' && typeof jmespath !== 'undefined' && typeof $().tablesorter !== 'undefined') { 
-        if (checkConfigValue('ordernartabela') && $('#frmPesquisaProtocolo').length == 0) {
+        if (checkConfigValue('ordernartabela') && $(frmPesquisaProtocolo).length == 0) {
             setTableSorter();
             console.log('initTableSorter'); 
         }
     } else {
         setTimeout(function(){ 
-            if (typeof $().tablesorter === 'undefined' && TimeOut == 9000) { $.getScript((URL_SPRO+"js/lib/jquery.tablesorter.combined.min.js")) }
+            if (typeof $().tablesorter === 'undefined' && TimeOut == 9000 && typeof URL_SPRO !== 'undefined') { $.getScript((URL_SPRO+"js/lib/jquery.tablesorter.combined.min.js")) }
             initTableSorter(TimeOut - 100); 
             console.log('Reload initTableSorter'); 
         }, 500);
@@ -221,6 +228,7 @@ function setTableSorter() {
                 };
 
             $(this).tablesorter({
+                sortLocaleCompare : true,
                 widgets: ["saveSort", "filter"],
                 widgetOptions: {
                     saveSort: true,
@@ -296,11 +304,15 @@ function getTablePesquisaDownload(this_, mode){
                     '            <th>Unidade Geradora</th>'+
                     '            <th>Usu\u00E1rio</th>'+
                     '            <th>Data</th>'+
+                    ($('#seiSearch').length ? 
+                    '            <th>Url Processo</th>'+
+                    '            <th>Url Documento</th>'+
+                    '' : '')+
                     '        </tr>'+
                     '    </thead>'+
                     '    <tbody>';
 
-    $('#frmPesquisaProtocolo').find('#conteudo table.resultado').each(function(){
+    $(frmPesquisaProtocolo).find('#conteudo table.resultado').each(function(){
         var tr = $(this).find('tr');
         var urlArvore = tr.eq(0).find('a.arvore').attr('href');
         var params = (typeof urlArvore !== 'undefined') ? getParamsUrlPro(url_host.replace('controlador.php','')+urlArvore) : false;
@@ -319,6 +331,10 @@ function getTablePesquisaDownload(this_, mode){
                         '           <td>'+tr.eq(1).find('td').eq(0).find('table').find('tr').eq(0).find('td').eq(1).find('a').text().trim()+'</td>'+
                         '           <td>'+tr.eq(1).find('td').eq(0).find('table').find('tr').eq(0).find('td').eq(2).text().replace('Data:', '').trim()+'</td>'+
                         '')+
+                        ($('#seiSearch').length ? 
+                        '            <td>'+window.location.href.split('md_')[0]+tr.eq(0).find('a').first().attr('href')+'</td>'+
+                        '            <td>'+window.location.href.split('md_')[0]+tr.eq(0).find('a').eq(2).attr('href')+'</td>'+
+                        '' : '')+
                         '       </tr>';
     });
 
@@ -370,13 +386,13 @@ function setTablePesquisaDownload() {
                         '   </button>'+
                         '</div>';
 
-    var tablePesquisa = $('#frmPesquisaProtocolo').find('#conteudo');
+    var tablePesquisa = $(frmPesquisaProtocolo).find('#conteudo');
         tablePesquisa.css('position','relative').find('.filterIfraTable').remove();
         tablePesquisa.prepend(htmlFilter);
-        $.getScript(URL_SPRO+"js/lib/moment.min.js"); 
+        if (typeof URL_SPRO !== 'undefined') $.getScript(URL_SPRO+"js/lib/moment.min.js"); 
 }
 function initTablePesquisaDownload() {
-    var resultado = $('#frmPesquisaProtocolo').find('#conteudo table.resultado');
+    var resultado = $(frmPesquisaProtocolo).find('#conteudo table.resultado');
     if (resultado.length > 0) {
         setTablePesquisaDownload();
         initScrollToElement();
@@ -385,11 +401,11 @@ function initTablePesquisaDownload() {
 function initScrollToElement(TimeOut = 9000) {
     if (TimeOut <= 0 || parent.window.name != '') { return; }
     if (typeof scrollToElement !== 'undefined') {
-        scrollToElement($('html'), $('#frmPesquisaProtocolo').find('#conteudo table.resultado'), 50);
+        scrollToElement($('html'), $(frmPesquisaProtocolo).find('#conteudo table.resultado'), 50);
     } else {
         setTimeout(function(){ 
             initScrollToElement(TimeOut - 100); 
-            console.log('Reload initScrollToElement', TimeOut); 
+            console.log('Reload initScrollToElement => '+TimeOut); 
         }, 500);
     }
 }
@@ -403,7 +419,7 @@ function initAppendIconFavorites(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             initAppendIconFavorites(TimeOut - 100); 
-            console.log('Reload initAppendIconFavorites', TimeOut); 
+            console.log('Reload initAppendIconFavorites => '+TimeOut); 
         }, 500);
     }
 }
@@ -418,6 +434,20 @@ function setAppendIconFavorites() {
             var iconStar = (id_procedimento) ? htmlIconFavorites(id_procedimento, 'left') : '';
                 td.find('.iconFavoritePro').remove();
                 td.prepend(iconStar);
+        });
+    }
+}
+function setOnClickExcluirProcBloco() {
+    var table = $('#frmRelBlocoProtocoloLista .infraTable');
+    if (table.length > 0) {
+        table.find('a[onclick*="acaoExcluir("]').on('click', function(event){
+            var id_procedimento = $(event.currentTarget).attr('href').split('-')[1];
+            var listProcessos = sessionStorageRestorePro('dadosSessionProcessoPro');
+            var objIndexDoc = (!listProcessos) ? -1 : listProcessos.findIndex((obj => obj.listAndamento.id_procedimento == String(id_procedimento)));
+            if (objIndexDoc !== -1) {
+                listProcessos[objIndexDoc].listAndamento.historico_completo = false;
+                sessionStorageStorePro('dadosSessionProcessoPro', listProcessos);
+            }
         });
     }
 }
@@ -448,7 +478,7 @@ function initGetConfigHost(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             initGetConfigHost(TimeOut - 100); 
-            console.log('Reload initIconEntidade', TimeOut); 
+            console.log('Reload initIconEntidade => '+TimeOut); 
         }, 500);
     }
 }
@@ -469,22 +499,20 @@ function initReplaceSelectAll(TimeOut = 12000) {
                     no_results_text: 'Nenhum resultado encontrado'
                 });
             chosenReparePosition();
-            console.log('@@@@ initReplaceSelectAll');
         }
     } else {
         if (typeof $().chosen === 'undefined') { 
-            $.getScript(URL_SPRO+"js/lib/chosen.jquery.min.js");
-            console.log('@load chosen');
+            if (typeof URL_SPRO !== 'undefined') $.getScript(URL_SPRO+"js/lib/chosen.jquery.min.js");
         }
         setTimeout(function(){ 
             initReplaceSelectAll(TimeOut - 100); 
-            console.log('Reload initReplaceSelectAll', TimeOut); 
+            console.log('Reload initReplaceSelectAll => '+TimeOut); 
         }, 500);
     }
 }
 function appendVersionSEIPro() {
     var logoSEI = $('#divInfraBarraSistemaE img[src*="sei_logo"]');
-    if (!logoSEI.hasClass('versionSEIPro')) {
+    if (typeof NAMESPACE_SPRO !== 'undefined' && !logoSEI.hasClass('versionSEIPro')) {
         logoSEI.attr('title', logoSEI.attr('title', )+' ('+NAMESPACE_SPRO+': Vers\u00E3o '+VERSION_SPRO+')').addClass('versionSEIPro');
     }
 }
@@ -541,33 +569,33 @@ function initRemovePaginacaoAll(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             initRemovePaginacaoAll(TimeOut - 100); 
-            console.log('Reload initRemovePaginacaoAll', TimeOut); 
+            console.log('Reload initRemovePaginacaoAll => '+TimeOut); 
         }, 500);
     }
 }
 function initPagesInfiniteSearch(TimeOut = 9000) {
     if (TimeOut <= 0 || parent.window.name != '') { return; }
     if (typeof verifyConfigValue !== 'undefined') {
-        if (verifyConfigValue('rolageminfinita') && $('#frmPesquisaProtocolo').length > 0) {
+        if (verifyConfigValue('rolageminfinita') && $(frmPesquisaProtocolo).length > 0) {
             startPagesInfiniteSearch();
         }
     } else {
         setTimeout(function(){ 
             initPagesInfiniteSearch(TimeOut - 100); 
-            console.log('Reload initPagesInfiniteSearch', TimeOut); 
+            console.log('Reload initPagesInfiniteSearch => '+TimeOut); 
         }, 500);
     }
 }
 function initQuickViewSearch(TimeOut = 9000) {
     if (TimeOut <= 0 || parent.window.name != '') { return; }
     if (typeof verifyConfigValue !== 'undefined') {
-        if ($('#frmPesquisaProtocolo').length > 0) {
+        if ($(frmPesquisaProtocolo).length > 0) {
             startQuickViewSearch();
         }
     } else {
         setTimeout(function(){ 
             initQuickViewSearch(TimeOut - 100); 
-            console.log('Reload initQuickViewSearch', TimeOut); 
+            console.log('Reload initQuickViewSearch => '+TimeOut); 
         }, 500);
     }
 }
@@ -641,7 +669,7 @@ function initObserveUrlPage(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             initObserveUrlPage(TimeOut - 100); 
-            console.log('Reload initObserveUrlPage', TimeOut); 
+            console.log('Reload initObserveUrlPage => '+TimeOut); 
         }, 500);
     }
 }
@@ -793,7 +821,7 @@ function initInfraImg(TimeOut = 9000) {
     }
 }
 function initQRCodeLib() {
-    if ($('#ifrArvore').length > 0 && typeof $().qrcode !== 'function' ) {
+    if ($('#ifrArvore').length > 0 && typeof $().qrcode !== 'function' && typeof URL_SPRO !== 'undefined') {
         $.getScript(URL_SPRO+"js/lib/jquery-qrcode-0.18.0.min.js");
     }
 }
@@ -822,6 +850,25 @@ function initSeiProAll() {
     //checkBlankPageSEI();
     initCheckLoadJqueryUI();
     initQRCodeLib();
+    setOnClickExcluirProcBloco();
     console.log('initSeiProAll');
+
+    console.log = function() {
+        logMessages.push.apply(logMessages, arguments);
+        logBackup.apply(console, arguments);
+    };
+    
+    window.onerror = function(a, b, c, d, e) {
+        debugScreen = true;
+        appendDebugReport();
+        console.log({
+            message: a,
+            source: b,
+            lineno: c,
+            colno: d,
+            error: e.message,
+            stack: e.stack.replace(/(?:\r\n|\r|\n)/g, "<br>"+"&emsp;".repeat(24))
+        });
+    };
 }
 $(document).ready(function () { initSeiProAll() });

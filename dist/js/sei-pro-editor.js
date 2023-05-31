@@ -3,7 +3,14 @@ var idEditor,
     imgEditor, 
     txaEditor = ($('#frmEditor').length > 0) ? 'div[id^=cke_txaEditor_]' : 'div#cke_txaConteudo',
     iframeEditor,
-    autoSaveEditor;
+    autoSaveEditor,
+    perfilOpenAI,
+    langs,
+    wsDialogHtml,
+    CKWebSpeechHandler;
+
+var loadInlineOpenAI = false;
+var CKWebSpeech = false;
 
 var autoSaveInterval = (checkConfigValue('salvamentoautomatico')) ? getConfigValue('salvamentoautomatico') : 5;
 var isIntervalInProgress = false;
@@ -47,10 +54,14 @@ function htmlButton(status) {
     var icon16baseWatermark = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAJCSURBVDjLjZPNTxNBGIerBy/eOAgmYoz/gCYoJ/XgxZsxnrygFw8eJJGDiQc0MZEElFBL2igkoBBEFLUWaYNQiB+gKd1WbVKUCgVp2O3H2N3tfvYDf+5s7KbGNjLJc5r5PTPvm3ltNpttn0GTQfN/OGCwE4CtErqadF0XisXiVqlUQjWMfTidTkc1CV3NNCzLMhRFsRBFETzPI5VKmRKO4+ByuUyJt6dub3D0qG+ut8FuCugBTdOQz+ehqBoERYMkSRAEAel02hSoqgp6ycO+mwPR2asRMTGCWcdBxRLQcELUEE6qWGRlsKKCXC6HTCZjlaKKCfxg7NDIBD6PH8fL63sclsAoA1GiY35TxfuEjDAnW6UQQsBuRLH6sRN53guOaYHnRn3/+LX6XZaAEud1TK9LeL2WQ4hTzOZRCeG+Ih7ogp59hdSXC3jSvp8ZutJQZzWxLFjJavAs83B/yyIp5c1XiSSGtUC3GSZLF/Hm3gmcOrT7rJHb8Y/AHxcwFsnAvUTwkyQRDU9hefq88ewXEFcuG007jPTaJ/z5F38LYkTFcDiJwUUWUwEGfu8YfO77mBk4g5jvJIKPjmGVmTAvqioIbebQ92EDdl8Q3UPP4Z9fAJsIg1l4Cs/d04jO9Zs9qSnISLoRDqFjeBK93ghuPQ7iXMdbtPVMIsWuo1AomNQUUNpuP0Br1wgudT5DS/soWu/M4B3z3WxmmVqCX7XmoApbNFM5C0eMX6jQje2EjbMSHcBKQSOVbGOcy9DRbywLfgOaoblOxI0zHQAAAABJRU5ErkJggg==';
     var icon16baseMarkSigilo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAALvSURBVDjLZZJdSFNhGMf/5+zo2pyb5cdyxXRNW2WkhhJGXlReFEZEBV0UVARBIAiCXnojdFE3QUQR3k6iC6GIoK+LMDNBaVpOW04by/yYzuk8O9v57DnHJqteeM57zvue5/c+///zMpqmITv6+vpsqqp2KorSRLGDAhRxiiFZlu+2t7dv4J/BZAF+v7+OkvtdLpfHbreDZVnQN9LpNGKxGGZpEOh8V1dX4D8AJdto87PX660SRRHRaBQ8z+ung+M4OJ1O4+dgMDhNa4e6u7uFLIDTH7R4q7y8vEqSJIRCoRkq9wSt/dIBgiC4EonER4/H46qtFKqqmXBq+vlt8MvvwaTnrhoASmiyWq0Ih8MgyJm2trZITpWRnp6eFmbtbbChuhiWkitweOqRmPVh6nXvnSygVNecTCb199l/jbpc56+3ey7BXtSAeHgS+YyIQvtO2IrdDiYycF0bCvuwuGYxNJ+tGYFJk6ApMjRZJpPWUVTVDMeeU8jMP4GwwmDpWwpSWlxJCxtHOZCJFy8cBwMWjMlC82lAZcidbUjFhpFJBODwtiI99whsvow8WwXM/BhSfH5LY8ebEKefBGiQl5+CM5eAYWwEyMPCHClhVJQdPEfJD8HmyRDXPVgZHEWaX8LhjkmjnaxeJlS6C4qIxMQoEsERLEQmsRrPoKymFeJCL0z5GjLrFYgNfILz5DWoUmrLHwJI0GVoioQi314siSziCQskzY35L/dBVwl8fBeWB4ex3cuAK7BDk8QcAPVe0xSqQMLq1wDGxn/gwLGbMEc/IPRsEIFXcUy9fAfWtAaWU6laFXrOXwBotEgSiqor8X1mEeLEC3hqm1FQQN0Zn4LviJtOL6auiIbcXABnlENUVdY9mMBEaB73Hj9A475KWEvNaNrvIx9+QuKTKHRT+STKkJ0L0CWYd9+ApcIEf4vZaCHZTmCSJgpQhCQpzFChyqZfuvFbADGDmf5Ooyx9Q6dvhrw10w3bvFiKsvmug/6M39LTvtXHnYlaAAAAAElFTkSuQmCC';
     var icon16baseBoxSigilo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAALPSURBVDjLbVLdS1NhGP+d7bS5tcZYkzmzWmqKSSISpElEUEEkXfRxGRFBEA2MSC93o3TT6Ka/wECJQG+7CfrSLFLzIkd+TDsOjFg559nH2XvOe07Pe9Qy64XnfDzv8/ye3+/3vpJlWdhaQ0NDPtM0ezjnHRRBClCsUowbhvGwu7s7jx1L2gIYHBxspeaR6urqQ36/Hw6HA/QPTdOQyWSwRIuALvX29k7/A0DNPtr8VFdXV88YQzqdRqFQENMhyzLC4bBdnEwmFyjXEo/HS1sADvGg5O1IJFKv6zrm5uYWVVWN0rdLhPienZ1dEcDErp6kxLYzkMWDkh1erxepVArU1BWLxZRtNUpfX98ZRVGS0WjUrv0fQKXQTNPE99JOo0ROsBM1xLbyLw+Utzes8VQjvuc8tuaLzRNwWjosbsAyNkLXOQam22xTwxVZXNg3gcZbU9IGAzLxyuXTkMgOyemh93nApD25grbphLgObqiU6kG2mEV/VwILT9/9kSAmiULjxzPI7hAkyUcAuwBPgNImUMyBr89DY+uoCTXh2vAdxJmxDYAowhSTGNZmJknnbgSOnMDd548pz8AsDkb6I8EGNFUdh6oVcK/0HsVEUHpzf9UiAB1ChkVUA40NcLhC5IwJg5rPNl8HJxbc5DCJ5UoujaM1ncizEiaXX7OWfodLtgjdoilCa/bzNJxuPwItndAMZjcrP+ehmwYB6tCpZr2sonX/SeT1ovxhaVSzAYRWiyQEDkfh9O6l68UIQINB/oT9B6iZ22DfcssI+qowlR7DWGr0C1nRRgCMtJowDeHBDAHsASp8KBHAwHgCzCzbbGpDzWivPYePyihSsy+gcbSuPLDKNoCQ4K65Cc9BJySX2z7C4XY6CZoM0stLKk49uQrJ4UEm+xWJghPHHvHyximwMhZHemB7YV8cfTOM32+6Ycg7Vbxce4WRAt0YAby5fgEeKcjVvgWNOgAAAABJRU5ErkJggg==';
-    var icon16baseNatJus = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAALDSURBVDjLpZNLTBNRFIb/6RMqtEDBFopFXiFGIERYmKgJUXBFQly4gI1LXbghcYPiI/JYmbhxLQvC3hjjQkSL4SnvYCRUCNJCSwSq0OnMdObeud6ZBIzB6MJJTiZz7/m/c89/5gqMMfzPY/tXwkYkUmkRhOuU0nJCyKvs7OyXPp+PHu4LfzvBSjh83+PxPM5wOs1vSZKQTCbjsizX1NXV7ZmLBuBPMbOw0LsVjzNVVZmiKIwLGQewRCLB5ufnv49NTGQYeZY/VQ6Nj/d5vd67BV4vOAC8IjjEqA673Y4stzuHi28buccAoVCoJ+D3dwZ8PqTTaRPAewf3wHwfHBwgx+OBRkjnMcDq4GB3FaX3TrvdZkVDfCg0QtM0c52birSm5f0G2O7q6vY7HF0FNhtofz/02VlTbIgM8ZORdvS+v4bME04kRRGpVCp8BFhtb7+ZUVralcF7JpOTIJEIhIEBYGjoV2Wiojj/DDpeNOHT8hJSothkjnEsGHT6W1qUYGsrtOlpkFgMOh/Xw+Y1MKpCZRQqhxTlVaK2+CI+fn2Hxc0pppC0+8OdhGhLWq0lRQ4HGDeHRKPQueOUB9FVNFffAGU6qE6hgyG2H0VN8QWIqizMRkb2a3ssebYfsqzK8Tj0RAKU93YIMI5siDf2vkDTuYm6Bo1qOEgnUXfqEkRNskytj+5ZdkRxI7y4uJRcXmb2wkLQVMoMhSgglMDnDsLvLkGhpwx2ayYKsgOYi45hbG10R1LRYP7Kz3Jz8+srKuYqq6r8mYzZpc1N3GqLQuFjVHkrMlFZef5Z4XzZVcxExjEcfrOtElyJ9bHPR3fhaVZW7kmX6/m5QKDRIwhuhRsZkyQ9Kkmtbbu7r6t7LKmG4GVXKDy8peqmeOXYZXrkcAgeq7U+02JppIytqbr+tkNRksZe2QMhRXWrS9Zp2bc+tn6o+QkxLL87j8znVAAAAABJRU5ErkJggg==';
     var icon16baseAutoSave = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAJFSURBVDjLpZPNS1RhFMZ/5733zkzjR/ZBCUpoJdUiBCkll4m0CUKJIGpVSLjyL2gntDFop6shAolWbcSNIW0ircHBUHCloo3VjNY0jjP3831bWA5ai8Bnfc7vPOfhHDHGcBjZAENji7N1cSj7IcdqY2zkKoiC2qSFNsKPYoXpTPbBynj/4j8BlbLL9c4L3OqoZWLmM4/vXdpX9OJtHq0lBXQdBIgxhvtPZmZ7ui+yspZrjwKfWExxtMbh66YLAgj4geZnyd2YzmT7Vsb75/c5UEqwDLgVl55r57hxuYY3c18Y6mtDgO1KSBBETMwV0VpeA2f3ARKOwvUCcgWX9bzH0NhqvC4Okx9zBzNpPdGQ4OHIrJnOZLtWxvs/2AChNnhRiFIKy8j/ZjILiALYLgc4YnO8zsJSIWUv4Pt2CMBU+tteoxtC0YN8wUdEV1eItMHCIdSagru5l0kQaZ4OdqC1wQAWhqQNnudR3PGrANu2aGmE9FJATSxJwinhegHDr1ZRAmGk0ZHGAMYYMJB0dh0ogOVs6VNqcoGtosYv1+9lYikHERvBQsQCozBGCMIQ3w+rDtKjvQMAd4bfL59vFqYzQasjNoM36wi1vzvHgBFNwo4x8nKNreJOFfBHy9nSXGpyoSPSYOGgqZCae8TJ5BkERb68zsDVZygSlD3/b0B6tPf2byempRFO127T095JQ6wJFBTcJk7VhCRjYItUT/mgrgxOvWtrPtLdEG8gYdcT6gDRGjERWsosrS2TKwbMP78rcth3/gX/0SEvLZFG1QAAAABJRU5ErkJggg==';
     var icon16baseSEILegis = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAAXNSR0IB2cksfwAAAZJQTFRFAAAA////////////////////8/jozuKi+fvz////+Pz+p9vzdMfrbMPrhs7uueL1+v3+5vDQlb838vfm9fv+Na3jAJfb4/T7////teH0esns3PH6wOX2d8js6/f8////v+X2SbXm4vP7/////////////v//X77pB5rcYb/p2fD6////////wOb3FJ/eEJ7dCJvcptvy////////I6bgc8br/f7/teH1J6fhDJzd8fr9+/3/AZjbktLw////////zuv42O/6////Oa7jBprccsbr1+/5gczuF6Df+fz+////1+/5KajhHaPfweb2////////9vv+l9XwKKjhMqzi6fb8////+fv06vPX3+7W/P35/////////////f7/h8/uitDv////9Pv+PrDkV7vo/v//zOr4P7Hkh87ur970b8TrltTw////////t+L11e75yur4Q7Pl8fn9////////3fH6CpvdGKHf8fn9////2/D6rd70lNPwm9bxx+j3/v//////////0u35l9Xx3vL7////T5fsgAAAAIZ0Uk5TACFMVDwP8P/PGLn//////Jv7/9u9///YDv7/5vn/1gn8/+F9YEiu////6Vg1+P////9Tp///yvv//8nC//9vLPLjl/////D//7sf7P//+D0kv////9sG0v//so+Le7///zm+//+d9P//////MQv/6fT/yAEC5///x5Hk////9p8RS/D/5jRwoQdUAAAA20lEQVR4nGNgYGBgZGJmYQXSbOzs7BwMDJxc3Dy8fPwCDAyCQkJCwgwMIqJiICAOE5CQFBOTkpaRlYMJyCuIiSkqKauowrWoqYuJaWhqacMEdHT1xPTFxAwMjaACxiZipmbmFmKWVlABaxsxWzt7BzExR6iAk7OYi6ubu5iHJ1TAy9sH5AxfP3+YLQGBQcFiYiGhYQzhEZERUQwM0TGxcfFiYgmJDEnJYimpDAxp6RmZWWJi2Tm5eUCt+QwMBWCvFBYVl5SWiZVXMDBUVlXX1NbVNzAwNDY1t7QCAG4cKfQLuoXsAAAAAElFTkSuQmCC';
     var icon16baseBatchImgQuality = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAInSURBVDjLhZPda9NQHIbzVwlWryzthpWuIpWOieKYZXO2q1vC0KFr9aZM3Yr40QunspU2TVYmYhVRvNErwQtR3E0JTq3G2o80mc0Ql9dzTr/SYdnFA8k5yft78nLCjcxJNwKzsuoOiZoj2GKsi3NS1I7y4hIA7n9wgQvyz4KiWLphwNgyoRMq+jZ+MUyo1ToOR6Ra3wA6ua4b8F/2gL830WF8YRGB2VX4hBwOBEWrnxl3kGzQyXzyLJbfLuL+uwQevr+Jk7EsiBn2MmMBdbJ58UEEKx9vYfVDE89MBtTsTVjA53iiy/XbeD4XRaluwhWSNRZQIYmeay6cSsYxfCmFwfMpEGW4wjk4gxm4J7IECd6IhOW7z/AlkYRaawXQbyuTtCOJAQzPp/bU9gtrLOBHrUECJI3bP5bWypoJx7l9cE+tMO0TsTuIpl90uCq+xJnoEtP2hUV8Cp7G90orwMECGthQd5gynRxLPUWuoOOR8huPN//gyde/iMuvmLZvKgtlfBTFdsBgSNwslavQiOIACaCF0ofzRQv5bzsd6BrV9obSyI8EUCw34JwkAcd4aWFoWn5N00ihFi30+HwaM5LCmM4UGH5SLtX28uvMtlg2mwH2U9UuNHBlDUKu2ANdo9pDwjqqpNQSOwdyrSegXeih0Rh7wQ5da2lbdDI5RBqxT/Qa2ArdUK1ddLV7/gX7jb1QzdhGjVAl10262n0D7IXSSbtpa9vf+QeB6/JTIb6VuwAAAABJRU5ErkJggg==';
+    var icon16baseOpenAI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAKgSURBVDjLlZLrS1NxGMd90ZvovdEfEBEUEhZIb0xMjdyLIuyGkiHGUFKydFKKJiRegjIyFJRwojMxzfJSaVOYeTfxtpSNuZ1tXnY2z27nsss5334uWloG9uLD7/A7z/fzPPx4IgBE7ISl3qWyelUvu9JIueZqeOdUmcCMFDgcQ3fntjSK0j/rwx+csesIZ3jbL1j6EbCPIej5DpE3QRIoBJ3LEFb74BjIxkbXVYNdrTixS8Ca3h/y6pSTfloD0UcRjCS8BJGbRdA7QRgjd1pIfhruyeewKOMdm+rCw2GBV1tXKZh7SIEVoqAjpwVS0AlIvhBSkCGyeQRcPYDogO1DNixvrveFBa6ZCkuAmSe1OtJpFVLATkJboWCIAE3+GYngI6ENgnUK+hcxfFiw9fWRT+RWEWTHEeRmyPhaMvYCgu5ZEpgkbzCCgPszBNsr8NY8iF4Ky5WnpLDArs41+zYnSPdF8OYi0qEcTHc6mF45mJ4M2Ftl4C1lYPU34KerwFNTWKmO/j2BfbiwghmvJuPawZsUsNVHgTPlEx6ANcjJeR9r5QfhWUqEJOlhbc+FoV42FBY4R0sPbPbKlz2LLeQB9aCbYkJhzpIFlkoDZ8zDRk0kRHYYrm8d0JYeEyyduUd37QH9pTBqvSOV9iy0wtmZ+VNAOm+HOeM92JtlYDQN0JYcD1BtmTf/WqRtbJ/yTxtUt9fXGhPBq5MhriVBtMYhoLkMQ1Ek5sqi3eb2O4l7buIvhlRPkmsfZ/ibax+iruosnpacQUFOOq7Fn5TUypJz/1zlnRQr5JSypRVKZRvq6htR/ewlriTH03vV7ilQ5NwaHRgchM1GY3p6Bq+bmpEii9XtWzCgqkhLuXSBTUg4L8XFxUoXk2K57obirH0L/ocfNQ8V8wE+uE0AAAAASUVORK5CYII=';
+    var icon16baseRefInterna = 'data:image/webp;base64,UklGRjYBAABXRUJQVlA4WAoAAAAQAAAADwAADwAAQUxQSHYAAAABcBvbdhPdGdWhQiiHDhSuCSFab1LXgjL1oQ7I1qYMmRx8WoiICWB6oZjpbxPauE8oTyOVDdMtoG0QbgAThFcAF0Lo9oB/Ur6G/t8ArFUtVGuA5t8PL8qnB/ZdCMEV1yA0wCYIrQZaga0oTyMfZzTjN89MtRAAVlA4IJoAAACQAgCdASoQABAAAkA4JZgCdAadxnI1a7DIeunxQAD+fox+Q69q3S+frDjKT9m5NGxEmBAie9GvAP0VzC5xraY8/8N8XfSX8f8+jH1Rr/Cy7nkgzHjrN0jr/qs/Jbu1nWTcTRSDOwYuHhVgyXN5msvqWfaKeOir71MvrUL62ATEuGvdh8hjUUdOL1qTy6OH38O1V2vZ3dZ28wAA';
+    var icon16baseReview = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAALTSURBVDjLpZN9LBRgHMf1R/NPuo7Uam0aaV7G2uSvYki6c4hhWZe3mJw6i9FxnMj7RUNeIzYvnUtLuXKGXDV2yMm9JK10iDHlvOTuvN6369Zs1kZbf3y2Z8/2+ezZ8zw/PQB6/8NfG1H2B1n5JMPlAsoBsEkEsFyISqqdccY/Ba7ZGTJKvYiaygBDVGi570tEtjsBMY77NRRbo7RdA2UUAmq0IlsrZVN+Q0SmhzHinQ1xxY6wuGsg23Ef2sqSMclno7cqBtFOxoh1PYLr500RcYa4Vpvgqb9joDLIZE498wmLPWWY6rgHMfc25C9zoZCLwIk0Wxxttr800hCAz88zMfTQDeIS66BtgSKqVbei/xFmB5qgGuJoadStFSIO+BkWX6e7GFiQvAB+TmFe8gTCPNLMlnyY0rDX/GxULYd+GisDVVDLmnWo3jdAwLbFd2nK5uq3Fky/vguV9Ck2xrohrYlQ62Rjd46+EamedozUCdnEMrhJXmhM8tTRnucChYyFTVU3VKM3MNdPx8e6MEgqA3/0F/mc1DMic/cYuHFDTDy6MTypQv0kECsDaH1AVocACmkiNtVCKL8EQz1BxdIwE/IKpxlRvusp3SVa+1Z7u/qx0dS7gXIxQBdqECnQIJXzDNPvGH/kIKjHL2NRlgRZoRtiIyJTt15hMNliY5aXgOJqHkL4QFgrwKrjQdp2S3vst1DLw7AyEYgF7UlGSi5gtiUewjjLta2AmGWpUbTfQUBEDTI6lIgr4uBDKxNifgEm+/yhlFMxN5QASakPAsNLMd+Zjn6GlWYrIK2lJ4oSzddDQ7PW7UMEeJx7Dlgaw8gDP3Qxj6KnnAx+DhkuflWghzOVgym2K1onfdtHkjfSDFKYGUbHvXnlaeE2WBUWY7WvEH2Zzqi/agYHcq7ixMWW9pvRqYfGuTSDHafR34Gozg62WH+VQ17vzHd5w2PYmO40zr8A5dG3M3vHNHcAAAAASUVORK5CYII=';
+    var icon16baseCtrReview = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAJ5SURBVDjLfZJtSFNRGMenRkgY1BKiL30yEkqJrCjrgxBB5Qtmyy3NcGoUuqD5skEm+ZZizpTUmZEw33ML06lzGoQKtRRETXM2Z1LOTBs6LNNw9/w7d+IiuevAj3vO4fx/z+E5lweAtxVRvp5Pqaf8psAF3RQfngtBa1OvCet2Bq5Ge/80K5nkCntR7AwhsP0imF8msCwRfF4k+GQlmFxgYF7YEKerDJzV90vKexwHZm0EX2hw6juBaZ6B8RuDsa8MRiwbggL1IP57A7b6NK36kYbH5xiM0vCwhRXYHYKMmnd/gwlH+dvunPTOehy623ZLlrfO9oCVbA72JsMzjEPK2QP5Gb5UGewJxcXtKBLsQ2JKBkR5OkfHq/QfnKKlH2uONd0f/ecVioM8OzXyC+hRRKFAeBC3A3dAfHwn7ob71tCD5rnFlc3gKiVjM+cUlEbsqZ4xqLE81IT3Lx6gXyXDUMsjpGQqRip1Y2zwJ0W6tWfOyZUQQepEYxpZHW8FTFqsGdvRX5dORLlaKw0mcP0vTsHekAYPXkDFE3VxNplU3cREXQrMdRKoCnOI+5Gycu9zlR4uBbvON7l5nNbkykunGL0VkGvfQqo2QFJtwLNhIDHfZHc/UZvpFVThxik4FfEwNS2nDc+NBMkDwI0+4LoeiNQAV+sJcrsIxMnNJDD0noxTMFt4CAPqUiSp5xHbAcRoCIQ1BBFVBGFPAYFiAYPNSkxl+4JTYFYGv6mVxyBU2oe4LiC+GxDrKPR7rQU4G9eBl/ejMVEW1sspMDUk8V+VxPsHRDZkHbjcZvGL7lrxj+pe8xN2rviEa63HLlUVvS6JPWxqlPC5BH8A3ojcdBpMJSoAAAAASUVORK5CYII=';
+    var icon16baseNewStyle = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAALqSURBVDjLjVPbS9NRHN9T/0BWFBQUVIQKXigCpVIyygcDJUrnZdNEc5hlmZc0TdSF0bxszs3LvM3pXE6Xa3NL0TJTl7pcTY1Ec5rX/WxqCrHhp7NBPaRGD5+Xw/lczud8vzQAtJ0wWhLp+4kbUThSFGrQFwTrB59dE+ryA/3+vreNOMaPOmLkMeUT4mTMaoph1klh7pPApOLAUH4LPTn+X7qzLwXsKDDGj0wy8hibM+oCrI9pYTWGA0ZnWEd8sWZQYvXDC5g0XAzyo6BJP5f/R2C89OYeErlquiUPP9vogNgF1iYfbH10B0zxRMQFC4oszMsz8F3XBOqdBKqUs7a2B6fdHAIkMnu6le1w3WrwBLrjHSKWrhhYh72w2kVHjTIIae3eKFJexkp/I0YlKWhJdKsgZIanoTjMtlHPxSY9BD/YgbA2eGPteRjmWzOJazrmZKl4rL4AQT8TD4nIfPMjzKgKIUtwNtJIyxXftISclICN3GxYfHyw3FEEy1ALLIPNsOhkWGzLw5umCHCUflBLr2O29i4WXgnQwDpB0YY5NyapASmoxlxQrGAsFrAIWQ6D6Da0GecxXBaLFfLmuHI+TgrkCBCIYKqIwVKHEHWxxzZp758GbTrc9AqYu4WYb8kkRcnsLcPejzL5DKi3dfAQSEFX9RKRZkzxQklKIaqjD4PW9+QqVy+IxmdpOkwvOaB6xVjpa8QQOSMtY4DHAPW6GuLSVFwprUJxSQYWlRyMS9JQGXlw3PELZDB8OzN9c0hkdXua1/pYfTKonloHkeoWYVachCkuHZNFwZhrTMeCmov2rIsoY+wL2TaJJLKr4r6HzUyIpso4R9yp4mB8LWFgScPHtJyNjhx/CCOcCnccZTua77jKRkiJy51lmKlJxJK2lJBLoOMxiet+myDcKWXXXbBDGn/KTcI6brO7TUgzMcBl4Pk9d3tkhSB8r+s/l+k36mKOJpKW10VRh/TlzAOFJLLnTvd2Ffhf/AKfTM1hskDhXAAAAABJRU5ErkJggg==';
 
     var htmlButtonTable =   '   <div class="divQuickTable" style="display:none;"></div>'+
                             '   <a class="getQuickTableButtom cke_iconPro cke_button cke_buttonPro cke_button_off '+classStatus+'" href="#" title="Tabela R\u00E1pida" hidefocus="true">'+
@@ -105,11 +116,7 @@ function htmlButton(status) {
                                     '   </a>'+
                                     '   <a class="getFontSizeDownButtom cke_iconPro cke_button cke_buttonPro cke_button_off '+classStatus+'" href="#" title="Diminuir tamanho da fonte" hidefocus="true">'+
                                     '      <span class="cke_button_icon cke_button__fontsize_down_pro_icon" style="background: url(\''+icon16baseFonteSizeDown+'\');">&nbsp;</span>'+
-                                    '      <span class="cke_button_label" aria-hidden="false">Diminuir tamanho da fonte</span>'+
-                                    '   <a class="getMarkSigiloButton cke_iconPro cke_button cke_buttonPro cke_button_off '+classStatus+'" href="#" title="Adicionar / Remover marca de sigilo no texto" hidefocus="true">'+
-                                    '      <span class="cke_button_icon cke_button__mark_sigilo_pro_icon" style="background: url(\''+icon16baseMarkSigilo+'\');">&nbsp;</span>'+
-                                    '      <span class="cke_button_label" aria-hidden="false">Adicionar / Remover marca de sigilo no texto</span>'+
-                                    '   </a>';
+                                    '      <span class="cke_button_label" aria-hidden="false">Diminuir tamanho da fonte</span>';
     
     var htmlButtonAfterSave =   '   <a class="getAutoSaveButtom cke_iconPro cke_button cke_buttonPro cke_button_off '+classStatus+'" href="#" title="Salvamento autom\u00E1tico ('+autoSaveInterval+' '+(autoSaveInterval == 1 ? 'minuto' : 'minutos')+')" hidefocus="true">'+
                                 '      <span class="cke_button_icon cke_button__autosave_pro_icon" style="background: url(\''+icon16baseAutoSave+'\');">&nbsp;</span>'+
@@ -117,6 +124,12 @@ function htmlButton(status) {
                                 '   </a>';
     
     var htmlButton =    '<span class="cke_iconPro cke_toolgroup '+classStatus+'" role="presentation">'+
+                        (restrictConfigValue('ferramentasia') ? 
+                        '   <a class="getOpenAIButtom cke_button cke_buttonPro cke_button_off" href="#" title="Inserir texto de intelig\u00EAncia artificial" hidefocus="true">'+
+                        '      <span class="cke_button_icon cke_button__openai_icon" style="background: url(\''+icon16baseOpenAI+'\');">&nbsp;</span>'+
+                        '      <span class="cke_button_label" aria-hidden="false">Inserir texto de intelig\u00EAncia artificial</span>'+
+                        '   </a>'+
+                        '': '')+
                         '   <a class="importDocButtom cke_button cke_buttonPro cke_button_off" href="#" title="Inserir conte&uacute;do externo" hidefocus="true">'+
                         '       <span class="cke_button_icon cke_button__externalfile_icon" style="background: url(\''+icon16baseImport+'\');">&nbsp;</span>'+
                         '       <span class="cke_button_label" aria-hidden="false">Inserir conte&uacute;do externo</span>'+
@@ -132,6 +145,10 @@ function htmlButton(status) {
                         '   <a class="getNotaRodapeButtom cke_button cke_buttonPro cke_button_off" href="#" title="Inserir nota de rodap\u00E9" hidefocus="true">'+
                         '      <span class="cke_button_icon cke_button__notarodape_icon" style="background: url(\''+icon16baseNotaRodape+'\');">&nbsp;</span>'+
                         '      <span class="cke_button_label" aria-hidden="false">Inserir nota de rodap\u00E9</span>'+
+                        '   </a>'+
+                        '   <a class="getRefInternaButtom cke_button cke_buttonPro cke_button_off" href="#" title="Inserir refer\u00EAncia interna" hidefocus="true">'+
+                        '      <span class="cke_button_icon cke_button__refinterna_icon" style="background: url(\''+icon16baseRefInterna+'\');">&nbsp;</span>'+
+                        '      <span class="cke_button_label" aria-hidden="false">Inserir refer\u00EAncia interna</span>'+
                         '   </a>'+
                         '   <a class="getSumarioButtom cke_button cke_buttonPro cke_button_off" href="#" title="Inserir sum\u00E1rio" hidefocus="true">'+
                         '      <span class="cke_button_icon cke_button__sumario_icon" style="background: url(\''+icon16baseSumario+'\');">&nbsp;</span>'+
@@ -153,9 +170,9 @@ function htmlButton(status) {
                         '      <span class="cke_button_icon cke_button__pagebreak_icon" style="background: url(\''+icon16basePageBreak+'\') '+(isSeiSlim ? '' : '!important')+';">&nbsp;</span>'+
                         '      <span class="cke_button_label" aria-hidden="false">Inserir Quebra de P\u00E1gina</span>'+
                         '   </a>'+
-                        '   <a class="getSessionBreakButtom cke_button cke_buttonPro cke_button_off" href="#" title="Inserir Quebra de Sess\u00E3o" hidefocus="true">'+
+                        '   <a class="getSessionBreakButtom cke_button cke_buttonPro cke_button_off" href="#" title="Inserir Quebra de Se\u00E7\u00E3o" hidefocus="true">'+
                         '      <span class="cke_button_icon cke_button__sessionbreak_icon" style="background: url(\''+icon16baseSessionBreak+'\');">&nbsp;</span>'+
-                        '      <span class="cke_button_label" aria-hidden="false">Inserir Quebra de Sess\u00E3o</span>'+
+                        '      <span class="cke_button_label" aria-hidden="false">Inserir Quebra de Se\u00E7\u00E3o</span>'+
                         '   </a>'+
                         '   <a class="getLatexButtom cke_button cke_buttonPro cke_button_off" href="#" title="Inserir Equa\u00E7\u00E3o" hidefocus="true">'+
                         '      <span class="cke_button_icon cke_button__latex_icon" style="background: url(\''+icon16baseLatex+'\');">&nbsp;</span>'+
@@ -169,17 +186,55 @@ function htmlButton(status) {
                         '      <span class="cke_button_icon cke_button__watermark_icon" style="background: url(\''+icon16baseWatermark+'\');">&nbsp;</span>'+
                         '      <span class="cke_button_label" aria-hidden="false">Adicionar Marca D\'\u00E1gua de MINUTA/MODELO</span>'+
                         '   </a>'+
-                        '   <a class="getBoxSigiloButton cke_button cke_buttonPro cke_button_off" href="#" title="Gerenciar marcas de sigilo do documento" hidefocus="true">'+
-                        '      <span class="cke_button_icon cke_button__boxsigilo_icon" style="background: url(\''+icon16baseBoxSigilo+'\');">&nbsp;</span>'+
-                        '      <span class="cke_button_label" aria-hidden="false">Gerenciar marcas de sigilo do documento</span>'+
-                        '   </a>'+(verifyConfigValue('natjus') ? 
-                        '   <a class="getLinkNatJusButtom cke_button cke_buttonPro cke_button_off" href="#" title="Pesquisa NatJus" hidefocus="true">'+
-                        '      <span class="cke_button_icon cke_button__natjus_icon" style="background: url(\''+icon16baseNatJus+'\');">&nbsp;</span>'+
-                        '      <span class="cke_button_label" aria-hidden="false">Pesquisa NatJus</span>'+
-                        '   </a>' : '')+
                         '</span>';
 
-    var htmlButtonLegis =   '<span id="cke_legis" class="cke_toolgroup" role="presentation">'+
+    var htmlButtonReview =  checkConfigValue('revisaotexto') ? 
+                            '<span id="cke_legis" class="cke_iconPro cke_toolgroup  '+classStatus+'" role="presentation">'+
+                            '   <a class="getReviewButton cke_button cke_button_off" href="#" title="Ativar revis\u00E3o de texto" hidefocus="true">'+
+                            '      <span class="cke_button_icon cke_button__review_icon" style="background: url(\''+icon16baseReview+'\');">&nbsp;</span>'+
+                            '      <span class="cke_button_label" aria-hidden="false">Ativar revis\u00E3o de texto</span>'+
+                            '   </a>'+
+                            '   <a class="getCtrReviewButton cke_button cke_button_off" href="#" title="Gerenciar revis\u00F5es de texto" hidefocus="true">'+
+                            '      <span class="cke_button_icon cke_button__ctr_review_icon" style="background: url(\''+icon16baseCtrReview+'\');">&nbsp;</span>'+
+                            '      <span class="cke_button_label" aria-hidden="false">Gerenciar revis\u00F5es de texto</span>'+
+                            '   </a>'+
+                            '</span>'
+                            : '';
+
+    var htmlButtonDitado =  checkConfigValue('ditado') ? 
+                            '<span id="cke_legis" class="cke_iconPro cke_toolgroup  '+classStatus+'" role="presentation">'+
+                            '   <a class="getDitadoButton cke_button cke_button_off" href="#" title="Ativar ditado de texto" hidefocus="true">'+
+                            '      <span class="cke_button_icon cke_button__ditado_icon" style="background: url(\''+URL_SPRO+'icons/editor/webspeech.png\');">&nbsp;</span>'+
+                            '      <span class="cke_button_label" aria-hidden="false">Ativar ditado de texto</span>'+
+                            '   </a>'+
+                            '   <a class="getCtrDitadoButton cke_button cke_button_off" href="#" title="Gerenciar configura\u00E7\u00F5es do ditado" hidefocus="true">'+
+                            '      <span class="cke_button_icon cke_button__ctr_ditado_icon" style="background: url(\''+URL_SPRO+'icons/editor/webspeech-settings.png\');">&nbsp;</span>'+
+                            '      <span class="cke_button_label" aria-hidden="false">Gerenciar configura\u00E7\u00F5es do ditado</span>'+
+                            '   </a>'+
+                            '</span>'
+                            : '';
+
+    var htmlButtonNewStyle =  isNewSEI ? 
+                            '<span id="cke_legis" class="cke_iconPro cke_toolgroup  '+classStatus+'" role="presentation">'+
+                            '   <a class="getNewStyleButton cke_button '+(localStorage.getItem('seiSlim_editor') ? 'cke_button_on' : 'cke_button_off')+'" href="#" title="Ativar estilo avan\u00E7ado" hidefocus="true">'+
+                            '      <span class="cke_button_icon cke_button__newstyle_icon" style="background: url(\''+icon16baseNewStyle+'\');">&nbsp;</span>'+
+                            '      <span class="cke_button_label" aria-hidden="false">Ativar estilo avan\u00E7ado</span>'+
+                            '   </a>'+
+                            '</span>'
+                            : '';
+
+    var htmlButtonSigilo =   '<span id="cke_legis" class="cke_iconPro cke_toolgroup  '+classStatus+'" role="presentation">'+
+                            '   <a class="getMarkSigiloButton cke_iconPro cke_button cke_buttonPro cke_button_off '+classStatus+'" href="#" title="Adicionar / Remover marca de sigilo no texto" hidefocus="true">'+
+                            '      <span class="cke_button_icon cke_button__mark_sigilo_pro_icon" style="background: url(\''+icon16baseMarkSigilo+'\');">&nbsp;</span>'+
+                            '      <span class="cke_button_label" aria-hidden="false">Adicionar / Remover marca de sigilo no texto</span>'+
+                            '   </a>'+
+                            '   <a class="getBoxSigiloButton cke_button cke_buttonPro cke_button_off" href="#" title="Gerenciar marcas de sigilo do documento" hidefocus="true">'+
+                            '      <span class="cke_button_icon cke_button__boxsigilo_icon" style="background: url(\''+icon16baseBoxSigilo+'\');">&nbsp;</span>'+
+                            '      <span class="cke_button_label" aria-hidden="false">Gerenciar marcas de sigilo do documento</span>'+
+                            '   </a>'+
+                            '</span>';
+
+    var htmlButtonLegis =   '<span id="cke_legis" class="cke_toolgroup  '+classStatus+'" role="presentation">'+
                             '   <a class="getLegisButtom cke_button cke_button_off" href="#" title="Enumerar norma" hidefocus="true">'+
                             '      <span class="cke_button_icon" style="background: url(\''+icon16baseSEILegis+'\');">&nbsp;</span>'+
                             '      <span class="cke_button_label" aria-hidden="false">Enumerar norma</span>'+
@@ -197,7 +252,7 @@ function htmlButton(status) {
         afterletters: htmlButtonAfterLetters, 
         beforeList: htmlButtonBeforeList, 
         afterSave: htmlButtonAfterSave, 
-        newBlock: htmlButtonLegis,
+        newBlock: htmlButtonSigilo+htmlButtonReview+htmlButtonLegis+htmlButtonDitado+htmlButtonNewStyle,
         afterImage: htmlButtonAfterImage
     };
 }
@@ -233,7 +288,6 @@ function addButton(TimeOut = 9000) {
                 $('.getQuickTableButtom').on('click',function() { if (!$(this).hasClass('cke_button_disabled')) { getQuickTable(this) } });
                 $('.importDocButtom').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { importDocPro(this) } });
                 $('.getLinkLegisButtom').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getLegisSEI(this) } });
-                $('.getLinkNatJusButtom').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getNatJusSEI(this) } });
                 $('.getCapLetterButtom').on('click',function() { if (!$(this).hasClass('cke_button_disabled')) { convertFirstLetter(this) } });
                 $('.getFontSizeUpButtom').on('click',function() { if (!$(this).hasClass('cke_button_disabled')) { changeFontSize(this, 'up') } });
                 $('.getFontSizeDownButtom').on('click',function() { if (!$(this).hasClass('cke_button_disabled')) { changeFontSize(this, 'down') } });
@@ -245,6 +299,8 @@ function addButton(TimeOut = 9000) {
                 $('.getAlignJustifyButtom').on('click',function() { if (!$(this).hasClass('cke_button_disabled')) { setAlignText(this, 'justify') } });
                 $('.getCitacaoDocumentoButtom').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getCitacaoDocumento(this) } });
                 $('.getNotaRodapeButtom').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getNotaRodape(this) } });
+                $('.getRefInternaButtom').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getRefInterna(this) } });
+                if (restrictConfigValue('ferramentasia')) $('.getOpenAIButtom').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getOpenAI(this) } });
                 $('.getSumarioButtom').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getSumarioDocumento(this) } });
                 $('.getDadosProcessoButtom').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getDadosEditor(this) } });
                 $('.getTinyUrlButtom').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getTinyUrl(this) } });
@@ -257,6 +313,11 @@ function addButton(TimeOut = 9000) {
                 $('.getMinutaWatermarkButton').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getMinutaWatermark(this) } });
                 $('.getMarkSigiloButton').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getMarkSigilo(this) } });
                 $('.getBoxSigiloButton').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getBoxSigilo(this) } });
+                $('.getReviewButton').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getBoxReview(this) } });
+                $('.getCtrReviewButton').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getBoxCtrReview(this) } });
+                $('.getDitadoButton').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getBoxDitado(this) } });
+                $('.getCtrDitadoButton').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getBoxCtrDitado(this) } });
+                $('.getNewStyleButton').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getBoxStyleEditor(this) } });
                 // $('.getAutoSaveButtom').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { getAutoSave(this) } });
                 $('.getLegisButtom').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { initLegis(this) } });
                 // $('.getUploadImgBase64Buttom').on('click',function() { if (!$(this).closest('.cke_iconPro').hasClass('cke_button_disabled')) { openDialogUploadImgBase64(this) } });
@@ -265,7 +326,7 @@ function addButton(TimeOut = 9000) {
                 addStyleIframes(); 
         } else {
             addButton(TimeOut - 100);
-            console.log('addButton Reload',TimeOut);
+            console.log('addButton Reload => '+TimeOut);
         }
     }, 500);
 }
@@ -302,22 +363,28 @@ function addStyleIframes(TimeOut = 9000) {
                                                +'   html.dark-mode .dark-mode-color-white * { \n'
                                                +'       color: #fff !important;  \n'
                                                +'   } \n'
-                                               +"   p .legis { background: #f1f1f1; } "
-                                               +"   p .error { background-color: #ffd2d2; } "
-                                               +"   p .alert { cursor: pointer; background: #fffbc9; border-left: 3px solid #ffe52a; padding-left: 4px; } "
-                                               +"   span.tooltips { position: absolute; text-align: left; background: #fffbc9; text-indent: 0; border-left: 3px solid #ffe52a; margin: -46px 0px 0px -7px; width: 500px; font-size: 10pt; padding: 5px; color: #636363; height: 36px; }"
-                                               +"   span.tooltips .ignoretext { background: #ecdc89; padding: 3px 5px; margin: 3px; font-size: 8pt; text-transform: uppercase; border-radius: 5px; float: right; }"
+                                               +'   .dot-flashing,.dot-flashing::after,.dot-flashing::before{width:7px;height:7px;background-color:#4285f4;color:#4285f4}.dot-flashing{position:relative;border-radius:50%;animation:1s linear .5s infinite alternate dot-flashing}.dot-flashing::after,.dot-flashing::before{content:"";display:inline-block;position:absolute;top:0}.dot-flashing::before{left:-13px;border-radius:5px;animation:1s infinite alternate dot-flashing}.dot-flashing::after{left:13px;border-radius:50%;animation:1s 1s infinite alternate dot-flashing}@keyframes dot-flashing{0%{background-color:#4285f4}100%,50%{background-color:rgba(152,128,255,.2)}} \n'
+                                               +'   p[contenteditable="false"] { background-color: #f3f3f3; position: relative; } \n'
+                                               +'   p[contenteditable="false"]::after { content: "\\f023"; font-family: "Font Awesome 5 Pro"; right: 0; position: absolute; color: #747474; opacity: 0.5;} \n'
+                                               +'   a.anchorRefInternaPro { cursor: pointer; } \n'
+                                               +'   p .legis { background: #f1f1f1; } \n'
+                                               +'   p .error { background-color: #ffd2d2; } \n'
+                                               +'   p .alert { cursor: pointer; background: #fffbc9; border-left: 3px solid #ffe52a; padding-left: 4px; } '
+                                               +'   span.tooltips { position: absolute; text-align: left; background: #fffbc9; text-indent: 0; border-left: 3px solid #ffe52a; margin: -46px 0px 0px -7px; width: 500px; font-size: 10pt; padding: 5px; color: #636363; height: 36px; }'
+                                               +'   span.tooltips .ignoretext { background: #ecdc89; padding: 3px 5px; margin: 3px; font-size: 8pt; text-transform: uppercase; border-radius: 5px; float: right; }'
                                                +'   span.sigiloSEI { background-color: #ececec; border-bottom: 2px solid #d79d23; } \n'
                                                +'   span.sigiloSEI::before { content: "\\f023"; font-family: "Font Awesome 5 '+(isSeiSlim ? 'Pro' : 'Free')+'"; color: #d79d23; margin: 0 5px; font-size: 80%; font-weight: 600; } \n'
                                                +'   html.dark-mode .pageBreakPro, html.dark-mode .sessionBreakPro { background: #6f7071; height: 15px; } \n'
                                                +'   .pageBreakPro, .sessionBreakPro { background: #f1f1f1; height: 15px; } \n'
                                                +'   .pageBreakPro::before, .sessionBreakPro::before { border-bottom: 2px dashed #bfbfbf; display: block; content: \'\'; height: 7px; } \n'
                                                +'   .pageBreakPro::after, .sessionBreakPro::after { content: \'\u21B3 Quebra de p\u00E1gina\'; font-family: Calibri; text-align: center; display: block; margin-top: -10px; color: #585858; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff; font-size: 10pt; font-style: italic; } \n'
-                                               +'   .sessionBreakPro::after { content: \'\u21B3 Quebra de sess\u00E3o\' !important; } \n'
-                                               +'   .linkDisplayPro { user-select: none; position: absolute; display: inline-block; padding: 8px; box-shadow: 0 1px 3px 1px rgba(60,64,67,.35); background: #fff; border-color: #dadce0; border-radius: 8px; margin-top: 16px; text-align: left; text-indent: initial; font-size: 12pt; text-transform: initial; font-weight: initial; letter-spacing: initial; text-decoration: initial; white-space: nowrap; } \n'
-                                               +'   .linkDisplayPro a { padding: 0 8px; cursor: pointer; text-decoration: underline; color:#1155cc; } \n'
-                                               +'   html.dark-mode .linkDisplayPro { background-color:#3D3D3D !important; } \n'
-                                               +'   html.dark-mode .linkDisplayPro a { color:#fbfbfe !important; } \n'
+                                               +'   .sessionBreakPro::after { content: \'\u21B3 Quebra de se\u00E7\u00E3o\' !important; } \n'
+                                               +'   .linkDisplayPro, .reviewDisplayPro { user-select: none; position: absolute; display: inline-block; padding: 8px; box-shadow: 0 1px 3px 1px rgba(60,64,67,.35); background: #fff; border-color: #dadce0; border-radius: 8px; margin-top: 16px; text-align: left; text-indent: initial; font-size: 12pt; text-transform: initial; font-weight: initial; letter-spacing: initial; text-decoration: initial; white-space: nowrap; } \n'
+                                               +'   .linkDisplayPro a, .reviewDisplayPro a { padding: 0 8px; cursor: pointer; text-decoration: underline; color:#1155cc; } \n'
+                                               +'   html.dark-mode .linkDisplayPro, html.dark-mode .reviewDisplayPro { background-color:#3D3D3D !important; } \n'
+                                               +'   html.dark-mode .linkDisplayPro a, html.dark-mode .reviewDisplayPro a { color:#fbfbfe !important; } \n'
+                                               +'   span.reviewSeiPro[data-comment][data-review="delete"]:before { content: "\\f075";font-family: \'Font Awesome 5 '+(isSeiSlim ? 'Pro' : 'Free')+'\';color: #e9af68;font-size: 80%;font-weight: bold;margin: -8px 0px 0 -13px;position: absolute;transform: scale(-1, 1);} \n'
+                                               +'   span.reviewSeiPro[data-comment][data-review="add"]:before { content: "\\f075";font-family: \'Font Awesome 5 '+(isSeiSlim ? 'Pro' : 'Free')+'\';color: #e9af68;font-size: 80%;font-weight: bold;margin: -8px 0px 0 -13px;position: absolute;transform: scale(-1, 1);} \n'
                                                +'   html.dark-mode .cke_copyformatting_active { cursor: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIiA/Pgo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZlcnNpb249IjEuMSIgd2lkdGg9IjEzLjY0MDMyODc0MzE5OTIzNCIgaGVpZ2h0PSIxNi4xMjAwMDAwMDAwMDAwMDUiIHZpZXdCb3g9IjMxNC42Njk2NzEyNTY4MDA3NyAzMTEuOTQgMTMuNjQwMzI4NzQzMTk5MjM0IDE2LjEyMDAwMDAwMDAwMDAwNSIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CjxkZXNjPkNyZWF0ZWQgd2l0aCBGYWJyaWMuanMgNC42LjA8L2Rlc2M+CjxkZWZzPgo8L2RlZnM+CjxnIHRyYW5zZm9ybT0ibWF0cml4KDAuMDYgMCAwIDAuMDYgMzI0LjU3IDMyMCkiIGlkPSJ3MGQwNHhBNjhSaG1qYldBZWQyTmgiICA+CjxwYXRoIHN0eWxlPSJzdHJva2U6IG5vbmU7IHN0cm9rZS13aWR0aDogMTsgc3Ryb2tlLWRhc2hhcnJheTogbm9uZTsgc3Ryb2tlLWxpbmVjYXA6IGJ1dHQ7IHN0cm9rZS1kYXNob2Zmc2V0OiAwOyBzdHJva2UtbGluZWpvaW46IG1pdGVyOyBzdHJva2UtbWl0ZXJsaW1pdDogNDsgZmlsbDogcmdiKDI1NSwyNTUsMjU1KTsgZmlsbC1ydWxlOiBldmVub2RkOyBvcGFjaXR5OiAxOyIgdmVjdG9yLWVmZmVjdD0ibm9uLXNjYWxpbmctc3Ryb2tlIiAgdHJhbnNmb3JtPSIgdHJhbnNsYXRlKC0xNTEsIC0xMjYpIiBkPSJNIDE3MCAxNCBMIDIwMC4wMDc1MzcgMTQgQyAyMDIuNzY5MDU3IDE0IDIwNSAxMS43NjM2NDkzIDIwNSA5LjAwNDk3MDkyIEwgMjA1IDQuOTk1MDI5MDggQyAyMDUgMi4yMzM4MjIxMiAyMDIuNzY0Nzk4IDAgMjAwLjAwNzUzNyAwIEwgMTAxLjk5MjQ2MyAwIEMgOTkuMjMwOTQzMSAwIDk3IDIuMjM2MzUwNjkgOTcgNC45OTUwMjkwOCBMIDk3IDkuMDA0OTcwOTIgQyA5NyAxMS43NjYxNzc5IDk5LjIzNTIwMTcgMTQgMTAxLjk5MjQ2MyAxNCBMIDEzMyAxNCBMIDEzMyAyMzggTCAxMDEuOTkyNDYzIDIzOCBDIDk5LjIzMDk0MzEgMjM4IDk3IDI0MC4yMzYzNTEgOTcgMjQyLjk5NTAyOSBMIDk3IDI0Ny4wMDQ5NzEgQyA5NyAyNDkuNzY2MTc4IDk5LjIzNTIwMTcgMjUyIDEwMS45OTI0NjMgMjUyIEwgMjAwLjAwNzUzNyAyNTIgQyAyMDIuNzY5MDU3IDI1MiAyMDUgMjQ5Ljc2MzY0OSAyMDUgMjQ3LjAwNDk3MSBMIDIwNSAyNDIuOTk1MDI5IEMgMjA1IDI0MC4yMzM4MjIgMjAyLjc2NDc5OCAyMzggMjAwLjAwNzUzNyAyMzggTCAxNzAgMjM4IEwgMTcwIDE0IFoiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgLz4KPC9nPgo8ZyB0cmFuc2Zvcm09Im1hdHJpeCgwLjA2IDAgMCAwLjA2IDMxOCAzMTkuNDgpIiBpZD0iNjlfbUZlWUc0MzlsTGM2X3FqUHlhIiAgPgo8cGF0aCBzdHlsZT0ic3Ryb2tlOiBub25lOyBzdHJva2Utd2lkdGg6IDE7IHN0cm9rZS1kYXNoYXJyYXk6IG5vbmU7IHN0cm9rZS1saW5lY2FwOiBidXR0OyBzdHJva2UtZGFzaG9mZnNldDogMDsgc3Ryb2tlLWxpbmVqb2luOiBtaXRlcjsgc3Ryb2tlLW1pdGVybGltaXQ6IDQ7IGZpbGw6IHJnYigyNTUsMjU1LDI1NSk7IGZpbGwtcnVsZTogZXZlbm9kZDsgb3BhY2l0eTogMTsiIHZlY3Rvci1lZmZlY3Q9Im5vbi1zY2FsaW5nLXN0cm9rZSIgIHRyYW5zZm9ybT0iIHRyYW5zbGF0ZSgtNDcuNTcsIC0xMTcuNzgpIiBkPSJNIDY1IDIyMi4yODA4MjkgQyA2MC42MTMxMTc2IDIyMi4yODA4MjkgNTYuMzc0MjE2MiAyMjIuMjgwODI4IDUyLjk5OTk5OTUgMjIyLjI4MDgyOCBMIDUzIDE3MCBMIDQyIDE3MCBMIDQyIDIyMi41NjA1OTMgQyAzOC42MTMwMjQ2IDIyMi41NjA1OTMgMzQuMzc2MzMwOCAyMjIuNTYwNTkzIDMwLjAwMDAwMDUgMjIyLjU2MDU5NCBMIDMwIDE3MCBMIDE5IDE3MCBMIDE5IDIyMi41NjA1OTUgQyAxNi4zMjQ4NjUgMjIyLjU2MDU5NSAxMy44NDYzMzY5IDIyMi41NjA1OTUgMTEuNzYxMjcyNSAyMjIuNTYwNTk2IEMgLTAuMzY5NTg2NDM4IDIyMi41NjA1OTkgMS4yODM4MTc0NiAyMTEuNTA5MzEzIDEuMjgzODE3NDYgMjExLjUwOTMxMyBDIDEuMjgzODE3NDYgMjExLjUwOTMxMyAwLjM4OTY4OTk0NCAxNzcuNzU2IDAuMzk2NTcxMjc3IDE1OCBMIDk0Ljc0MDgyMzIgMTU4IEMgOTQuNzM5MjczNiAxNzcuNzkzMDg5IDkzLjg1MzUzOTYgMjExLjIyOTU0OCA5My44NTM1Mzk2IDIxMS4yMjk1NDggQyA5My44NTM1Mzk2IDIxMS4yMjk1NDggOTUuNTA2OTQzNSAyMjIuMjgwODM0IDgzLjM3NjA4NDUgMjIyLjI4MDgzMSBDIDgxLjI1NTM3ODIgMjIyLjI4MDgzIDc4LjcyNzY0MTUgMjIyLjI4MDgzIDc2LjAwMDAwMDIgMjIyLjI4MDgzIEwgNzYgMTcwIEwgNjUgMTcwIEwgNjUgMjIyLjI4MDgyOSBaIE0gMC41NzQ1MzQwMzYgMTQ3IEMgMC41Nzk3NjgzODcgMTQ2Ljg5NjE0OSAwLjU4NTEzMTYzOCAxNDYuNzk0NzU1IDAuNTkwNjI1NTE0IDE0Ni42OTU4NjYgQyAxLjI4MzgxNzQ4IDEzNC4yMTg0MDkgLTAuNzk3MTEyMjg2IDEyMi40MzQxNDYgMTYuODc5MjgxNiAxMTYuMTk1NDIyIEMgMzQuNTU1Njc1NSAxMDkuOTU2Njk4IDI4LjY2NjI1MzYgMTA3LjUzMDUyMiAzMC4zOTc4NzkyIDk1Ljc0NjI1NzYgQyAzMi4xMjk1MDQ4IDgzLjk2MTk5MyAyNS44OTIxMjk4IDc4LjA2OTg2MyAyNS44OTIxMzE1IDQ0Ljc5NjY0OTYgQyAyNS44OTIxMzMgMTcuOTYwNzIwNiAzOC41MTY5NDY3IDEzLjkyMjAxNzMgNDUuNTIyMDkzOSAxMy4zNjM3NjE3IEMgNDUuNjA4OTgxNCAxMy4xMzQwNzI3IDQ1LjcwMDI1MDYgMTMuMDE2NDM5MSA0NS43OTYwNjMxIDEzLjAxNjQzOTEgQyA0OS44MzcyMDU2IDEzLjAxNjQzODkgNjkuMjQ1MjIzNyAxMS4yNDM2NzEzIDY5LjI0NTIyNTUgNDQuNTE2ODg0NyBDIDY5LjI0NTIyNzMgNzcuNzkwMDk4MiA2My4wMDc4NTIzIDgzLjY4MjIyODEgNjQuNzM5NDc3OCA5NS40NjY0OTI4IEMgNjYuNDcxMTAzNCAxMDcuMjUwNzU3IDYwLjU4MTY4MTUgMTA5LjY3NjkzMyA3OC4yNTgwNzU0IDExNS45MTU2NTcgQyA5NS45MzQ0NjkzIDEyMi4xNTQzODEgOTMuODUzNTM5NSAxMzMuOTM4NjQ0IDk0LjU0NjczMTUgMTQ2LjQxNjEwMSBDIDk0LjU1NzA1ODYgMTQ2LjYwMTk4OSA5NC41NjY5MjQyIDE0Ni43OTY3MjQgOTQuNTc2MzM5NyAxNDcgTCAwLjU3NDUzNDAzNiAxNDcgWiBNIDQ3LjUgNDEgQyA1Mi4xOTQ0MjA0IDQxIDU2IDM3LjE5NDQyMDQgNTYgMzIuNSBDIDU2IDI3LjgwNTU3OTYgNTIuMTk0NDIwNCAyNCA0Ny41IDI0IEMgNDIuODA1NTc5NiAyNCAzOSAyNy44MDU1Nzk2IDM5IDMyLjUgQyAzOSAzNy4xOTQ0MjA0IDQyLjgwNTU3OTYgNDEgNDcuNSA0MSBaIiBzdHJva2UtbGluZWNhcD0icm91bmQiIC8+CjwvZz4KPC9zdmc+") 12 1, auto !important; } \n'
                                                +'   .cke_copyformatting_active { cursor: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+Cjxzdmcgd2lkdGg9IjE2cHgiIGhlaWdodD0iMTZweCIgdmlld0JveD0iMCAwIDIwNSAyNTIiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8dGl0bGU+Y3Vyc29yPC90aXRsZT4KICAgIDxkZXNjPjwvZGVzYz4KICAgIDxkZWZzPjwvZGVmcz4KICAgIDxnIGlkPSJQYWdlLTQiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPgogICAgICAgIDxnIGlkPSJBcnRib2FyZC0xIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNDkuMDAwMDAwLCAtMi4wMDAwMDApIiBmaWxsPSIjMDAwMDAwIj4KICAgICAgICAgICAgPGcgaWQ9ImN1cnNvciIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDkuMDAwMDAwLCAyLjAwMDAwMCkiPgogICAgICAgICAgICAgICAgPHBhdGggZD0iTTE3MCwxNCBMMjAwLjAwNzUzNywxNCBDMjAyLjc2OTA1NywxNCAyMDUsMTEuNzYzNjQ5MyAyMDUsOS4wMDQ5NzA5MiBMMjA1LDQuOTk1MDI5MDggQzIwNSwyLjIzMzgyMjEyIDIwMi43NjQ3OTgsMCAyMDAuMDA3NTM3LDAgTDEwMS45OTI0NjMsMCBDOTkuMjMwOTQzMSwwIDk3LDIuMjM2MzUwNjkgOTcsNC45OTUwMjkwOCBMOTcsOS4wMDQ5NzA5MiBDOTcsMTEuNzY2MTc3OSA5OS4yMzUyMDE3LDE0IDEwMS45OTI0NjMsMTQgTDEzMywxNCBMMTMzLDIzOCBMMTAxLjk5MjQ2MywyMzggQzk5LjIzMDk0MzEsMjM4IDk3LDI0MC4yMzYzNTEgOTcsMjQyLjk5NTAyOSBMOTcsMjQ3LjAwNDk3MSBDOTcsMjQ5Ljc2NjE3OCA5OS4yMzUyMDE3LDI1MiAxMDEuOTkyNDYzLDI1MiBMMjAwLjAwNzUzNywyNTIgQzIwMi43NjkwNTcsMjUyIDIwNSwyNDkuNzYzNjQ5IDIwNSwyNDcuMDA0OTcxIEwyMDUsMjQyLjk5NTAyOSBDMjA1LDI0MC4yMzM4MjIgMjAyLjc2NDc5OCwyMzggMjAwLjAwNzUzNywyMzggTDE3MCwyMzggTDE3MCwxNCBaIiBpZD0iQ29tYmluZWQtU2hhcGUiPjwvcGF0aD4KICAgICAgICAgICAgICAgIDxwYXRoIGQ9Ik02NSwyMjIuMjgwODI5IEM2MC42MTMxMTc2LDIyMi4yODA4MjkgNTYuMzc0MjE2MiwyMjIuMjgwODI4IDUyLjk5OTk5OTUsMjIyLjI4MDgyOCBMNTMsMTcwIEw0MiwxNzAgTDQyLDIyMi41NjA1OTMgQzM4LjYxMzAyNDYsMjIyLjU2MDU5MyAzNC4zNzYzMzA4LDIyMi41NjA1OTMgMzAuMDAwMDAwNSwyMjIuNTYwNTk0IEwzMCwxNzAgTDE5LDE3MCBMMTksMjIyLjU2MDU5NSBDMTYuMzI0ODY1LDIyMi41NjA1OTUgMTMuODQ2MzM2OSwyMjIuNTYwNTk1IDExLjc2MTI3MjUsMjIyLjU2MDU5NiBDLTAuMzY5NTg2NDM4LDIyMi41NjA1OTkgMS4yODM4MTc0NiwyMTEuNTA5MzEzIDEuMjgzODE3NDYsMjExLjUwOTMxMyBDMS4yODM4MTc0NiwyMTEuNTA5MzEzIDAuMzg5Njg5OTQ0LDE3Ny43NTYgMC4zOTY1NzEyNzcsMTU4IEw5NC43NDA4MjMyLDE1OCBDOTQuNzM5MjczNiwxNzcuNzkzMDg5IDkzLjg1MzUzOTYsMjExLjIyOTU0OCA5My44NTM1Mzk2LDIxMS4yMjk1NDggQzkzLjg1MzUzOTYsMjExLjIyOTU0OCA5NS41MDY5NDM1LDIyMi4yODA4MzQgODMuMzc2MDg0NSwyMjIuMjgwODMxIEM4MS4yNTUzNzgyLDIyMi4yODA4MyA3OC43Mjc2NDE1LDIyMi4yODA4MyA3Ni4wMDAwMDAyLDIyMi4yODA4MyBMNzYsMTcwIEw2NSwxNzAgTDY1LDIyMi4yODA4MjkgWiBNMC41NzQ1MzQwMzYsMTQ3IEMwLjU3OTc2ODM4NywxNDYuODk2MTQ5IDAuNTg1MTMxNjM4LDE0Ni43OTQ3NTUgMC41OTA2MjU1MTQsMTQ2LjY5NTg2NiBDMS4yODM4MTc0OCwxMzQuMjE4NDA5IC0wLjc5NzExMjI4NiwxMjIuNDM0MTQ2IDE2Ljg3OTI4MTYsMTE2LjE5NTQyMiBDMzQuNTU1Njc1NSwxMDkuOTU2Njk4IDI4LjY2NjI1MzYsMTA3LjUzMDUyMiAzMC4zOTc4NzkyLDk1Ljc0NjI1NzYgQzMyLjEyOTUwNDgsODMuOTYxOTkzIDI1Ljg5MjEyOTgsNzguMDY5ODYzIDI1Ljg5MjEzMTUsNDQuNzk2NjQ5NiBDMjUuODkyMTMzLDE3Ljk2MDcyMDYgMzguNTE2OTQ2NywxMy45MjIwMTczIDQ1LjUyMjA5MzksMTMuMzYzNzYxNyBDNDUuNjA4OTgxNCwxMy4xMzQwNzI3IDQ1LjcwMDI1MDYsMTMuMDE2NDM5MSA0NS43OTYwNjMxLDEzLjAxNjQzOTEgQzQ5LjgzNzIwNTYsMTMuMDE2NDM4OSA2OS4yNDUyMjM3LDExLjI0MzY3MTMgNjkuMjQ1MjI1NSw0NC41MTY4ODQ3IEM2OS4yNDUyMjczLDc3Ljc5MDA5ODIgNjMuMDA3ODUyMyw4My42ODIyMjgxIDY0LjczOTQ3NzgsOTUuNDY2NDkyOCBDNjYuNDcxMTAzNCwxMDcuMjUwNzU3IDYwLjU4MTY4MTUsMTA5LjY3NjkzMyA3OC4yNTgwNzU0LDExNS45MTU2NTcgQzk1LjkzNDQ2OTMsMTIyLjE1NDM4MSA5My44NTM1Mzk1LDEzMy45Mzg2NDQgOTQuNTQ2NzMxNSwxNDYuNDE2MTAxIEM5NC41NTcwNTg2LDE0Ni42MDE5ODkgOTQuNTY2OTI0MiwxNDYuNzk2NzI0IDk0LjU3NjMzOTcsMTQ3IEwwLjU3NDUzNDAzNiwxNDcgWiBNNDcuNSw0MSBDNTIuMTk0NDIwNCw0MSA1NiwzNy4xOTQ0MjA0IDU2LDMyLjUgQzU2LDI3LjgwNTU3OTYgNTIuMTk0NDIwNCwyNCA0Ny41LDI0IEM0Mi44MDU1Nzk2LDI0IDM5LDI3LjgwNTU3OTYgMzksMzIuNSBDMzksMzcuMTk0NDIwNCA0Mi44MDU1Nzk2LDQxIDQ3LjUsNDEgWiIgaWQ9IkNvbWJpbmVkLVNoYXBlIj48L3BhdGg+CiAgICAgICAgICAgIDwvZz4KICAgICAgICA8L2c+CiAgICA8L2c+Cjwvc3ZnPgo=") 12 1, auto !important; } \n'
                                                +'</style>\n');
@@ -337,7 +404,7 @@ function addStyleIframes(TimeOut = 9000) {
             
         } else {
             addStyleIframes(TimeOut - 100);
-            console.log('addStyleIframes Reload',TimeOut);
+            console.log('addStyleIframes Reload => '+TimeOut);
         }
     }, 500);
 }
@@ -345,16 +412,23 @@ function setOnBodyActs(iframe) {
     iframe.find('body').on('mousedown', function(e) { 
         if ( typeof e.target.href !== 'undefined' && e.target.href.indexOf('http')  !== -1 && checkConfigValue('editarlinks')) { 
             showLinkTips(e.target, iframe);
+        } else if ($(e.target).closest('span').hasClass('reviewSeiPro') && checkConfigValue('revisaotexto')) { 
+            showReviewTips(e.target, iframe);
         } else {
             hideLinkTips(iframe);
+            hideReviewTips(iframe);
         }
         hideQuickTable();
+        setTimeout(() => {
+            setInlineOpenAI();
+        }, 1000);
     }).on('mouseup', function(e) { 
         applyCopyStyle();
         activeIconsSelectedText();
         closeAlignText();
     }).on('blur', function(e) { 
         hideLinkTips(iframe);
+        hideReviewTips(iframe);
         hideQuickTable();
         removeCopyStyle();
         closeAlignText();
@@ -387,7 +461,7 @@ function setBgTableColor(this_) {
 }
 function setCKEDITOR_instances() {
     for(var id in CKEDITOR.instances) {
-        CKEDITOR.instances[id].setKeystroke(CKEDITOR.ALT + 48 /*0*/, false); // desabilita o popup de acessibilidade, que impede acessar o caractere º no mac (option+0)
+        CKEDITOR.instances[id].setKeystroke(CKEDITOR.ALT + 48 /*0*/, false); // desabilita o popup de acessibilidade, que impede acessar o caractere \u00BA no mac (option+0)
         CKEDITOR.instances[id].on('focus', function(e) {
             // Fill some global var here
             idEditor = e.editor.name;
@@ -401,6 +475,7 @@ function setCKEDITOR_instances() {
             loadResizeImg();
             insertFontIcon('head',$('iframe[title*="'+idEditor+'"]').contents());
             if (checkConfigValue('teclasatalho')) stylesEditorKeystroke();
+            instanceDitadoPro(oEditor);
         });
     }
 }
@@ -460,7 +535,7 @@ function getPageBreak(this_) {
 function getSessionBreak(this_) {
     setParamEditor(this_);
     
-    var htmlSessionPage = '<div class="sessionBreakPro" style="counter-reset: paragrafo-n1 paragrafo-n2 paragrafo-n3 paragrafo-n4 romano_maiusculo letra_minuscula item-n1 item-n2 item-n3 item-n4 "></div>';
+    var htmlSessionPage = '<p class="sessionBreakPro" style="counter-reset: paragrafo-n1 paragrafo-n2 paragrafo-n3 paragrafo-n4 romano_maiusculo letra_minuscula item-n1 item-n2 item-n3 item-n4 "></p>';
     var select = oEditor.getSelection().getStartElement();
     var pElement = $(select.$).closest('p');
     if ( pElement.length > 0 ) {
@@ -717,7 +792,7 @@ function htmlTabSigiloResult() {
     $('#tabSigilo1_result').show().html(result);
 }
 function getDialogSigilo() {
-    CKEDITOR.dialog.add( 'SigiloSEI', function ( editor )
+    CKEDITOR.dialog.add( 'SigiloSEI', function(editor)
       {
          return {
             title : 'Gerenciar marcas de sigilo do documento',
@@ -855,15 +930,28 @@ function getDialogSigilo() {
          };
       } );
 }
-function setChosenInCke() {
+function setChosenInCke(multiple = false, max_width = '500px') {
+    var minWidth = multiple ? '450px' : '200px';
     if (verifyConfigValue('substituiselecao')) {
-        $('div.cke_dialog_ui_input_select').css({'position':'absolute', 'max-width': '500px', 'min-width': '200px'});
+        if (multiple) $('select.cke_dialog_ui_input_select').attr('multiple','multiple');
+        $('div.cke_dialog_ui_input_select').css({'position':'absolute', 'max-width': max_width, 'min-width': minWidth});
         $('span.cke_dialog_ui_labeled_content').css({'height':'27px', 'display': 'flex'});
         $('select.cke_dialog_ui_input_select').each(function(){
-            initChosenReplace('box_init',this);
+            if ($('#'+$(this).attr('id')+'_chosen').length == 0) { 
+                initChosenReplace(multiple ? 'box_multiple' : 'box_init',this);
+            } else {
+                $(this).chosen("destroy").chosen({
+                    placeholder_text_single: ' ',
+                    no_results_text: 'Nenhum resultado encontrado'
+                });
+            }
         });
         setTimeout(function(){ 
-            $('.cke_dialog_ui_labeled_content .chosen-container-single').css({'max-width': '500px', 'min-width': '200px'});
+            $('.cke_dialog_ui_labeled_content .chosen-container-single').css({'max-width': max_width, 'min-width': minWidth});
+            if (multiple) {
+                $('.cke_dialog_ui_labeled_content .chosen-container-multi').css('width', '-webkit-fill-available');
+                $('.cke_dialog_ui_labeled_content .chosen-container-multi .chosen-choices').css({'max-height': '90px', 'overflow-y': 'auto'});
+            }
         }, 800);
     }
 }
@@ -976,7 +1064,7 @@ function menuCopyStyle( editor ) {
         editor.addMenuGroup( 'copystyleGroup', -10 * 3 );
         editor.addMenuItem( 'copystyle', {
             label: 'Copiar formata\u00E7\u00E3o',
-            icon: URL_SPRO+'icons/copiarformatacao.png',
+            icon: URL_SPRO+'icons/editor/copiarformatacao.png',
             command: 'copystyle',
             group: 'copystyleGroup'
         });
@@ -988,6 +1076,46 @@ function menuCopyStyle( editor ) {
         editor.addCommand( 'copystyle', {
             exec: function( editor ) {
                 actionCopyStyle(editor);
+            }
+        });
+    }
+}
+function menuBlockEdition( editor ) {
+    if ( editor.contextMenu && typeof editor.getMenuItem('blockedition') === 'undefined' ) {
+        editor.addMenuGroup( 'blockGroup', -10 * 3 );
+        editor.addMenuItem( 'blockedition', {
+            label: 'Bloquear Edi\u00E7\u00E3o',
+            icon: URL_SPRO+'icons/editor/blockedition.png',
+            command: 'blockedition',
+            group: 'blockGroup'
+        });
+        editor.contextMenu.addListener( function( element ) {
+            if ( element.getAscendant( 'p', true ) && hasSelection(editor) ) {
+                return { blockedition: CKEDITOR.TRISTATE_OFF};
+            }
+        });
+        editor.addCommand( 'blockedition', {
+            exec: function( editor ) {
+                var sel = editor.getSelection();
+                var select = sel.getStartElement();
+
+                function setNextElem(element) {
+                    var editorIfm = $('iframe[title*="'+idEditor+'"]');
+                    var selWin = editorIfm[0].contentWindow.getSelection();
+                    var selEnd = $(selWin.anchorNode.parentNode);
+                    var selStart = $(selWin.focusNode.parentNode);
+                    var editable = typeof element.attr('contenteditable') !== 'undefined' && element.attr('contenteditable') == 'false' ? true : false;
+                        element.attr('contenteditable',editable);
+                        // console.log(editable, element.attr('contenteditable'), selEnd[0],  element[0]);
+                        if (!editable && selEnd[0] != element[0]) {
+                            setNextElem(element.next());
+                        }
+                }
+                
+                var element = $(select.$);
+                if (element.is('p')) {
+                    setNextElem(element);
+                } 
             }
         });
     }
@@ -1077,7 +1205,7 @@ function editImgPro( editor ) {
         editor.addMenuGroup( 'base64imageGroup', 30);
         editor.addMenuItem( 'base64imageItem', {
             label: 'Formatar Imagem',
-            icon: URL_SPRO+'icons/formatarimagem.png',
+            icon: URL_SPRO+'icons/editor/formatarimagem.png',
             command: 'base64imageDialog',
             group: 'base64imageGroup'
         });
@@ -1096,7 +1224,7 @@ function editImgPro( editor ) {
 
         editor.addMenuItem( 'ImageEditorPro', {
             label: 'Editar Imagem',
-            icon: URL_SPRO+'icons/editarimagem.png',
+            icon: URL_SPRO+'icons/editor/editarimagem.png',
             command: 'ImageEditorPro',
             group: 'base64imageGroup'
         });
@@ -1299,7 +1427,7 @@ function getDialogSyleTable() {
                         '   <input type="checkbox" id="addEstiloTableHeader" checked> <label for="addEstiloTableHeader">Determinar a primeira linha como cabe\u00E7alho da tabela</label>'+
                         '</div>';
     
-    CKEDITOR.dialog.add( 'TabelaSEI', function ( editor )
+    CKEDITOR.dialog.add( 'TabelaSEI', function(editor)
       {
          return {
             title : 'Inserir estilo \u00E0 tabela',
@@ -1446,92 +1574,6 @@ function getSearchLegisMore(this_) {
         parent.find('.searchLegis_ementafull').hide();
     }
 }
-function getNatJusSEI(this_) {
-    setParamEditor(this_);
-    oEditor.openDialog('NatJusSEI');
-}
-function getSearchNatJus(this_) {
-	var url = "https://seipro.app/enatjus/";
-    var dialog_page = $(this_).closest('.cke_dialog_page_contents');
-    var dialog = CKEDITOR.dialog.getCurrent();
-    var inputTermo = dialog.getContentElement('tab1', 'buscaTexto').getValue();
-    var buscaTexto = encodeURI(inputTermo.trim());
-    $('#searchNatJus_load').show();
-    if ($('#searchNatJus_result').is(':visible')) {
-        dialog.move(dialog.getPosition().x, (dialog.getPosition().y+125));
-        $('#searchNatJus_result').html('').hide();
-    }
-	$.ajax({
-		type: "POST",
-		url: url,
-		// dataType: "json",
-		data: { buscaTexto: buscaTexto },
-		success: function(jusData){
-            var style = '<style id="styleNatJus" type="text/css">'+
-                        '   div#searchNatJus_result .result b a {'+
-                        '       font-size: 14px !important;'+
-                        '       color: #337ab7;'+
-                        '       font-weight: bold;'+
-                        '       padding: 5px 0;'+
-                        '       display: inline-block;'+
-                        '       cursor: pointer;'+
-                        '   }'+
-                        '   div#searchNatJus_result a {'+
-                        '       cursor: pointer;'+
-                        '       text-decoration: underline;'+
-                        '       white-space: break-spaces;'+
-                        '   }'+
-                        '   div#searchNatJus_result .result div {'+
-                        '       font-size: 9pt !important;'+
-                        '       color: #393;'+
-                        '       white-space: break-spaces;'+
-                        '   }'+
-                        '   div#searchNatJus_result .descricao {'+
-                        '       padding-bottom: 15px;'+
-                        '       border-bottom: 1px solid #ccc;'+
-                        '   }'+
-                        '   div#searchNatJus_result .descricao,'+
-                        '   div#searchNatJus_result .descricao u,'+
-                        '   div#searchNatJus_result .descricao b {'+
-                        '       font-size: 10pt;'+
-                        '       margin: 6px 0 15px 0;'+
-                        '       white-space: break-spaces;'+
-                        '       max-width: 520px;'+
-                        '   }'+
-                        '   div#searchNatJus_result .descricao u {'+
-                        '       text-decoration: underline;'+
-                        '   }'+
-                        '   div#searchNatJus_result .descricao b {'+
-                        '       font-weight: bold;'+
-                        '   }'+
-                        '</style>';
-
-            // console.log(jusData);
-            $('#searchNatJus_load').hide();
-            $('#styleNatJus').remove();
-            $('#searchNatJus_result').html(jusData).show().before(style);
-            $('#searchNatJus_result p.descricao').each(function(){
-                $(this).after('<div class="descricao">'+$(this).html()+'</div>').remove();
-            });
-            $('#searchNatJus_result a').each(function(){
-                $(this).attr('href','https://www.cnj.jus.br/e-natjus/'+$(this).attr('href'));
-            });
-            $('#searchNatJus_result div.result').prepend('<span onclick="insertNatJusSEI(this)" style="float: right; background: #e7effd; padding: 3px 5px; color: #4285f4; border-radius: 5px; margin-left: 10px; cursor: pointer;">'+
-                                                         '  <i class="fas fa-pen azulColor" style="font-size: 90%; cursor: pointer;"></i>'+
-                                                         '  Adicionar'+
-                                                         '</span>');
-            dialog.move(dialog.getPosition().x, (dialog.getPosition().y-125));
-        }
-	});
-}
-function insertNatJusSEI(this_) {
-    var htmlNatJus = $('<div>').append($(this_).closest('.result').find('b a').clone()).html();
-        oEditor.focus();
-        oEditor.fire('saveSnapshot');
-        oEditor.insertHtml(htmlNatJus);
-        oEditor.fire('saveSnapshot');
-        CKEDITOR.dialog.getCurrent().hide();
-}
 function getSearchLegis(this_) {
     var dialog_page = $(this_).closest('.cke_dialog_page_contents');
     var dialog = CKEDITOR.dialog.getCurrent();
@@ -1624,7 +1666,7 @@ function getSearchLegis(this_) {
 	});
 }
 function getDialogLegisSEI() {
-      CKEDITOR.dialog.add( 'LegisSEI', function ( editor )
+      CKEDITOR.dialog.add( 'LegisSEI', function(editor)
       {
          return {
             title : 'Adicionar Link de Legisla\u00E7\u00E3o',
@@ -1667,7 +1709,31 @@ function getDialogLegisSEI() {
                 var inputAno = CKEDITOR.dialog.getCurrent().getContentElement('tab1', 'anoNorma')._.inputId;
                     $('#'+inputNumero).attr('type', 'number');
                     $('#'+inputAno).attr('type', 'number');
-                    setChosenInCke();
+                    if (verifyConfigValue('substituiselecao')) setChosenInCke();
+                
+                    var textSelected = oEditor.getSelection().getSelectedText();
+                    var idSelectNorma = this.getContentElement( 'tab1', 'tipoNorma' )._.inputId;
+                    var idNumNorma = this.getContentElement( 'tab1', 'numeroNorma' )._.inputId;
+                    var selectNorma = $('#'+idSelectNorma);
+                    var numNorma = $('#'+idNumNorma);
+                    if (textSelected.toLowerCase().indexOf('lei complementar') !== -1 || textSelected.toLowerCase().indexOf('lc') !== -1) {
+                        selectNorma.val('LC').trigger('change');
+                    } else if (textSelected.toLowerCase().indexOf('decreto-lei') !== -1 || textSelected.toLowerCase().indexOf('dc') !== -1) {
+                        selectNorma.val('DecLei').trigger('change');
+                    } else if (textSelected.toLowerCase().indexOf('medida provis\u00F3ria') !== -1 || textSelected.toLowerCase().indexOf('mp') !== -1) {
+                        selectNorma.val('Mp').trigger('change');
+                    } else if (textSelected.toLowerCase().indexOf('decreto') !== -1 || textSelected.toLowerCase().indexOf('dec') !== -1) {
+                        selectNorma.val('Dec').trigger('change');
+                    } else if (textSelected.toLowerCase().indexOf('lei') !== -1) {
+                        selectNorma.val('Lei').trigger('change');
+                    }
+
+                    if (hasNumber(textSelected)) {
+                        var numInput = (textSelected.toLowerCase().indexOf('/') !== -1) ? textSelected.split('/')[0] : textSelected;
+                            numInput = (textSelected.toLowerCase().indexOf(',') !== -1) ? textSelected.split(',')[0] : numInput;
+                            numInput = (hasNumber(numInput)) ? onlyNumber(numInput) : '';
+                        numNorma.val(numInput);
+                    }
             },
             contents :
             [
@@ -1812,90 +1878,6 @@ function getDialogLegisSEI() {
          };
       } );
 }
-
-function getDialogNatJusSEI() {
-    CKEDITOR.dialog.add( 'NatJusSEI', function ( editor )
-    {
-       return {
-          title : 'Pesquisa e-NatJus',
-          minWidth : 520,
-          minHeight : 150,
-          buttons: [],
-          onShow : function() {
-              $('.cke_dialog_page_contents').find('select').css('width','100%');
-              $('#searchNatJus_load').hide();
-              if ($('#searchNatJus_result').is(':visible')) {
-                  this.move(this.getPosition().x, (this.getPosition().y+125));
-                  $('#searchNatJus_result').html('').hide();
-              }
-          },
-          contents :
-          [
-             {
-                id : 'tab1',
-                label : 'Pesquisa P\u00FAblica',
-                elements :
-                [
-                  {
-                      type: 'text',
-                      label: 'Conte\u00FAdo da Nota T\u00E9cnica (palavras-chave)',
-                      id: 'buscaTexto',
-                      width: '200px',
-                      labelLayout: 'horizontal'
-                   },{
-                      type: 'html',
-                      html: '<table role="presentation" class="cke_dialog_ui_hbox">'+
-                            ' <tbody>'+
-                            '     <tr class="cke_dialog_ui_hbox">'+
-                            '         <td class="cke_dialog_ui_hbox_first" role="presentation" style="width:50%; padding:0px">'+
-                            '         </td>'+
-                            '         <td class="cke_dialog_ui_hbox_last" role="presentation" style="width:50%; padding:0px">'+
-                            '             <a style="user-select: none;" onclick="getSearchNatJus(this)" title="Pesquisar" hidefocus="true" class="cke_dialog_ui_button cke_dialog_ui_button_cancel" role="button" aria-labelledby="searchNatJus_label" id="searchNatJus_uiElement">'+
-                            '                 <span id="searchNatJus_label" class="cke_dialog_ui_button">Pesquisar</span>'+
-                            '             </a>'+
-                            '             <i id="searchNatJus_load" class="fas fa-sync-alt fa-spin" style="margin-left: 10px; display:none"></i>'+
-                            '         </td>'+
-                            '     </tr>'+
-                            ' </tbody>'+
-                            '</table>'+
-                            '<div id="searchNatJus_result" style="display:none; height: 250px; overflow-y: scroll; margin-top: 15px;"></div>'
-                   }
-                ]
-             },{
-                id : 'tab2',
-                label : 'Links \u00DAteis',
-                elements :
-                [
-                  {
-                       type: 'html',
-                       html:    '<div><a style="margin: 6px; display: inline-block; font-size: 10pt;" href="https://brazil.cochrane.org/" target="blank" class="linkDialog"><i class="fas fa-link" style="cursor: pointer;color: blue; margin-right: 5px;"></i>Cochrane.org</a></div>'+
-                                '<div><a style="margin: 6px; display: inline-block; font-size: 10pt;" href="https://www.cochranelibrary.com/" target="blank" class="linkDialog"><i class="fas fa-link" style="cursor: pointer;color: blue; margin-right: 5px;"></i>CochraneLibrary.com/</a></div>'+
-                                '<div><a style="margin: 6px; display: inline-block; font-size: 10pt;" href="https://www.gov.br/anvisa/pt-br/assuntos/medicamentos" target="blank" class="linkDialog"><i class="fas fa-link" style="cursor: pointer;color: blue; margin-right: 5px;"></i>Anvisa: Medicamentos</a></div>'+
-                                '<div><a style="margin: 6px; display: inline-block; font-size: 10pt;" href="https://consultas.anvisa.gov.br/#/medicamentos/" target="blank" class="linkDialog"><i class="fas fa-link" style="cursor: pointer;color: blue; margin-right: 5px;"></i>Anvisa: Consulta Medicamentos</a></div>'+
-                                '<div><a style="margin: 6px; display: inline-block; font-size: 10pt;" href="http://conitec.gov.br/index.php/protocolos-e-diretrizes" target="blank" class="linkDialog"><i class="fas fa-link" style="cursor: pointer;color: blue; margin-right: 5px;"></i>Conitec: Protocolos e Diretrizes</a></div>'+
-                                '<div><a style="margin: 6px; display: inline-block; font-size: 10pt;" href="http://conitec.gov.br/images/Rename-2020.pdf" target="blank" class="linkDialog"><i class="fas fa-link" style="cursor: pointer;color: blue; margin-right: 5px;"></i>Conitec: Rename</a></div>'+
-                                '<div><a style="margin: 6px; display: inline-block; font-size: 10pt;" href="https://www.gov.br/saude/pt-br/assuntos/protocolos-clinicos-e-diretrizes-terapeuticas-pcdt" target="blank" class="linkDialog"><i class="fas fa-link" style="cursor: pointer;color: blue; margin-right: 5px;"></i>Minist\u00E9rio da Sa\u00FAde: Protocolos Cl\u00EDnicos e Diretrizes Terap\u00EAuticas - PCDT</a></div>'+
-                                '<div><a style="margin: 6px; display: inline-block; font-size: 10pt;" href="https://cid10.com.br/" target="blank" class="linkDialog"><i class="fas fa-link" style="cursor: pointer;color: blue; margin-right: 5px;"></i>Busca CID10</a></div>'+
-                                '<div><a style="margin: 6px; display: inline-block; font-size: 10pt;" href="http://sigtap.datasus.gov.br/tabela-unificada/app/sec/inicio.jsp" target="blank" class="linkDialog"><i class="fas fa-link" style="cursor: pointer;color: blue; margin-right: 5px;"></i>Tabela de Procedimentos, Medicamentos e OPM do SUS</a></div>'+
-                                '<div><a style="margin: 6px; display: inline-block; font-size: 10pt;" href="http://bvsms.saude.gov.br/bvs/publicacoes/relacao_nacional_acoes_saude.pdf" target="blank" class="linkDialog"><i class="fas fa-link" style="cursor: pointer;color: blue; margin-right: 5px;"></i>Rela\u00E7\u00E3o Nacional de A\u00E7\u00F5es e Servi\u00E7os de Sa\u00FAde</a></div>'
-                   }
-                ]
-             }
-
-          ]
-       };
-    } );
-}
-function capitalizeFirstLetter(string) {
-    var excetWords = ['a', 'à', 'algo', 'alguém', 'algum', 'alguma', 'algumas', 'alguns', 'ao', 'aos', 'aquela', 'aquelas', 'aquele', 'aqueles', 'aquilo', 'as', 'às', 'cada', 'certa', 'certas', 'certo', 'certos', 'com', 'comigo', 'como', 'conosco', 'consigo', 'contigo', 'convosco', 'cuja', 'cujas', 'cujo', 'cujos', 'da', 'das', 'de', 'dessa', 'dessas', 'desse', 'desses', 'desta', 'destas', 'do', 'dos', 'dum', 'duma', 'dumas', 'duns', 'e', 'é', 'ela', 'elas', 'ele', 'eles', 'em', 'entre', 'essa', 'essas', 'esse', 'esses', 'esta', 'estas', 'este', 'estes', 'eu', 'isso', 'isto', 'la', 'las', 'lhe', 'lhes', 'lo', 'los', 'me', 'mesma', 'mesmas', 'mesmo', 'mesmos', 'meu', 'meus', 'mim', 'minha', 'minhas', 'muita', 'muitas', 'muito', 'muitos', 'na', 'nada', 'não', 'nas', 'nenhum', 'nenhuma', 'nenhumas', 'nenhuns', 'ninguém', 'no', 'nos', 'nós', 'nossa', 'nossas', 'nosso', 'nossos', 'num', 'numa', 'numas', 'nuns', 'o', 'onde', 'os', 'ou', 'outra', 'outras', 'outrem', 'outro', 'outros', 'para', 'pela', 'pelas', 'pelo', 'por', 'pouca', 'poucas', 'pouco', 'poucos', 'quais', 'quaisquer', 'qual', 'qualquer', 'quando', 'quanta', 'quantas', 'quanto', 'quantos', 'que', 'quem', 'são', 'se', 'seja', 'sem', 'seu', 'seus', 'si', 'sob', 'sobre', 'sua', 'suas', 'tanta', 'tantas', 'tanto', 'tantos', 'te', 'teu', 'teus', 'ti', 'toda', 'todas', 'todo', 'todos', 'tu', 'tua', 'tuas', 'tudo', 'um', 'uma', 'umas', 'uns', 'vária', 'várias', 'vário', 'vários', 'você', 'vocês', 'vos', 'vós', 'vossa', 'vossas', 'vosso', 'vossos']
-    return ( string.indexOf(' ') === -1 ) ? string[0].toUpperCase() + string.substring(1).toLowerCase() : string.split(' ').map((s, index) => {
-            if (excetWords.includes(s.toLowerCase()) && index != 0 ) {
-                return s.toLowerCase()
-            } else {
-                return s[0].toUpperCase() + s.substring(1).toLowerCase()
-            }
-        }).join(' ') ;
-}
 function convertFirstLetter(this_) {
     setParamEditor(this_);
     var selectTxt = oEditor.getSelection().getSelectedText();
@@ -1908,66 +1890,93 @@ function convertFirstLetter(this_) {
 }
 
 function getCitacaoDocumento(this_, TimeOut = 9000) {
-    if (TimeOut <= 0) { return; }
-    if (typeof dadosProcessoPro.listDocumentos !== 'undefined') { 
+    if (checkProcessoSigiloso()) {
+        CKEDITOR.dialog.add( 'CitaSEI', function(editor) { return getDialogNaoDisponivel('Inserir refer\u00EAncia de documento do processo') } );
         setParamEditor(this_);
         oEditor.openDialog('CitaSEI');
     } else {
-        setTimeout(function(){ 
-            getCitacaoDocumento(this_, TimeOut - 100); 
-            $(this_).fadeOut(200).fadeIn(200);
-            console.log('Reload getCitacaoDocumento'); 
-        }, 500);
+        if (TimeOut <= 0) { return; }
+        if (typeof dadosProcessoPro.listDocumentos !== 'undefined') { 
+            setParamEditor(this_);
+            oEditor.openDialog('CitaSEI');
+        } else {
+            setTimeout(function(){ 
+                getCitacaoDocumento(this_, TimeOut - 100); 
+                $(this_).fadeOut(200).fadeIn(200);
+                console.log('Reload getCitacaoDocumento'); 
+            }, 500);
+        }
     }
 }
 function getDialogCitacaoDocumento() {
-    var listDocumentos = [['']];
-     $.each(dadosProcessoPro.listDocumentos, function (index, value) {
-         var select_value = value.id_protocolo;
-         var select_text = ( value.nr_sei != '' ) ? value.documento+' ('+value.nr_sei+')' : value.documento;
-         if ( value.documento != '' ) { listDocumentos.push([select_text, select_value]) }
-     });
+    if (!checkProcessoSigiloso()) {
+        var listDocumentos = [['']];
+        $.each(dadosProcessoPro.listDocumentos, function (index, value) {
+            var select_value = value.id_protocolo;
+            var select_text = ( value.nr_sei != '' ) ? value.documento+' ('+value.nr_sei+')' : value.documento;
+            if ( value.documento != '' ) { listDocumentos.push([select_text, select_value]) }
+        });
 
-      CKEDITOR.dialog.add( 'CitaSEI', function ( editor )
-      {
-         return {
-            title : 'Inserir refer\u00EAncia de documento do processo',
-            minWidth : 500,
-            minHeight : 80,
-            buttons: [ CKEDITOR.dialog.cancelButton, CKEDITOR.dialog.okButton ],
-            onShow: function() {
-                setChosenInCke();
-            },
-            onOk: function(event, a, b) {
-                var id_protocolo = this.getContentElement( 'tab1', 'listDocumento' ).getValue();
-                if ( id_protocolo != '' ) {
-                    insertCitacaoDocumento(id_protocolo);
-                    event.data.hide = true;
-                }
-            },
-            contents :
-            [
-               {
-                  id : 'tab1',
-                  label : 'Refer\u00EAncia de documento do processo',
-                  elements :
-                  [
-                    {
-                        type: 'select',
-                        id: 'listDocumento',
-                        label: 'Documento do Processo',
-                        items: listDocumentos,
-                        'default': ''
+        CKEDITOR.dialog.add( 'CitaSEI', function(editor)
+        {
+            return {
+                title : 'Inserir refer\u00EAncia de documento do processo',
+                minWidth : 600,
+                minHeight : 120,
+                buttons: [ CKEDITOR.dialog.cancelButton, CKEDITOR.dialog.okButton ],
+                onShow: function() {
+                    if (verifyConfigValue('substituiselecao')) setChosenInCke(true);
+                },
+                onOk: function(event, a, b) {
+                    if (verifyConfigValue('substituiselecao')) {
+                        var selectMult = $('.cke_dialog_ui_input_select select[multiple="multiple"] option:checked');
+                        var list_protocolo = $.map(selectMult,function(e){
+                            if (e.value != '') return e.value
+                        });
+                        console.log(list_protocolo);
+                        if ($.isArray(list_protocolo) && list_protocolo.length > 0) {
+                            $.each(list_protocolo, function(index, id_protocolo){
+                                console.log(index, id_protocolo);
+                                if (id_protocolo != '') {
+                                    insertCitacaoDocumento(id_protocolo);
+                                    if (index < list_protocolo.length-2) oEditor.insertText(', ');
+                                    if (index == list_protocolo.length-2) oEditor.insertText(' e ');
+                                }
+                            });
+                            event.data.hide = true;
+                        }
+                    } else {
+                        var id_protocolo = this.getContentElement('tab1', 'listDocumento').getValue();
+                        if (id_protocolo != '') {
+                            insertCitacaoDocumento(id_protocolo);
+                        }
                     }
-                  ]
-               }
-            ]
-         };
-      } );
+                },
+                contents :
+                [
+                {
+                    id : 'tab1',
+                    label : 'Refer\u00EAncia de documento do processo',
+                    elements :
+                    [
+                        {
+                            type: 'select',
+                            id: 'listDocumento',
+                            label: 'Documentos do Processo',
+                            items: listDocumentos,
+                            'default': ''
+                        }
+                    ]
+                }
+                ]
+            };
+        } );
+    }
 }
 function insertCitacaoDocumento(id_protocolo) {
     var dataValue = jmespath.search(dadosProcessoPro.listDocumentos, "[?id_protocolo=='"+id_protocolo+"'] | [0]");
-    if ( typeof dataValue !== 'undefined' && dataValue.documento ) {
+    console.log(dataValue, id_protocolo);
+    if ( typeof dataValue !== 'undefined' && dataValue !== null && dataValue.documento ) {
         var nrSei = ( dataValue.nr_sei != '' ) ? dataValue.nr_sei : dataValue.documento;
         var citacaoDoc = getCitacaoDoc();
         var nrSeiHtml = '<span contenteditable="false" style="text-indent:0;"><a class="ancoraSei" id="lnkSei'+dataValue.id_protocolo+'" style="text-indent:0;">'+nrSei+'</a></span>';
@@ -1985,7 +1994,7 @@ function getNotaRodape(this_) {
     oEditor.openDialog('NtRodapeSEI');
 }
 function getDialogNotaRodape() {
-      CKEDITOR.dialog.add( 'NtRodapeSEI', function ( editor )
+      CKEDITOR.dialog.add( 'NtRodapeSEI', function(editor)
       {
          return {
             title : 'Inserir nota de rodap\u00E9',
@@ -2167,8 +2176,8 @@ function updateNrABNT(this_) {
 function insertNtRodape(txt_NotaRodape) {
     var randRef = randomString(16);
     var ntRodapeId = parseInt(iframeEditor.find('.ntRodape_item').length)+1;
-    var ntRodapeHtml_footer = '<p class="Tabela_Texto_Alinhado_Esquerda ntRodape"><a name="footer_'+randRef+'" href="#item_'+randRef+'"><span class="ntRodape_footer ancoraSei" data-ntrodape-ref="'+randRef+'" data-ntrodape="'+ntRodapeId+'"  contenteditable="false">['+ntRodapeId+']</span></a> '+txt_NotaRodape+'</p>';
-    var ntRodapeHtml_item = '<sup><a href="#footer_'+randRef+'" name="item_'+randRef+'"><span class="ntRodape_item ancoraSei" data-ntrodape="'+ntRodapeId+'" data-ntrodape-ref="'+randRef+'" contenteditable="false">['+ntRodapeId+']</span></a></sup> ';
+    var ntRodapeHtml_footer = '<p class="Tabela_Texto_Alinhado_Esquerda ntRodape"><a name="footer_'+randRef+'" href="#item_'+randRef+'" class="anchorRefInternaPro"><span class="ntRodape_footer ancoraSei" data-ntrodape-ref="'+randRef+'" data-ntrodape="'+ntRodapeId+'"  contenteditable="false">['+ntRodapeId+']</span></a> '+txt_NotaRodape+'</p>';
+    var ntRodapeHtml_item = '<sup><a href="#footer_'+randRef+'" name="item_'+randRef+'" class="anchorRefInternaPro"><span class="ntRodape_item ancoraSei" data-ntrodape="'+ntRodapeId+'" data-ntrodape-ref="'+randRef+'" contenteditable="false">['+ntRodapeId+']</span></a></sup> ';
     
     oEditor.focus();
     oEditor.fire('saveSnapshot');
@@ -2179,6 +2188,7 @@ function insertNtRodape(txt_NotaRodape) {
     oEditor.insertHtml(ntRodapeHtml_item);
     reorderNtRodape(iframeEditor);
     oEditor.fire('saveSnapshot');
+    clickScroolToRef();
 }
 function reorderNtRodape(iframeEditor) {
     iframeEditor.find('.ntRodape_item').each(function(index){
@@ -2326,6 +2336,40 @@ function setDocCertidao() {
         */
     }
 }
+function setDocAutomatico() {
+    var dadosDocAutomatico = sessionStorageRestorePro('dadosDocAutomatico');
+    var nomeDocAutomatico = sessionStorageRestorePro('nomeDocAutomatico');
+    var param = getParamsUrlPro(window.location.href);
+    if (typeof param.acao_pro !== 'undefined' && param.acao_pro == 'set_automatico' && dadosDocAutomatico && nomeDocAutomatico) {
+        setCKEDITOR_instances();
+        initAddButtonTarjaSigilo();
+        var elemIframe = $('iframe').filter(function(){ return $(this).contents().find('body').attr('contenteditable') == 'true' }).eq(0)
+        if (elemIframe.length > 0) {
+            var iframe = elemIframe.contents();
+            if (elemIframe.attr('title').indexOf(',') !== -1) {
+                var idEditor = elemIframe.attr('title').split(',')[1].trim();
+                $('#idEditor').val(idEditor);
+                oEditor = CKEDITOR.instances[idEditor];
+                if (typeof oEditor !== 'undefined') {
+                    oEditor.focus();
+                    oEditor.fire('saveSnapshot');
+                    iframe.find('body').html(dadosDocAutomatico);
+                    actionsMarkSigilo(undefined, 'apply');
+
+                    sessionStorageRemovePro('dadosDocAutomatico');
+                    sessionStorageRemovePro('nomeDocAutomatico');
+
+                    setTimeout(function(){ 
+                        enableButtonSavePro();
+                        
+                        var $form = oEditor.element.$.form;
+                        if ($form) $form.submit();
+                    }, 1500);
+                }
+            }
+        }
+    }
+}
 // SUBSTITUI CAMPOS PERSONALIZADOS
 function sumTagValue(value) {
     var return_ = value;
@@ -2437,6 +2481,7 @@ function replaceDadosEditor(this_) {
         $.each(prop.txaTagsObservacoes, function (index, valueTag) {
             if (valueTag.unidade != unidade) {
                 $.each(valueTag.tags, function (i, v) {
+                    var isRegex = new RegExp(v.value, 'i').test(undefined);
                     dadosProcesso[v.name] = '<span class="ancoraSei dynamicField">'+v.value+'</span>';
                     dadosTags.push(v.name);
                 });
@@ -2467,7 +2512,7 @@ function replaceDadosEditor(this_) {
             iframeEditor.find('p').each(function(){
                 $(this).html($(this).html().replace(new RegExp(hashTag+underline, "i"), function(){ count++; return fieldSpan }));
             });
-        console.log(arrayTags, value, hashTag, fieldSpan);
+        console.log(arrayTags, value, hashTag+underline, fieldSpan, dadosProcesso);
     });
     oEditor.fire('saveSnapshot');
     var count_error = iframeEditor.find('.hashField').length;
@@ -2512,239 +2557,253 @@ function arrayDadosEditor() {
                 listaDadosEditor.push(['Personalizado ('+valueTag.unidade+') #'+v.name+': '+vObs,v.value]);
             });
         });
+        if (typeof dadosProcessoPro.listAtribuicaoProcesso !== 'undefined') {
+            $.each(dadosProcessoPro.listAtribuicaoProcesso, function (index, value) {
+                listaDadosEditor.push(['Respons\u00E1vel: '+value.name,value.name]);
+            });
+        }
     return listaDadosEditor;
 }
 function getDadosEditor(this_, TimeOut = 9000) {
-    if (TimeOut <= 0) { return; }
-    if (typeof dadosProcessoPro.propProcesso !== 'undefined' && typeof dadosProcessoPro.listDocumentos !== 'undefined' && arrayDadosEditor().length > 0) { 
+    if (checkProcessoSigiloso()) {
+        CKEDITOR.dialog.add( 'DadosSEI', function(editor) { return getDialogNaoDisponivel('Dados do Processo') } );
         setParamEditor(this_);
         oEditor.openDialog('DadosSEI');
     } else {
-        setTimeout(function(){ 
-            if (typeof dadosProcessoPro.propProcesso === 'undefined' && getDadosProcessoSession() ) {
-                dadosProcessoPro = getDadosProcessoSession();
-            }
-            getDadosEditor(this_, TimeOut - 100); 
-            $(this_).fadeOut(200).fadeIn(200);
-            console.log('Reload getDadosEditor'); 
-        }, 500);
+        if (TimeOut <= 0) { return; }
+        if (typeof dadosProcessoPro.propProcesso !== 'undefined' && typeof dadosProcessoPro.listDocumentos !== 'undefined' && arrayDadosEditor().length > 0) { 
+            setParamEditor(this_);
+            oEditor.openDialog('DadosSEI');
+        } else {
+            setTimeout(function(){ 
+                if (typeof dadosProcessoPro.propProcesso === 'undefined' && getDadosProcessoSession() ) {
+                    dadosProcessoPro = getDadosProcessoSession();
+                }
+                getDadosEditor(this_, TimeOut - 100); 
+                $(this_).fadeOut(200).fadeIn(200);
+                console.log('Reload getDadosEditor'); 
+            }, 500);
+        }
     }
 }
 function getDialogDadosEditor() {
-    var tableNewDynamicField = '';
-    var dadosEditorArray = arrayDadosEditor();
-    var tagsArray = jmespath.search(dadosProcessoPro.propProcesso.txaTagsObservacoes, "[?unidade=='"+unidade+"'] | [0]");
-        tableNewDynamicField =        '<table role="presentation" class="cke_dialog_ui_hbox tableZebra">'+
-                                      ' <thead>'+
-                                      '     <tr>'+
-                                      '         <th style="padding: 8px; background: #f3f3f3; font-weight: bold; border-top: 1px solid #b9b9b9;">Nome do campo din\u00E2mico</th>'+
-                                      '         <th style="padding: 8px; background: #f3f3f3; font-weight: bold; border-top: 1px solid #b9b9b9;">Valor</th>'+
-                                      '     </tr>'+
-                                      ' </thead>'+
-                                      ' <tbody>';
-    if (tagsArray !== null) {
-        $.each(tagsArray.tags, function(index, v){
-             tableNewDynamicField +=  '     <tr class="cke_dialog_ui_hbox" data-tag="'+v.name+'">'+
-                                      '         <td class="" role="presentation" style="width:30%; padding:8px">'+
-                                      '             <label class="cke_dialog_ui_labeled_label"><b class="hashSpan">#'+v.name+'</b></label>'+
-                                      '         </td>'+
-                                      '         <td class="" role="presentation" style="width:70%; padding:8px">'+
-                                      '             <em>'+v.value+'</em>'+
-                                      '             <a style="user-select: none; float: right;" onclick="removeDynamicField(this)" title="Remover" hidefocus="true" class="cke_dialog_ui_button" role="button">'+
-                                      '                 <span id="buttonRemoveDynamicField_label" class="cke_dialog_ui_button">'+
-                                      '                     <i style="color: #989898;" class="fas fa-trash"></i>'+
-                                      '                 </span>'+
-                                      '             </a>'+
-                                      '             <a style="user-select: none; float: right; margin-right: 10px;" onclick="editDynamicField(this)" title="Editar" hidefocus="true" class="cke_dialog_ui_button" role="button">'+
-                                      '                 <span id="buttonEditDynamicField_label" class="cke_dialog_ui_button">'+
-                                      '                     <i style="color: #989898;" class="fas fa-pencil-alt"></i>'+
-                                      '                 </span>'+
-                                      '             </a>'+
-                                      '         </td>'+
-                                      '     </tr>';
-        });
-    }
-            tableNewDynamicField += ' </tbody>'+
-                                    '</table>';
-    
-    CKEDITOR.dialog.add( 'DadosSEI', function ( editor )
-      {
-         return {
-            title : 'Dados do Processo',
-            minWidth : 750,
-            minHeight : 80,
-            buttons: [ CKEDITOR.dialog.okButton ],
-            onOk: function(event, a, b) {
-                var value = this.getContentElement( 'tab1', 'listDados' ).getValue();
-                if ( value != '' ) { 
-                    insertDadosEditor(value);
-                    event.data.hide = true;
+    if (!checkProcessoSigiloso()) {
+        var tableNewDynamicField = '';
+        var dadosEditorArray = arrayDadosEditor();
+        var tagsArray = jmespath.search(dadosProcessoPro.propProcesso.txaTagsObservacoes, "[?unidade=='"+unidade+"'] | [0]");
+        tagsArray = (tagsArray === null) ? jmespath.search(dadosProcessoPro.propProcesso.txaTagsObservacoes, "[?unidade==''] | [0]") : tagsArray;
+            tableNewDynamicField =        '<table role="presentation" class="cke_dialog_ui_hbox tableZebra">'+
+                                        ' <thead>'+
+                                        '     <tr>'+
+                                        '         <th style="padding: 8px; background: #f3f3f3; font-weight: bold; border-top: 1px solid #b9b9b9;">Nome do campo din\u00E2mico</th>'+
+                                        '         <th style="padding: 8px; background: #f3f3f3; font-weight: bold; border-top: 1px solid #b9b9b9;">Valor</th>'+
+                                        '     </tr>'+
+                                        ' </thead>'+
+                                        ' <tbody>';
+        if (tagsArray !== null) {
+            $.each(tagsArray.tags, function(index, v){
+                tableNewDynamicField +=  '     <tr class="cke_dialog_ui_hbox" data-tag="'+v.name+'">'+
+                                        '         <td class="" role="presentation" style="width:30%; padding:8px">'+
+                                        '             <label class="cke_dialog_ui_labeled_label"><b class="hashSpan">#'+v.name+'</b></label>'+
+                                        '         </td>'+
+                                        '         <td class="" role="presentation" style="width:70%; padding:8px">'+
+                                        '             <em>'+v.value+'</em>'+
+                                        '             <a style="user-select: none; float: right;" onclick="removeDynamicField(this)" title="Remover" hidefocus="true" class="cke_dialog_ui_button" role="button">'+
+                                        '                 <span id="buttonRemoveDynamicField_label" class="cke_dialog_ui_button">'+
+                                        '                     <i style="color: #989898;" class="fas fa-trash"></i>'+
+                                        '                 </span>'+
+                                        '             </a>'+
+                                        '             <a style="user-select: none; float: right; margin-right: 10px;" onclick="editDynamicField(this)" title="Editar" hidefocus="true" class="cke_dialog_ui_button" role="button">'+
+                                        '                 <span id="buttonEditDynamicField_label" class="cke_dialog_ui_button">'+
+                                        '                     <i style="color: #989898;" class="fas fa-pencil-alt"></i>'+
+                                        '                 </span>'+
+                                        '             </a>'+
+                                        '         </td>'+
+                                        '     </tr>';
+            });
+        }
+                tableNewDynamicField += ' </tbody>'+
+                                        '</table>';
+        
+        CKEDITOR.dialog.add( 'DadosSEI', function(editor)
+        {
+            return {
+                title : 'Dados do Processo',
+                minWidth : 750,
+                minHeight : 80,
+                buttons: [ CKEDITOR.dialog.okButton ],
+                onOk: function(event, a, b) {
+                    var value = this.getContentElement( 'tab1', 'listDados' ).getValue();
+                    if ( value != '' ) { 
+                        insertDadosEditor(value);
+                        event.data.hide = true;
+                    }
+                },
+                onShow : function() {
+                    var arrayTags_len = (getHashTagsPro(iframeEditor.find('p').map(function(){ return $(this).text() }).get().join(' '))).length;
+                    var resultDiv = '<label class="cke_dialog_ui_labeled_label" style="font-style: italic; color: #616161;">'+
+                                    '  <i class="fas fa-info-circle" style="color: #007fff;"></i> '+arrayTags_len+' '+(arrayTags_len==1 ? 'campo din\u00E2mico detectado' : 'campos din\u00E2micos detectados')+'!<br>'+
+                                    '</label>';
+                    $('#tabReplaceTag_result').show().html(resultDiv);
+                    $('#tabNewDynamicField_alert').hide().html('');
+                    if (verifyConfigValue('substituiselecao')) setChosenInCke();
+                },
+                contents :
+                [
+                {
+                    id : 'tab1',
+                    label : 'Inserir Dados do Processo',
+                    elements :
+                    [
+                        {
+                            type: 'select',
+                            id: 'listDados',
+                            // labelLayout: 'horizontal',
+                            inputStyle: 'max-width: 560px',
+                            label: 'Dados do Processo',
+                            items: dadosEditorArray,
+                            'default': ''
+                        }
+                    ]
+                },{
+                    id : 'tab2',
+                    label : 'Substituir Campos Din\u00E2micos',
+                    elements :
+                    [
+                        {
+                            type: 'html',
+                            html: '<table role="presentation" class="cke_dialog_ui_hbox">'+
+                                ' <tbody>'+
+                                '     <tr class="cke_dialog_ui_hbox">'+
+                                '         <td class="cke_dialog_ui_hbox_first" role="presentation" style="width:50%; padding:0px">'+
+                                '             <label class="cke_dialog_ui_labeled_label">Substituir campos din\u00E2micos no documento</label>'+
+                                '         </td>'+
+                                '         <td class="cke_dialog_ui_hbox_last" role="presentation" style="width:50%; padding:0px">'+
+                                '             <a style="user-select: none;" onclick="replaceDadosEditor(this)" title="Substituir" hidefocus="true" class="cke_dialog_ui_button cke_dialog_ui_button_cancel" role="button" aria-labelledby="buttonSigilo1_label" id="buttonSigilo1_uiElement">'+
+                                '                 <span id="buttonSigilo1_label" class="cke_dialog_ui_button">Substituir</span>'+
+                                '             </a>'+
+                                '         </td>'+
+                                '     </tr>'+
+                                ' </tbody>'+
+                                '</table>'+
+                                '<div id="tabReplaceTag_result" class="tabReplaceTag_result" style="display:none; margin-top: 15px;"></div>'
+                        }
+                    ]
+                },{
+                    id : 'tab3',
+                    label : 'Campos Din\u00E2micos Personalizados',
+                    elements :
+                    [
+                        {
+                            type: 'html',
+                            html: '<table role="presentation" class="cke_dialog_ui_hbox">'+
+                                ' <tbody>'+
+                                '     <tr class="cke_dialog_ui_hbox">'+
+                                '         <td class="cke_dialog_ui_hbox_first" role="presentation" style="width:30%; padding:10px 0">'+
+                                '             <label class="cke_dialog_ui_labeled_label" id="cke_inputNameDynamicField_label" for="cke_inputNameDynamicField_textInput">Nome do campo din\u00E2mico:</label>'+
+                                '         </td>'+
+                                '         <td class="cke_dialog_ui_hbox_last" role="presentation" style="width:70%; padding:10px 0">'+
+                                '             # <input style="max-width: 510px;" tabindex="2" placeholder="Insira um nome personalizado, sem acentos ou espa\u00E7os" class="cke_dialog_ui_input_text" id="cke_inputNameDynamicField_textInput" type="text" aria-labelledby="cke_inputNameDynamicField_label">'+
+                                '         </td>'+
+                                '     </tr>'+
+                                '     <tr class="cke_dialog_ui_hbox">'+
+                                '         <td class="cke_dialog_ui_hbox_first" role="presentation" style="width:30%; padding:10px 0">'+
+                                '             <label class="cke_dialog_ui_labeled_label" id="cke_inputValueDynamicField_label" for="cke_inputValueDynamicField_textInput">Valor do campo din\u00E2mico:</label>'+
+                                '         </td>'+
+                                '         <td class="cke_dialog_ui_hbox_last" role="presentation" style="width:70%; padding:10px 0">'+
+                                '             <input tabindex="3" placeholder="Insira o valor para o campo din\u00E2mico" class="cke_dialog_ui_input_text" id="cke_inputValueDynamicField_textInput" type="text" aria-labelledby="cke_inputValueDynamicField_label">'+
+                                '         </td>'+
+                                '     </tr>'+
+                                '     <tr class="cke_dialog_ui_hbox">'+
+                                '         <td class="cke_dialog_ui_hbox_first" role="presentation" style="width:30%; padding:10px 0">'+
+                                '         </td>'+
+                                '         <td class="cke_dialog_ui_hbox_last" role="presentation" style="width:70%; padding:10px 0">'+
+                                '             <a style="user-select: none;" onclick="newDynamicField(this)" title="Salvar" hidefocus="true" class="cke_dialog_ui_button cke_dialog_ui_button_cancel" role="button" aria-labelledby="buttonNewDynamicField_label" id="buttonNewDynamicField_uiElement">'+
+                                '                 <span id="buttonNewDynamicField_label" class="cke_dialog_ui_button">Salvar</span>'+
+                                '             </a>'+
+                                '         </td>'+
+                                '     </tr>'+
+                                ' </tbody>'+
+                                '</table>'+
+                                '<div id="tabNewDynamicField_alert" class="tabReplaceTag_result" style="display:none; margin-top: 15px;"></div>'+
+                                '<div id="tabNewDynamicField_result" class="tabReplaceTag_result" style="margin-top: 15px;">'+
+                                '     '+tableNewDynamicField+
+                                '</div>'+
+                                '<div id="tabNewDynamicField_info" class="tabReplaceTag_result" style="margin-top: 15px;">'+
+                                '     <label class="cke_dialog_ui_labeled_label" style="font-style: italic; color: #616161;">'+
+                                '         <i class="fas fa-info-circle" style="color: #007fff;"></i> Os campos din\u00E2micos personalizados s\u00E3o salvos nas observa\u00E7\u00F5es da unidade para este processo.'+
+                                '     </label>'+
+                                '</div>'
+                        }
+                    ]
+                },{
+                    id : 'tab4',
+                    label : 'Lista de Campos Din\u00E2micos',
+                    elements :
+                    [
+                        {
+                            type: 'html',
+                            html: '<table role="presentation" class="cke_dialog_ui_hbox tableZebra">'+
+                                ' <tbody>'+
+                                '     <tr class="cke_dialog_ui_hbox">'+
+                                '         <td class="" role="presentation" style="width:100%; padding:0px">'+
+                                '             <div id="tabReplaceTag_list" style="height: 285px; overflow-y: scroll;">'+
+                                '                  <label class="cke_dialog_ui_labeled_label" style="display: block;"><span style="font-size: 10pt;"><i class="fas fa-hashtag" style="color: #007fff; font-size: 12pt;"></i> Lista de campos din\u00E2micos dispon\u00EDveis para utiliza\u00E7\u00E3o</span></label>'+
+                                '                  <table role="presentation" style="margin-top: 15px;" class="cke_dialog_ui_hbox" id="cke_tabReplaceTag_uiElement">'+
+                                '                   <tbody>'+
+                                '                       '+getDialogDadosEditor_htmlListTag('processo', 'N\u00FAmero do processo <em>(com link)</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('processo_texto', 'N\u00FAmero do processo <em>(sem link)</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('autuacao', 'Data de autua\u00E7\u00E3o do processo <em>(em formato DD/MM/AAAA)</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('tipo', 'Tipo do processo')+
+                                '                       '+getDialogDadosEditor_htmlListTag('especificacao', 'Especifica\u00E7\u00E3o do processo')+
+                                '                       '+getDialogDadosEditor_htmlListTag('assuntos', 'Classifica\u00E7\u00E3o por assuntos do processo <em>(separados por v\u00EDrgula)</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('assuntos_lista', 'Classifica\u00E7\u00E3o por assuntos do processo <em>(em formato de lista)</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('interessados', 'Interessados do processo <em>(separados por v\u00EDrgula)</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('interessados_lista', 'Interessados do processo <em>(em formato de lista)</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('observacoes', 'Observa\u00E7\u00F5es do processo <em>(separados por v\u00EDrgula)</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('observacoes_lista', 'Observa\u00E7\u00F5es do processo <em>(em formato de lista)</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('observacao', 'Observa\u00E7\u00E3o da unidade atual</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('acesso', 'N\u00EDvel de acesso do processo')+
+                                '                       '+getDialogDadosEditor_htmlListTag('acesso_texto', 'N\u00EDvel de acesso do processo <em>(sem \u00EDcone)</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('documentos', 'Lista de todos os documentos do processo (separados por v\u00EDrgula)</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('totaldocumentos', 'N\u00FAmero de documentos do processo</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('documentos_lista', 'Lista de todos os documentos do processo (em formato de lista)</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('hoje', 'Data de hoje <em>(em formato [dia] de [m\u00EAs] de [ano])</em>')+
+                                '                   </tbody>'+
+                                '                  </table>'+
+                                '                  <label class="cke_dialog_ui_labeled_label" style="margin-top: 15px; display: block;"><span style="font-size: 10pt;"><i class="fas fa-user-ninja roxoColor" style="font-size: 12pt;"></i> Fun\u00E7\u00F5es Avan\u00E7adas</span></label>'+
+                                '                  <table role="presentation" style="margin-top: 15px;" class="cke_dialog_ui_hbox" id="cke_tabReplaceTagAdv_uiElement">'+
+                                '                   <tbody>'+
+                                '                       '+getDialogDadosEditor_htmlListTag('assunto1', 'Primeiro assunto do processo')+
+                                '                       '+getDialogDadosEditor_htmlListTag('assunto3', 'Terceiro assunto do processo')+
+                                '                       '+getDialogDadosEditor_htmlListTag('interessado1', 'Primeiro interessado do processo')+
+                                '                       '+getDialogDadosEditor_htmlListTag('interessado4', 'Quarto interessado do processo')+
+                                '                       '+getDialogDadosEditor_htmlListTag('observacao1', 'Primeira observa\u00E7\u00E3o do processo')+
+                                '                       '+getDialogDadosEditor_htmlListTag('observacao2', 'Segunda observa\u00E7\u00E3o do processo')+
+                                '                       '+getDialogDadosEditor_htmlListTag('documento1', 'Primeiro documento do processo')+
+                                '                       '+getDialogDadosEditor_htmlListTag('documento5', 'Quinto documento do processo')+
+                                '                       '+getDialogDadosEditor_htmlListTag('documento+1', 'Pr\u00F3ximo documento do processo em rela\u00E7\u00E3o ao atual')+
+                                '                       '+getDialogDadosEditor_htmlListTag('documento+3', 'Terceiro documento do processo em rela\u00E7\u00E3o ao atual')+
+                                '                       '+getDialogDadosEditor_htmlListTag('documento-1', 'Primeiro documento do processo anterior ao atual')+
+                                '                       '+getDialogDadosEditor_htmlListTag('documento-6', 'Sexto documento do processo anterior ao atual')+
+                                '                       '+getDialogDadosEditor_htmlListTag('hoje+1', 'Amanh\u00E3 <em>(em formato [dia] de [m\u00EAs] de [ano])</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('hoje-1', 'Ontem <em>(em formato [dia] de [m\u00EAs] de [ano])</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('hoje+7', 'Data daqui 7 dias <em>(em formato [dia] de [m\u00EAs] de [ano])</em>')+
+                                '                       '+getDialogDadosEditor_htmlListTag('hoje-5', 'Data \u00E0 5 dias atr\u00E1s <em>(em formato [dia] de [m\u00EAs] de [ano])</em>')+
+                                '                   </tbody>'+
+                                '                  </table>'+
+                                '             </div>'+
+                                '         </td>'+
+                                '     </tr>'+
+                                ' </tbody>'+
+                                '</table>'
+                        }
+                    ]
                 }
-            },
-            onShow : function() {
-                var arrayTags_len = (getHashTagsPro(iframeEditor.find('p').map(function(){ return $(this).text() }).get().join(' '))).length;
-                var resultDiv = '<label class="cke_dialog_ui_labeled_label" style="font-style: italic; color: #616161;">'+
-                                '  <i class="fas fa-info-circle" style="color: #007fff;"></i> '+arrayTags_len+' '+(arrayTags_len==1 ? 'campo din\u00E2mico detectado' : 'campos din\u00E2micos detectados')+'!<br>'+
-                                '</label>';
-                $('#tabReplaceTag_result').show().html(resultDiv);
-                $('#tabNewDynamicField_alert').hide().html('');
-                setChosenInCke();
-            },
-            contents :
-            [
-               {
-                  id : 'tab1',
-                  label : 'Inserir Dados do Processo',
-                  elements :
-                  [
-                    {
-                        type: 'select',
-                        id: 'listDados',
-                        // labelLayout: 'horizontal',
-                        inputStyle: 'max-width: 560px',
-                        label: 'Dados do Processo',
-                        items: dadosEditorArray,
-                        'default': ''
-                    }
-                  ]
-               },{
-                  id : 'tab2',
-                  label : 'Substituir Campos Din\u00E2micos',
-                  elements :
-                  [
-                    {
-                        type: 'html',
-                        html: '<table role="presentation" class="cke_dialog_ui_hbox">'+
-                              ' <tbody>'+
-                              '     <tr class="cke_dialog_ui_hbox">'+
-                              '         <td class="cke_dialog_ui_hbox_first" role="presentation" style="width:50%; padding:0px">'+
-                              '             <label class="cke_dialog_ui_labeled_label">Substituir campos din\u00E2micos no documento</label>'+
-                              '         </td>'+
-                              '         <td class="cke_dialog_ui_hbox_last" role="presentation" style="width:50%; padding:0px">'+
-                              '             <a style="user-select: none;" onclick="replaceDadosEditor(this)" title="Substituir" hidefocus="true" class="cke_dialog_ui_button cke_dialog_ui_button_cancel" role="button" aria-labelledby="buttonSigilo1_label" id="buttonSigilo1_uiElement">'+
-                              '                 <span id="buttonSigilo1_label" class="cke_dialog_ui_button">Substituir</span>'+
-                              '             </a>'+
-                              '         </td>'+
-                              '     </tr>'+
-                              ' </tbody>'+
-                              '</table>'+
-                              '<div id="tabReplaceTag_result" class="tabReplaceTag_result" style="display:none; margin-top: 15px;"></div>'
-                    }
-                  ]
-               },{
-                  id : 'tab3',
-                  label : 'Campos Din\u00E2micos Personalizados',
-                  elements :
-                  [
-                    {
-                        type: 'html',
-                        html: '<table role="presentation" class="cke_dialog_ui_hbox">'+
-                              ' <tbody>'+
-                              '     <tr class="cke_dialog_ui_hbox">'+
-                              '         <td class="cke_dialog_ui_hbox_first" role="presentation" style="width:30%; padding:10px 0">'+
-                              '             <label class="cke_dialog_ui_labeled_label" id="cke_inputNameDynamicField_label" for="cke_inputNameDynamicField_textInput">Nome do campo din\u00E2mico:</label>'+
-                              '         </td>'+
-                              '         <td class="cke_dialog_ui_hbox_last" role="presentation" style="width:70%; padding:10px 0">'+
-                              '             # <input style="max-width: 510px;" tabindex="2" placeholder="Insira um nome personalizado, sem acentos ou espa\u00E7os" class="cke_dialog_ui_input_text" id="cke_inputNameDynamicField_textInput" type="text" aria-labelledby="cke_inputNameDynamicField_label">'+
-                              '         </td>'+
-                              '     </tr>'+
-                              '     <tr class="cke_dialog_ui_hbox">'+
-                              '         <td class="cke_dialog_ui_hbox_first" role="presentation" style="width:30%; padding:10px 0">'+
-                              '             <label class="cke_dialog_ui_labeled_label" id="cke_inputValueDynamicField_label" for="cke_inputValueDynamicField_textInput">Valor do campo din\u00E2mico:</label>'+
-                              '         </td>'+
-                              '         <td class="cke_dialog_ui_hbox_last" role="presentation" style="width:70%; padding:10px 0">'+
-                              '             <input tabindex="3" placeholder="Insira o valor para o campo din\u00E2mico" class="cke_dialog_ui_input_text" id="cke_inputValueDynamicField_textInput" type="text" aria-labelledby="cke_inputValueDynamicField_label">'+
-                              '         </td>'+
-                              '     </tr>'+
-                              '     <tr class="cke_dialog_ui_hbox">'+
-                              '         <td class="cke_dialog_ui_hbox_first" role="presentation" style="width:30%; padding:10px 0">'+
-                              '         </td>'+
-                              '         <td class="cke_dialog_ui_hbox_last" role="presentation" style="width:70%; padding:10px 0">'+
-                              '             <a style="user-select: none;" onclick="newDynamicField(this)" title="Salvar" hidefocus="true" class="cke_dialog_ui_button cke_dialog_ui_button_cancel" role="button" aria-labelledby="buttonNewDynamicField_label" id="buttonNewDynamicField_uiElement">'+
-                              '                 <span id="buttonNewDynamicField_label" class="cke_dialog_ui_button">Salvar</span>'+
-                              '             </a>'+
-                              '         </td>'+
-                              '     </tr>'+
-                              ' </tbody>'+
-                              '</table>'+
-                              '<div id="tabNewDynamicField_alert" class="tabReplaceTag_result" style="display:none; margin-top: 15px;"></div>'+
-                              '<div id="tabNewDynamicField_result" class="tabReplaceTag_result" style="margin-top: 15px;">'+
-                              '     '+tableNewDynamicField+
-                              '</div>'+
-                              '<div id="tabNewDynamicField_info" class="tabReplaceTag_result" style="margin-top: 15px;">'+
-                              '     <label class="cke_dialog_ui_labeled_label" style="font-style: italic; color: #616161;">'+
-                              '         <i class="fas fa-info-circle" style="color: #007fff;"></i> Os campos din\u00E2micos personalizados s\u00E3o salvos nas observa\u00E7\u00F5es da unidade para este processo.'+
-                              '     </label>'+
-                              '</div>'
-                    }
-                  ]
-               },{
-                  id : 'tab4',
-                  label : 'Lista de Campos Din\u00E2micos',
-                  elements :
-                  [
-                    {
-                        type: 'html',
-                        html: '<table role="presentation" class="cke_dialog_ui_hbox tableZebra">'+
-                              ' <tbody>'+
-                              '     <tr class="cke_dialog_ui_hbox">'+
-                              '         <td class="" role="presentation" style="width:100%; padding:0px">'+
-                              '             <div id="tabReplaceTag_list" style="height: 285px; overflow-y: scroll;">'+
-                              '                  <label class="cke_dialog_ui_labeled_label" style="display: block;"><span style="font-size: 10pt;"><i class="fas fa-hashtag" style="color: #007fff; font-size: 12pt;"></i> Lista de campos din\u00E2micos dispon\u00EDveis para utiliza\u00E7\u00E3o</span></label>'+
-                              '                  <table role="presentation" style="margin-top: 15px;" class="cke_dialog_ui_hbox" id="cke_tabReplaceTag_uiElement">'+
-                              '                   <tbody>'+
-                              '                       '+getDialogDadosEditor_htmlListTag('processo', 'N\u00FAmero do processo <em>(com link)</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('processo_texto', 'N\u00FAmero do processo <em>(sem link)</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('autuacao', 'Data de autua\u00E7\u00E3o do processo <em>(em formato DD/MM/AAAA)</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('tipo', 'Tipo do processo')+
-                              '                       '+getDialogDadosEditor_htmlListTag('especificacao', 'Especifica\u00E7\u00E3o do processo')+
-                              '                       '+getDialogDadosEditor_htmlListTag('assuntos', 'Classifica\u00E7\u00E3o por assuntos do processo <em>(separados por v\u00EDrgula)</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('assuntos_lista', 'Classifica\u00E7\u00E3o por assuntos do processo <em>(em formato de lista)</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('interessados', 'Interessados do processo <em>(separados por v\u00EDrgula)</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('interessados_lista', 'Interessados do processo <em>(em formato de lista)</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('observacoes', 'Observa\u00E7\u00F5es do processo <em>(separados por v\u00EDrgula)</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('observacoes_lista', 'Observa\u00E7\u00F5es do processo <em>(em formato de lista)</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('observacao', 'Observa\u00E7\u00E3o da unidade atual</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('acesso', 'N\u00EDvel de acesso do processo')+
-                              '                       '+getDialogDadosEditor_htmlListTag('acesso_texto', 'N\u00EDvel de acesso do processo <em>(sem \u00EDcone)</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('documentos', 'Lista de todos os documentos do processo (separados por v\u00EDrgula)</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('totaldocumentos', 'N\u00FAmero de documentos do processo</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('documentos_lista', 'Lista de todos os documentos do processo (em formato de lista)</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('hoje', 'Data de hoje <em>(em formato [dia] de [m\u00EAs] de [ano])</em>')+
-                              '                   </tbody>'+
-                              '                  </table>'+
-                              '                  <label class="cke_dialog_ui_labeled_label" style="margin-top: 15px; display: block;"><span style="font-size: 10pt;"><i class="fas fa-user-ninja roxoColor" style="font-size: 12pt;"></i> Fun\u00E7\u00F5es Avan\u00E7adas</span></label>'+
-                              '                  <table role="presentation" style="margin-top: 15px;" class="cke_dialog_ui_hbox" id="cke_tabReplaceTagAdv_uiElement">'+
-                              '                   <tbody>'+
-                              '                       '+getDialogDadosEditor_htmlListTag('assunto1', 'Primeiro assunto do processo')+
-                              '                       '+getDialogDadosEditor_htmlListTag('assunto3', 'Terceiro assunto do processo')+
-                              '                       '+getDialogDadosEditor_htmlListTag('interessado1', 'Primeiro interessado do processo')+
-                              '                       '+getDialogDadosEditor_htmlListTag('interessado4', 'Quarto interessado do processo')+
-                              '                       '+getDialogDadosEditor_htmlListTag('observacao1', 'Primeira observa\u00E7\u00E3o do processo')+
-                              '                       '+getDialogDadosEditor_htmlListTag('observacao2', 'Segunda observa\u00E7\u00E3o do processo')+
-                              '                       '+getDialogDadosEditor_htmlListTag('documento1', 'Primeiro documento do processo')+
-                              '                       '+getDialogDadosEditor_htmlListTag('documento5', 'Quinto documento do processo')+
-                              '                       '+getDialogDadosEditor_htmlListTag('documento+1', 'Pr\u00F3ximo documento do processo em rela\u00E7\u00E3o ao atual')+
-                              '                       '+getDialogDadosEditor_htmlListTag('documento+3', 'Terceiro documento do processo em rela\u00E7\u00E3o ao atual')+
-                              '                       '+getDialogDadosEditor_htmlListTag('documento-1', 'Primeiro documento do processo anterior ao atual')+
-                              '                       '+getDialogDadosEditor_htmlListTag('documento-6', 'Sexto documento do processo anterior ao atual')+
-                              '                       '+getDialogDadosEditor_htmlListTag('hoje+1', 'Amanh\u00E3 <em>(em formato [dia] de [m\u00EAs] de [ano])</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('hoje-1', 'Ontem <em>(em formato [dia] de [m\u00EAs] de [ano])</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('hoje+7', 'Data daqui 7 dias <em>(em formato [dia] de [m\u00EAs] de [ano])</em>')+
-                              '                       '+getDialogDadosEditor_htmlListTag('hoje-5', 'Data \u00E0 5 dias atr\u00E1s <em>(em formato [dia] de [m\u00EAs] de [ano])</em>')+
-                              '                   </tbody>'+
-                              '                  </table>'+
-                              '             </div>'+
-                              '         </td>'+
-                              '     </tr>'+
-                              ' </tbody>'+
-                              '</table>'
-                    }
-                  ]
-               }
-            ]
-         };
-      } );
+                ]
+            };
+        } );
+    }
 }
 function removeDynamicField(this_) {
     $(this_).closest('tr').fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100).slideUp('slow', function() {
@@ -2895,7 +2954,7 @@ function updateSelectDialog(element, array) {
 }
 function getDialogSumarioDocumento() {
     var arrayStyles = getListStylesDocumento();
-    CKEDITOR.dialog.add( 'SumarioSEI', function ( editor )
+    CKEDITOR.dialog.add( 'SumarioSEI', function(editor)
       {
          return {
             title : 'Inserir sum\u00E1rio',
@@ -2921,7 +2980,7 @@ function getDialogSumarioDocumento() {
                 updateSelectDialog(this.getContentElement( 'tab1', 'listStyle1' )._.inputId, arrayStyles);
                 updateSelectDialog(this.getContentElement( 'tab1', 'listStyle2' )._.inputId, arrayStyles);
                 updateSelectDialog(this.getContentElement( 'tab1', 'listStyle3' )._.inputId, arrayStyles);
-                setChosenInCke();
+                if (verifyConfigValue('substituiselecao')) setChosenInCke();
             },
             contents :
             [
@@ -2984,7 +3043,7 @@ function getTinyUrl(this_) {
     oEditor.openDialog('TinyUrlSEI');
 }
 function getDialogTinyUrl() {
-      CKEDITOR.dialog.add( 'TinyUrlSEI', function ( editor )
+      CKEDITOR.dialog.add( 'TinyUrlSEI', function(editor)
       {
          return {
             title : 'Gerar link curto do TinyURL',
@@ -3164,7 +3223,7 @@ function getDialogQrCode() {
 						'	</table>'+
 						'</div>';
 	
-      CKEDITOR.dialog.add( 'QrCodeSEI', function ( editor )
+      CKEDITOR.dialog.add( 'QrCodeSEI', function(editor)
       {
          return {
             title : 'Gerar C\u00F3digo QR',
@@ -3208,7 +3267,7 @@ function getDialogQrCode() {
 						}
 					});
 				}, 100);
-                setChosenInCke();
+                if (verifyConfigValue('substituiselecao')) setChosenInCke();
             },
             contents :
             [
@@ -3352,7 +3411,7 @@ function loadResizeImg() {
 		}
 	});
 }
-//// Insere o texto selecionado no documento no campo 'Texto visível' do janela de propriedades do link
+//// Insere o texto selecionado no documento no campo 'Texto vis\u00EDvel' do janela de propriedades do link
 function insertTextTotLink(idEditor) {
     var selectTxt = oEditor.getSelection().getSelectedText();
     if ( isValidHttpUrl(selectTxt) ) {
@@ -3407,7 +3466,7 @@ function editLinkPro(idEditor) {
     oEditor.openDialog('editLinkPro');
 }
 function getDialogLinkPro() {
-      CKEDITOR.dialog.add( 'editLinkPro', function ( editor )
+      CKEDITOR.dialog.add( 'editLinkPro', function(editor)
       {
          return {
             title : 'Editar link',
@@ -3472,7 +3531,7 @@ function openDialogBatchImgQuality(this_) {
     oEditor.openDialog('batchImgQuality');
 }
 function getDialogBatchImgQuality() {
-      CKEDITOR.dialog.add( 'batchImgQuality', function ( editor )
+      CKEDITOR.dialog.add( 'batchImgQuality', function(editor)
       {
          return {
             title : 'Reduzir qualidade das imagens',
@@ -3945,7 +4004,7 @@ function getDialogUploadImgBase64() {
                 imgPreview.getElement().setHtml("");
                 t = this, orgWidth = null, orgHeight = null, imgScal = 1, lock = true;
                 /* selected image or null */
-                selectedImg = editor.getSelection().getSelectedElement();;
+                selectedImg = editor.getSelection().getSelectedElement();
                 if (selectedImg && selectedImg.getName() == "img") {
                     // selectedImg = selectedImg.getSelectedElement();
                     // this.getContentElement("tab-properties", "quality").disable();
@@ -4217,7 +4276,7 @@ function getDialogImageEditorPro() {
         var hScreen = $('body').height()-10;
             hScreen = hScreen > 900 ? 900 : hScreen
 
-        CKEDITOR.dialog.add( 'ImageEditorPro', function ( editor ) {
+        CKEDITOR.dialog.add( 'ImageEditorPro', function(editor) {
             return {
                 title : 'Editar Imagem',
                 minWidth : wScreen,
@@ -4320,7 +4379,7 @@ function getDialogImportDocPro() {
     var tipsDocs = '<label class="cke_dialog_ui_labeled_label" style="font-style: italic;color: #616161;"><i class="fas fa-info-circle" style="color: #007fff;"></i> Antes de importar, confira se o documento est\u00E1 acess\u00EDvel por qualquer<br>pessoa na internet. <a href="https://sei-pro.github.io/sei-pro/pages/INSERIRDOC.html" target="_blank" style="text-decoration: underline; cursor: pointer; color: rgb(0, 0, 238);">Consulte nossa ajuda para mais informa\u00E7\u00F5es.</a></label>'
     var tipsSheets = '<label class="cke_dialog_ui_labeled_label" style="font-style: italic;color: #616161;"><i class="fas fa-info-circle" style="color: #007fff;"></i> Antes de importar, confira se a planilha est\u00E1 publicada na web.<br> Aten\u00E7\u00E3o: O URL publicado na web \u00E9 diferente do URL da planilha. <br><a href="https://sei-pro.github.io/sei-pro/pages/INSERIRPLANILHA.html" target="_blank" style="text-decoration: underline; cursor: pointer; color: rgb(0, 0, 238);">Consulte nossa ajuda para mais informa\u00E7\u00F5es.</a></label>'
     
-      CKEDITOR.dialog.add( 'importDocPro', function ( editor )
+      CKEDITOR.dialog.add( 'importDocPro', function(editor)
       {
          return {
             title : 'Inserir conte\u00FAdo externo',
@@ -4606,7 +4665,7 @@ function openDialogLatex(this_) {
 function getDialogLatex() {
     var htmlLatexPreview =  '<div id="latexPreview" style="text-align: center;margin: 20px;"></div>'+
                             '<label class="cke_dialog_ui_labeled_label" style="font-style: italic;color: #616161;"><i class="fas fa-info-circle" style="color: #007fff;"></i> Consulte o <a href="https://pt.wikipedia.org/wiki/Ajuda:Guia_de_edi%C3%A7%C3%A3o/F%C3%B3rmulas_TeX" target="_blank" class="linkDialog" style="font-style: italic;">Guia de edi\u00E7\u00E3o/F\u00F3rmulas TeX</a> para utilizar a liguagem LaTeX. <br>Se preferir, utilize um <a href="https://editor.codecogs.com/" target="_blank" class="linkDialog" style="font-style: italic;">editor visual de equa\u00E7\u00F5es LaTeX</a>. </label>';
-    CKEDITOR.dialog.add( 'latexDialog', function ( editor )
+    CKEDITOR.dialog.add( 'latexDialog', function(editor)
       {
          return {
             title : 'Inserir Equa\u00E7\u00E3o',
@@ -4667,13 +4726,13 @@ function tableSorterPro( editor ) {
         editor.addMenuGroup( 'tablesorterGroup' );
         editor.addMenuItem( 'addestilo', {
             label: 'Adicionar Estilo',
-            icon: URL_SPRO+'icons/addestilotabela.png',
+            icon: URL_SPRO+'icons/editor/addestilotabela.png',
             command: 'addestilo',
             group: 'tableproGroup'
         });
         editor.addMenuItem( 'clonetable', {
             label: 'Duplicar Tabela',
-            icon: URL_SPRO+'icons/duplicartabela.png',
+            icon: URL_SPRO+'icons/editor/duplicartabela.png',
             command: 'clonetable',
             group: 'tableproGroup'
         });
@@ -4779,7 +4838,13 @@ function tableSorterPro( editor ) {
         }
     }
 }
-function initContextMenuPro() { 
+function initContextMenuPro() {
+    $(txaEditor).each(function(){ 
+        var idEditor_ = $(this).attr('id').replace('cke_', '');
+        if ($('iframe[title*="'+idEditor_+'"]').length == 0) {
+            $(this).find('iframe').attr('title', 'Editor de Rich Text, '+idEditor_);
+        }
+    });
     setTimeout(function () {
         $(txaEditor).each(function(index){ 
             var idEditor_ = $(this).attr('id').replace('cke_', '');
@@ -4788,6 +4853,8 @@ function initContextMenuPro() {
                 var oEditor_ = CKEDITOR.instances[idEditor_];
                     tableSorterPro(oEditor_);
                     menuCopyStyle(oEditor_);
+                    menuBlockEdition(oEditor_);
+                    if (restrictConfigValue('ferramentasia')) menuOpenAI(oEditor_);
                     if (checkConfigValue('editarimagens')) {
                         editImgPro(oEditor_);
                     }
@@ -4871,7 +4938,7 @@ function openDialogProcessoPublicoPro(this_) {
     oEditor.openDialog('processoPublico');
 }
 function getDialogProcessoPublicoPro() {
-    CKEDITOR.dialog.add( 'processoPublico', function ( editor )
+    CKEDITOR.dialog.add( 'processoPublico', function(editor)
       {
          return {
             title : 'Adicionar Link de Documento P\u00FAblico',
@@ -5129,7 +5196,7 @@ function getMinutaWatermark(this_) {
             minutaAncora_new.get(0).scrollIntoView();
     }
 }
-function repairSaveButtonBug() {
+function repairSaveButtonBug(loop = true) {
     if ($('.cke_button.cke_button__save').hasClass('cke_button_off')) {
         for (var i in CKEDITOR.instances) {
             var edit = CKEDITOR.instances[i];
@@ -5145,11 +5212,1703 @@ function repairSaveButtonBug() {
         redimensionar();
         console.log('reparSaveButtonBug');
     }
+    if (loop) {
+        setTimeout(function(){ 
+            repairSaveButtonBug(false);
+        }, 3000);
+    }
+}
+
+// INSERE ChatGPT
+function getOpenAI(this_) {
+    setParamEditor(this_);
+    if (!getOptionsPro('consentimentoIA')) {
+        oEditor.openDialog('openAI_disclaimer');
+    } else {
+        oEditor.openDialog('openAI');
+    }
+}
+function getDialogNaoDisponivel(title) {
+    return {
+        title : title,
+        minWidth : 500,
+        minHeight : 80,
+        buttons: [],
+        contents :
+        [
+           {
+              id : 'tab1',
+              label : 'Info',
+              elements :
+              [
+                {
+                     type: 'html',
+                     html: '<div style="padding: 20px;text-align: center;"><i class="fas fa-exclamation-triangle laranjaColor"></i> N\u00E3o dispon\u00EDvel para processos sigilosos</div>'
+                 }
+              ]
+           }
+        ]
+     }
+}
+function getDialogOpenAI() {
+    if (checkProcessoSigiloso()) {
+        CKEDITOR.dialog.add( 'openAI', function(editor) { return getDialogNaoDisponivel('Inserir texto de intelig\u00EAncia artificial (ChatGPT)') } );
+    } else {
+        CKEDITOR.dialog.add( 'openAI_disclaimer', function(editor) {
+                var htmlConcentimento = '<table role="presentation" cellspacing="0" border="0" style="width:100%;float:none;" align="left">'+
+                                        '   <tbody>'+
+                                        '       <tr>'+
+                                        '           <td role="presentation" class="cke_dialog_ui_vbox_child">'+
+                                        '               <div id="cke_382_uiElement" class="cke_dialog_ui_text editorTextDisclaimer">'+
+                                        '                   <p>1. N\u00E3o utilize o ChatGPT para contextos complexos, envolvendo informa\u00E7\u00F5es sigilosas, restritas ou que possa impactar decis\u00F5es cr\u00EDticas.</p>'+
+                                        '                   <p>2. \u00C9 importante sempre uma verifica\u00E7\u00E3o humana das respostas geradas automaticamente.</p>'+
+                                        '                   <p>3. A assinatura de documentos gerados com o aux\u00EDlio de IA s\u00E3o de inteira resposabilidade do signat\u00E1rio.</p>'+
+                                        '                   <p>4. A ferramenta foi alimentada com diferentes conte\u00FAdos da Internet. Quando o contexto n\u00E3o s\u00E3o bem definidos, as respostas poder\u00E3o n\u00E3o ser \u00FAteis e poder\u00E3o levar a tomada de decis\u00E3o equivocada.</p>'+
+                                        '                   <p>5. Fique atento \u00E0s suas limita\u00E7\u00F5es para n\u00E3o incorrer em situa\u00E7\u00F5es de erro, quebra de seguran\u00E7a ou quest\u00F5es legais.</p>'+
+                                        '                   <p>6. Antes de utilizar a ferramenta, verifique a adequa\u00E7\u00E3o do ChatGPT ao ato normativo sobre o uso seguro de computa\u00E7\u00E3o em nuvem do seu \u00F3rg\u00E3o.</p>'+
+                                        '               </div>'+ 
+                                        '           </td>'+
+                                        '       </tr>'+
+                                        '       <tr>'+
+                                        '           <td role="presentation" class="cke_dialog_ui_vbox_child">'+
+                                        '               <span id="cke_383_uiElement" class="cke_dialog_ui_checkbox">'+
+                                        '                   <input class="cke_dialog_ui_checkbox_input" type="checkbox" aria-labelledby="cke_381_label" id="ciente_disclaimer">'+
+                                        '                   <label id="cke_381_label" for="ciente_disclaimer">Estou ciente e entendo os riscos</label>'+
+                                        '               </span>'+
+                                        '           </td>'+
+                                        '       </tr>'+
+                                        '   </tbody>'+
+                                        '</table>';
+                    return {
+                        title : 'Intelig\u00EAncia artificial (ChatGPT): Consentimento',
+                        minWidth : 500,
+                        minHeight : 200,
+                        buttons: [ CKEDITOR.dialog.cancelButton, CKEDITOR.dialog.okButton ],
+                        onOk: function(event, a, b) {
+                            if($('#ciente_disclaimer').is(':checked')) {
+                                event.data.hide = true;
+                                setOptionsPro('consentimentoIA', true);
+                                setTimeout(() => {
+                                    oEditor.openDialog('openAI');
+                                }, 1000);
+                            } else {
+                                alert('\u00C9 necess\u00E1rio consentimento antes de prosseguir!');
+                                event.data.hide = false;
+                            }
+                        },
+                        contents : [
+                            {
+                            id : 'tab1',
+                            label : 'Consentimento',
+                            elements :
+                            [
+                                {
+                                    type: 'html',
+                                    html: htmlConcentimento
+                                }
+                            ]
+                            }
+                        ]
+                    };
+        });
+        CKEDITOR.dialog.add( 'openAI', function(editor) {
+            return {
+                title : 'Inserir texto de intelig\u00EAncia artificial (ChatGPT)',
+                minWidth : 800,
+                minHeight : 80,
+                buttons: [],
+                onShow : function() {
+                    $('#openAI_load').hide();
+                    if ($('#openAI_result').is(':visible')) {
+                        this.move(this.getPosition().x, (this.getPosition().y+125));
+                        $('#openAI_result').html('').hide();
+                    }
+                    var selectedText = oEditor.getSelection().getSelectedText();
+                    if (selectedText !== '') {
+                        this.setValueOf("tab_ia", "textPrompt", selectedText);
+                    }
+                    $('textarea.cke_dialog_ui_input_textarea').css('white-space','break-spaces')
+                    if (verifyConfigValue('substituiselecao')) {
+                        $('textarea.cke_dialog_ui_input_textarea').closest('div.cke_dialog_ui_textarea').css('margin-top','30px');
+                        setChosenInCke(false, '900px');
+                    }
+
+                    if (perfilOpenAI) {
+                        var idKeyword = this.getContentElement( 'tab_ia_options', 'keyword' )._.inputId;
+                        var idModeInline = this.getContentElement( 'tab_ia_options', 'mode_inline' ).domId;
+                        var elemKeyword = $('#'+idKeyword);
+                        var elemInline = $('#'+idModeInline+' input');
+
+                            elemKeyword.on('change', function(){
+                                setOptionsPro('setKeywordInlineOpenAI', $(this).val());
+                                $('.wordGpt').text($(this).val());
+                            });
+                            elemInline.prop('checked', getOptionsPro('setInlineOpenAI')).on('change', function(){
+                                getInlineOpenAI(this);
+                                console.log('change');
+                            });
+                    }
+                },
+                contents :[
+                (!perfilOpenAI) 
+                    ? {
+                        id : 'tab_ia',
+                        label : 'Cadastro de Token',
+                        elements :
+                        [
+                        {
+                            type: 'html',
+                            html:   '<div id="openAI_info" style="white-space: break-spaces;color: #616161;">'+
+                                    '   <div class="alertaAttencionPro dialogBoxDiv" style="font-size: 11pt;line-height: 12pt;color: #616161;">'+
+                                    '       <i class="fas fa-info-circle azulColor" style="margin-right: 5px;"></i> Aproveite todo o potencial da intelig\u00EAncia artificial do <a href="https://chat.openai.com/chat" class="linkDialog" style="font-style: italic;font-size: 11pt;" target="_blank">ChatGPT</a> diretamente no editor de documentos do SEI. <br><br><span style="margin-left: 20px;"></span>Siga o passo-a-passo abaixo para cadastrar suas credenciais de acesso:<br><br>'+
+                                    '   </div>'+
+                                    '   <div class="alertaAttencionPro dialogBoxDiv" style="margin-left:20px;font-size: 11pt;line-height: 12pt;color: #616161;">'+
+                                    '       1. Acesse o site do OpenAI (<a href="https://beta.openai.com/" class="linkDialog" style="font-style: italic;font-size: 11pt;" target="_blank">https://beta.openai.com/</a>) e clique em "Sign Up" no canto superior direito da tela.<br><br>'+
+                                    '       2. Preencha o formul\u00E1rio de cadastro com seus dados pessoais e crie uma senha. <br><span style="margin-left: 17px;"></span>\u00C9 poss\u00EDvel logar com sua conta Google ou Microsoft.<br><br>'+
+                                    '       3. Verifique seu e-mail e clique no link de confirma\u00E7\u00E3o enviado pela OpenAI.<br><br>'+
+                                    '       4. Verifique seu celular e adicione o c\u00F3digo de verifica\u00E7\u00E3o enviado por SMS.<br><br>'+
+                                    '       5. Fa\u00E7a login na sua conta OpenAI.<br><br>'+
+                                    '       6. Clique em "<i class="fas fa-bolt verdeColor"></i> Upgrade" no menu do lado direito da tela ou acesse o endere\u00E7o <a href="https://beta.openai.com/account/billing/overview" class="linkDialog" style="font-style: italic;font-size: 11pt;" target="_blank">https://beta.openai.com/account/billing/overview</a>.<br><br>'+
+                                    '       7. Selecione a op\u00E7\u00E3o "USER > Create API Key".<br><br>'+
+                                    '       8. Clique em "Create new secret key" para gerar sua chave de API.<br><br>'+
+                                    '       9. Ser\u00E1 adicionado um cr\u00E9dito promocional de $18, para utiliza\u00E7\u00E3o em at\u00E9 4 (quatro) meses. <br><span style="margin-left: 17px;"></span>Caso deseje prosseguir ap\u00F3s isso, adicione suas informa\u00E7\u00F5es de pagamento no menu "Billing". <br><span style="margin-left: 17px;"></span>Consulte condi\u00E7\u00F5es de precifica\u00E7\u00E3o da plataforma em: <a href="https://openai.com/api/pricing/" class="linkDialog" style="font-style: italic;font-size: 11pt;" target="_blank">https://openai.com/api/pricing/</a><br><br>'+
+                                    '       10. Copie sua chave secreta de API, pois ela ser\u00E1 necess\u00E1ria para fazer chamadas \u00E0 API. Cole-a no campo abaixo:<br><br>'+
+                                    '   </div>'+
+                                    '   <table role="presentation" class="cke_dialog_ui_hbox">'+
+                                    '    <tbody>'+
+                                    '        <tr class="cke_dialog_ui_hbox">'+
+                                    '            <td class="cke_dialog_ui_hbox_last" role="presentation" style="width:70%; padding:10px">'+
+                                    '                <input tabindex="3" placeholder="Insira o valor para a chave secreta" class="cke_dialog_ui_input_text" id="cke_inputSecretKey_textInput" type="password" aria-labelledby="cke_inputSecretKey_label">'+
+                                    '            </td>'+
+                                    '            <td class="cke_dialog_ui_hbox_first" role="presentation" style="width:30%; padding:10px 0">'+
+                                    '               <a style="user-select: none;" onclick="saveTokenOpenAI(this)" title="Salvar" hidefocus="true" class="cke_dialog_ui_button cke_dialog_ui_button_cancel" role="button" aria-labelledby="openAI_label" id="openAI_uiElement">'+
+                                    '                   <span id="openAI_label" class="cke_dialog_ui_button">Salvar</span>'+
+                                    '               </a>'+
+                                    '             <i id="openAI_load" class="fas fa-sync-alt fa-spin" style="margin-left: 10px; display:none"></i>'+
+                                    '            </td>'+
+                                    '        </tr>'+
+                                    '    </tbody>'+
+                                    '   </table>'+
+                                    '   <div id="openAI_alert" style="white-space: break-spaces;margin-top: 10px;font-style: italic; color: #616161;" class="alertaAttencionPro dialogBoxDiv"><i class="fas fa-exclamation-triangle" style="margin-right: 5px;"></i>'+NAMESPACE_SPRO+' n\u00E3o fomenta ou recebe financiamento para a utiliza\u00E7\u00E3o dos produtos da OpenAI. Recomenda-se o seu uso meramente did\u00E1tico.</div>'+
+                                    '</div>'
+                        }
+                        ]
+                    }
+                    : {
+                        id : 'tab_ia',
+                        label : 'ChatGPT',
+                        elements :
+                            [
+                                {
+                                    type: 'select',
+                                    id: 'selectPrompt',
+                                    label: 'Tipo de Integra\u00E7\u00E3o',
+                                    width: '100%',
+                                    items: [ 
+                                        ['Discorra sobre '], 
+                                        ['Resuma em linguagem simples o seguinte trecho: '], 
+                                        ['Reescreva o seguinte trecho: '], 
+                                        ['Descubra a base legal para o seguinte tema: '], 
+                                        ['Traga o texto legal, sem explica\u00E7\u00F5es, do seguintes dispositivo legal: '], 
+                                        ['Traduza para portugu\u00EAs a frase: '], 
+                                        ['Fa\u00E7a uma an\u00E1lise cr\u00EDtica sobre o seguinte t\u00F3pico: '], 
+                                        ['Liste at\u00E9 10 sin\u00F4nimos em portugu\u00EAs para a palavra: '],
+                                        ['Conclua o seguinte texto: '],
+                                        ['Extraia as palavras-chave deste texto: '],
+                                        ['Converta minha nota curta em uma ata de reuni\u00E3o: '],
+                                        ['Fa\u00E7a um resumo em t\u00F3picos do seguinte texto: '],
+                                        ['Escreva um texto longo e detalhado, cite fontes e dispositivos legais que embase a argumenta\u00E7\u00E3o sobre o seguinte tema: '],
+                                        ['Amplie e reescreva o texto a seguir, em voz ativa, com corre\u00E7\u00F5es gramaticais, citando as fontes e adicinando coes\u00E3o \u00E0s ora\u00E7\u00F5es: '],
+                                        ['Crie um Parecer t\u00E9cnico detalhado, cite fontes e legisla\u00E7\u00E3o, traga argumentos a favor e contr\u00E1rios sobre o tema: '],
+                                        ['-'] 
+                                    ],
+                                    'default': 'Discorra sobre '
+                                },{
+                                    type: 'textarea',
+                                    label: 'Texto de Entrada',
+                                    id: 'textPrompt',
+                                    'default': ''
+                                },{
+                                    type: 'html',
+                                    html: '<table role="presentation" class="cke_dialog_ui_hbox">'+
+                                        ' <tbody>'+
+                                        '     <tr class="cke_dialog_ui_hbox">'+
+                                        '         <td class="cke_dialog_ui_hbox_last" role="presentation" style="padding:0px;text-align: right;">'+
+                                        '             <a onclick="exampleTextOpenAI(this)" class="linkDialog" style="float:left;" target="_blank">Adicionar texto de exemplo</a>'+
+                                        '             <a style="user-select: none;" onclick="getParamOpenAI(this)" title="Enviar" hidefocus="true" class="cke_dialog_ui_button cke_dialog_ui_button_cancel" role="button" aria-labelledby="openAI_label" id="openAI_uiElement">'+
+                                        '                 <span id="openAI_label" class="cke_dialog_ui_button">Enviar</span>'+
+                                        '             </a>'+
+                                        '             <i id="openAI_load" class="fas fa-sync-alt fa-spin" style="margin-left: 10px; display:none"></i>'+
+                                        '         </td>'+
+                                        '     </tr>'+
+                                        ' </tbody>'+
+                                        '</table>'+
+                                        '<div id="openAI_result" style="display:none; white-space: break-spaces;"></div>'+
+                                        '<div id="openAI_alert" style="white-space: break-spaces;margin-top: 10px;font-style: italic; color: #616161;"><span class="alertaAttencionPro dialogBoxDiv"><i class="fas fa-exclamation-triangle" style="margin-right: 5px;"></i>Os dados s\u00E3o processados pelo servi\u00E7o <a href="https://openAI.com" class="linkDialog" style="font-style: italic;" target="_blank">OpenAI</a>. N\u00E3o envie informa\u00E7\u00F5es restritas ou sigilosas.</span></div>'
+                                }
+                            ]
+                },{
+                        id : 'tab_ia_options',
+                        label : 'Op\u00E7\u00F5es',
+                        elements :
+                            [
+                                {
+                                    type: "checkbox",
+                                    id: "mode_inline",
+                                    style: "margin-top:5px",
+                                    label: "Ativar o modo de escrita interativa"
+                                },{
+                                    type: 'select',
+                                    id: 'keyword',
+                                    label: 'Palavra de gatilho',
+                                    items: [ 
+                                        ['+gpt'], 
+                                        [':gpt'], 
+                                        ['/gpt'], 
+                                        ['.gpt'], 
+                                        ['-gpt']
+                                    ],
+                                    'default': '+gpt'
+                                },{
+                                    type: 'html',
+                                    html:  '<span style="display: block;margin: 5px;font-style: italic;color: #666;">Digite <span class="wordGpt">'+(getOptionsPro('setKeywordInlineOpenAI') ? getOptionsPro('setKeywordInlineOpenAI') : '+gpt')+'</span> em qualquer parte do documento, seguido do seu prompt. Pressione ENTER e veja a magia acontecer \uD83E\uDDD9\u200D\u2642\uFE0F</span>'
+                                }
+                            ]
+                }]
+            };
+        });
+    }
+}
+function getParamOpenAI(this_) {
+    var prompt_text = CKEDITOR.dialog.getCurrent().getContentElement('tab_ia', 'textPrompt').getValue();
+        prompt_text = prompt_text.replace(/['"]+/g, '').replace(/\n/g, "\\n").trim();
+    var prompt_select = CKEDITOR.dialog.getCurrent().getContentElement('tab_ia', 'selectPrompt').getValue();
+        prompt_select = (prompt_select == '-') ? '' : prompt_select;
+    var dialog = CKEDITOR.dialog.getCurrent();
+
+    $('#openAI_load').show();
+    if ($('#openAI_result').is(':visible')) {
+        dialog.move(dialog.getPosition().x, (dialog.getPosition().y+125));
+        $('#openAI_result').html('').hide();
+    }
+    sendRequestOpenAI(prompt_select, prompt_text);
+}
+function saveTokenOpenAI(token) {
+    var token = $('#cke_inputSecretKey_textInput').val();
+
+        $('#openAI_load').show();
+        if ( $('#frmCheckerProcessoPro').length == 0 ) { getCheckerProcessoPro(); }
+
+        var href = window.location.href+'#&acao_pro=set_database&mode=insert&base=openai&token='+token+'&url=https%3A%2F%2Fapi.openai.com%2Fv1%2Fchat%2Fcompletions';
+        $('#frmCheckerProcessoPro').attr('src', href).unbind().on('load', function(){
+            var htmlSucess =    '<div class="alertaAttencionPro dialogBoxDiv" style="font-size: 11pt;line-height: 15pt;color: #616161;">'+
+                                '   <i class="fas fa-check-circle verdeColor" style="margin-right: 5px;"></i> '+
+                                '   Credenciais carregadas com sucesso! Recarregue a p\u00E1gina.'+
+                                '   <a style="user-select: none; margin-left:20px;" onclick="window.location.reload()" title="Recarregar" hidefocus="true" class="cke_dialog_ui_button cke_dialog_ui_button_cancel" role="button" aria-labelledby="openAI_label" id="openAI_uiElement">'+
+                                '       <span id="openAI_label" class="cke_dialog_ui_button">Recarregar</span>'+
+                                '   </a>';
+                                '   </div>'+
+            $('#openAI_info').html(htmlSucess);
+        });
+}
+function sendRequestOpenAI(prompt_select, prompt_text, inline = false) {
+    let open_ai_response;
+
+    openai_test();
+
+    async function openai_test() {
+    
+    var url = perfilOpenAI.URL_API;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.setRequestHeader("Authorization", "Bearer "+perfilOpenAI.KEY_USER);
+
+
+    if (inline) {
+        setTimeout(() => { 
+            $(oEditor.getSelection().getStartElement().$).closest('p').html('<span class="dot-flashing" contenteditable="false" style="margin: 0 20px;display: inline-block;">&nbsp;</span>') 
+        }); 
+    }
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            console.log(xhr.status);
+            console.log(xhr.responseText);
+
+            open_ai_response = xhr.responseText;
+            open_ai_response = JSON.parse(open_ai_response);
+
+            console.log(open_ai_response);
+            
+            var responseText = open_ai_response.choices[0].message.content;
+            var btnInsertText = '<span onclick="insertTextEditorSEI(this)" style="float: right; background: #e7effd; padding: 3px 5px; color: #4285f4; border-radius: 5px; margin-left: 10px; cursor: pointer;">'+
+                                '  <i class="fas fa-pen azulColor" style="font-size: 90%; cursor: pointer;"></i>'+
+                                '  Adicionar'+
+                                '</span>';
+            var htmlResult =    '<div class="result" style="padding-top: 15px;">'+btnInsertText+
+                                '   <span class="text" style="white-space: break-spaces;font-size: 10pt;font-family: system-ui;text-align: justify;line-height: 14pt;overflow-y: scroll;height: 300px !important;display: block;"><span class="blinker">&#32;</span></span>'+
+                                '</div>';
+            
+            var dialog = CKEDITOR.dialog.getCurrent();
+
+            if (!inline) {
+                $('#openAI_load').hide();
+                $('#openAI_result').html(htmlResult).show()
+                $('#openAI_result .result .text').data('text',responseText);
+                dialog.move(dialog.getPosition().x, (dialog.getPosition().y-125));
+            }
+
+            // type code
+            var i = 0, isTag, text;
+            (function type() {
+                
+                var container = (inline) ? $(oEditor.getSelection().getStartElement().$).closest('p') : $('#openAI_result .result .text');
+                    text = responseText.slice(0, ++i);
+                if (text === responseText) return;
+                    container.html(text + (!inline ? '<span class="blinker">&#32;</span>' : ''));
+                    if (!inline) container[0].scrollTop = container[0].scrollHeight;
+                var char = text.slice(-1);
+                if (char === "<") isTag = true;
+                if (char === ">") isTag = false;
+                if (isTag) return type();
+                setTimeout(type, (!inline ? 40 : 10));
+
+            })();
+
+        } else if (xhr.status >= 400) {
+            console.log(xhr.status);
+            console.log(xhr.responseText);
+
+            open_ai_response = xhr.responseText;
+            open_ai_response = JSON.parse(open_ai_response);
+
+            $('#openAI_load').hide();
+            $('#openAI_result').html('<strong class="alertaErrorPro dialogBoxDiv" style="white-space: break-spaces;background-color: #fff1f0;padding: 10px;margin: 10px 0;border-radius: 8px;"><i class="fas fa-exclamation-triangle" style="margin-right: 5px;"></i> '+open_ai_response.error.message+'</strong>').show(); 
+        }
+    };
+
+    var data = (prompt_select == 'Conclua o seguinte texto: ')
+            ? `{
+                "model": "gpt-3.5-turbo",
+                "messages": [{"role": "user", "content": "${prompt_select+prompt_text}"}],
+                "temperature": 0.4,
+                "max_tokens": 640,
+                "top_p": 1,
+                "frequency_penalty": 0,
+                "presence_penalty": 0
+            }`
+            : `{
+                "model": "gpt-3.5-turbo",
+                "messages": [{"role": "user", "content": "${prompt_select+prompt_text}"}],
+                "temperature": 0.9,
+                "max_tokens": 2000,
+                "top_p": 1,
+                "frequency_penalty": 0,
+                "presence_penalty": 0.6
+            }`;
+    data = (prompt_select == 'Extraia as palavras-chave deste texto: ')
+            ? `{
+                "model": "gpt-3.5-turbo",
+                "messages": [{"role": "user", "content": "${prompt_select+prompt_text}"}],
+                "temperature": 0.5,
+                "max_tokens": 60,
+                "top_p": 1,
+                "frequency_penalty": 0.8,
+                "presence_penalty": 0
+            }`
+            : data;
+        data = (prompt_select == 'Converta minha nota curta em uma ata de reuni\u00E3o: ')
+            ? `{
+                "model": "gpt-3.5-turbo",
+                "messages": [{"role": "user", "content": "${prompt_select+prompt_text}"}],
+                "temperature": 0,
+                "max_tokens": 900,
+                "top_p": 1,
+                "frequency_penalty": 0,
+                "presence_penalty": 0
+            }`
+            : data;
+        data = (
+                prompt_select == 'Escreva um texto longo e detalhado, cite fontes e dispositivos legais que embase a argumenta\u00E7\u00E3o sobre o seguinte tema: ' ||
+                prompt_select == 'Crie um Parecer t\u00E9cnico detalhado, cite fontes e legisla\u00E7\u00E3o, traga argumentos a favor e contr\u00E1rios sobre o tema: ' ||
+                prompt_select == 'Amplie e reescreva o texto a seguir, em voz ativa, com corre\u00E7\u00F5es gramaticais, citando as fontes e adicinando coes\u00E3o \u00E0s ora\u00E7\u00F5es: ')
+            ? `{
+                "model": "gpt-3.5-turbo",
+                "messages": [{"role": "user", "content": "${prompt_select+prompt_text}"}],
+                "temperature": 1,
+                "max_tokens": 3000,
+                "top_p": 1,
+                "frequency_penalty": 0,
+                "presence_penalty": 0
+              }`
+            : data;
+
+    xhr.send(data);
+    }
+}
+function insertTextEditorSEI(this_) {
+    var _this = $(this_);
+    var text = (_this.closest('.result').find('.text').data('text') !== 'undefined') ? _this.closest('.result').find('.text').data('text') : $('<div>').append(_this.closest('.result').find('.text').clone()).text();
+
+    var select = oEditor.getSelection().getStartElement();
+    var pElement = $(select.$).closest('p');
+    if ( pElement.length > 0 ) {
+        oEditor.focus();
+        oEditor.fire('saveSnapshot');
+        if ($('#frmEditor').length > 0) {
+            var classP = iframeEditor.find(pElement).attr('class');
+
+            var pText = text.indexOf('\n') !== -1 ? text.split('\n') : [text];
+                pText = pText 
+                        ? $.map(pText, function(v, i){
+                            return (v == '') ? '<p class="Citacao"><br></p>' : '<p class="'+classP+'">'+v+'</p>';
+                        }) 
+                        : pText;
+
+                iframeEditor.find(pElement).after(pText);
+                CKEDITOR.dialog.getCurrent().hide();
+        } else {
+            pElement.before(html);
+        }
+        oEditor.fire('saveSnapshot');
+    }
+}
+function exampleTextOpenAI() {
+    var dialog = CKEDITOR.dialog.getCurrent();
+    var promptSelect = dialog.getContentElement('tab_ia', 'selectPrompt').getValue();
+    var exampleText = false;
+        exampleText = (promptSelect == 'Discorra sobre ') ? 'o poder de pol\u00EDcia administrativo' : exampleText;
+        exampleText = (promptSelect == 'Resuma em linguagem simples o seguinte trecho: ') ? 'N\u00E3o sendo ela, de modo nenhum, pass\u00EDvel de compara\u00E7\u00E3o com qualquer ep\u00EDteto quinquagen\u00E1rio, ou mito gerado por qualquer estrat\u00E9gia mercadol\u00F3gica ou interesse de m\u00EDdia "hollywoodiana", distor\u00E7\u00E3o que resta, evidentemente, imperdo\u00E1vel. Tal afirma\u00E7\u00E3o queima exposta a luz da imperativa e facilmente constat\u00E1vel modernidade de que se reveste a mesma, a quem fica, intrinsecamente, atribu\u00EDdo ox\u00EDmoro j\u00E1 mil vezes reverberado, de ef\u00EAmera personalidade.' : exampleText;
+        exampleText = (promptSelect == 'Reescreva o seguinte trecho: ') ? 'Muitos s\u00E3o os princ\u00EDpios que regem a seara trabalhista, al\u00E9m do princ\u00EDpio da prote\u00E7\u00E3o que se divide em outros subprinc\u00EDpios, temos o princ\u00EDpio da continuidade da rela\u00E7\u00E3o de emprego, da primazia da realidade, da irrenunciabilidade dos direitos trabalhistas, da irredutibilidade salarial, dentre outros de suma import\u00E2ncia para a estrutura do Direito do Trabalho. ' : exampleText;
+        exampleText = (promptSelect == 'Descubra a base legal para o seguinte tema: ') ? 'restri\u00E7\u00E3o \u00E0 fragmenta\u00E7\u00E3o de despesas p\u00FAblicas' : exampleText;
+        exampleText = (promptSelect == 'Traga o texto legal, sem explica\u00E7\u00F5es, do seguintes dispositivo legal: ') ? 'art. 5\u00BA, inc. X da CF' : exampleText;
+        exampleText = (promptSelect == 'Traduza para portugu\u00EAs a frase: ') ? 'A Perspective on the Sources of the Brazilian Law' : exampleText;
+        exampleText = (promptSelect == 'Fa\u00E7a uma an\u00E1lise cr\u00EDtica sobre o seguinte t\u00F3pico: ') ? 'porte de armas' : exampleText;
+        exampleText = (promptSelect == 'Liste at\u00E9 10 sin\u00F4nimos em portugu\u00EAs para a palavra: ') ? 'retumbante' : exampleText;
+        exampleText = (promptSelect == 'Conclua o seguinte texto: ') ? 'O direito ao sil\u00EAncio ou direito a n\u00E3o autoincrimina\u00E7\u00E3o \u00E9 dos direitos fundamentais elencados pela nossa constitui\u00E7\u00E3o.' : exampleText;
+        exampleText = (promptSelect == 'Extraia as palavras-chave deste texto: ') ? 'Pontes Miranda adota a teoria bipartida, segundo a qual s\u00F3 existem impostos e taxas. Jos\u00E9 Afonso da Silva arrola impostos, taxas e contribui\u00E7\u00F5es como esp\u00E9cies tribut\u00E1rias, ou seja, uma classifica\u00E7\u00E3o tripartida. Luciano Amaro, por sua vez, lista quatro esp\u00E9cies tribut\u00E1rias: Impostos, taxas, contribui\u00E7\u00E3o de melhoria e empr\u00E9stimo compuls\u00F3rio, caracterizando ent\u00E3o, a ado\u00E7\u00E3o de uma teoria quadripartida. Ademais, Ives Gandra Martins vai al\u00E9m e nomeia cinco esp\u00E9cies tribut\u00E1rias, ou seja, uma classifica\u00E7\u00E3o quinquipartida, s\u00E3o elas: impostos, taxas, contribui\u00E7\u00E3o de melhoria, empr\u00E9stimos compuls\u00F3rios e contribui\u00E7\u00F5es especiais.' : exampleText;
+        exampleText = (promptSelect == 'Converta minha nota curta em uma ata de reuni\u00E3o: ') ? 'Pedro: Lucros de at\u00E9 50% Tiago: Novos servidores est\u00E3o online Helio: Precisa de mais tempo para consertar o software Renata: Feliz em ajudar Paulo: Teste beta quase pronto' : exampleText;
+        exampleText = (promptSelect == 'Fa\u00E7a um resumo em t\u00F3picos do seguinte texto: ') ? 'O cidad\u00E3o que exerce uma cidadania ativa, se compromete e se envolve em todos os assuntos da comunidade em que vive, exemplo da luta cotidiana por direitos individuais e coletivos. A mesma necessita de uma participa\u00E7\u00E3o p\u00FAblica e deve ter como base o respeito em rela\u00E7\u00E3o \u00E0s diferen\u00E7as e a supera\u00E7\u00E3o das desigualdades sociais que assolam a nossa sociedade, buscando sempre um consenso em que privilegie a maioria dos envolvidos.' : exampleText;
+        exampleText = (promptSelect == 'Escreva um texto longo e detalhado, cite fontes e dispositivos legais que embase a argumenta\u00E7\u00E3o sobre o seguinte tema: ') ? 'servi\u00E7o p\u00FAblico adequado e modicidade tarif\u00E1ria no transporte p\u00FAblico' : exampleText;
+        exampleText = (promptSelect == 'Amplie e reescreva o texto a seguir, em voz ativa, com corre\u00E7\u00F5es gramaticais, citando as fontes e adicinando coes\u00E3o \u00E0s ora\u00E7\u00F5es: ') ? 'A Corte de Contas cuida do progresso da governan\u00E7a na administra\u00E7\u00E3o p\u00FAblica, cabendo ao \u00F3rg\u00E3os e gestore executar as devidas etapas e corre\u00E7\u00F5es, devendo entender o prop\u00F3sito da governan\u00E7a, buscando o aprimoramento constante.' : exampleText;
+        exampleText = (promptSelect == 'Crie um Parecer t\u00E9cnico detalhado, cite fontes e legisla\u00E7\u00E3o, traga argumentos a favor e contr\u00E1rios sobre o tema: ') ? 'O aborto e a microcefalia' : exampleText;
+
+    if (exampleText) dialog.setValueOf("tab_ia", "textPrompt", exampleText);
+}
+function initOpenAI(TimeOut = 9000) {
+    if (TimeOut <= 0) { return; }
+    if (typeof checkConfigValue !== 'undefined' && typeof localStorageRestorePro !== 'undefined' ) { 
+        if (restrictConfigValue('ferramentasia')) {
+            setTimeout(function(){ 
+                perfilOpenAI = localStorageRestorePro('configBasePro_openai');
+                perfilOpenAI = (typeof perfilOpenAI !== 'undefined' && perfilOpenAI !== null) ? perfilOpenAI : false;
+                getDialogOpenAI();
+            }, 500);
+        }
+    } else {
+        setTimeout(function(){ 
+            initPerfilLogin(TimeOut - 100); 
+            console.log('Reload initOpenAI', typeof localStorageRestorePro,  typeof localStorageRestorePro('configBasePro_openai')); 
+        }, 500);
+    }
+}
+function menuOpenAI( editor ) {
+    if ( editor.contextMenu && typeof editor.getMenuItem('openai') === 'undefined' ) {
+        editor.addMenuGroup( 'openaiGroup', -10 * 3 );
+        editor.addMenuItem( 'openai', {
+            label: 'Intelig\u00EAncia artificial',
+            icon: URL_SPRO+'icons/editor/ferramentasia.png',
+            command: 'openai',
+            group: 'openaiGroup'
+        });
+        editor.contextMenu.addListener( function( element ) {
+            if ( hasSelection(editor) ) {
+                return { openai: CKEDITOR.TRISTATE_OFF};
+            }
+        });
+        editor.addCommand( 'openai', {
+            exec: function( editor ) {
+                editor.openDialog('openAI');
+            }
+        });
+    }
+}
+function getInlineOpenAI(this_) {
+    var check = $(this_).is(':checked');
+    setOptionsPro('setInlineOpenAI', check);
+    setInlineOpenAI(!check);
+}
+function setInlineOpenAI(destroy = false) {
+    if (!loadInlineOpenAI && !destroy) {
+            oEditor.on('key', function (evt) {
+                if (evt.data.keyCode == 13 && getOptionsPro('setInlineOpenAI')) {
+                    var keyword = getOptionsPro('setKeywordInlineOpenAI');
+                        keyword = (keyword) ? keyword : '+gpt';
+                    var select = oEditor.getSelection().getStartElement();
+                    var pElement = $(select.$).closest('p');
+                    var textP = pElement.text();
+                    if (textP.indexOf(keyword) !== -1) {
+                        var prompt_text = textP.split(keyword)[1].trim();
+                        sendRequestOpenAI('', prompt_text, true);
+                    }
+                }
+            });
+            loadInlineOpenAI = true;
+    } else if (destroy) {
+        removeOptionsPro('setInlineOpenAI');
+    }
+}
+// INSERE REFERENCIA INTERNA
+function getRefInterna(this_) {
+    setParamEditor(this_);
+    oEditor.openDialog('openRefInterna');
+}
+function getDialogRefInterna() {
+      CKEDITOR.dialog.add( 'openRefInterna', function(editor)
+      {
+         return {
+            title : 'Inserir refer\u00EAncia interna',
+            minWidth : 800,
+            minHeight : 150,
+            buttons: [
+                {
+                    type: 'button',
+                    id: 'updateaRefInterna',
+                    label: 'Atualizar refer\u00EAncias',
+                    title: 'Atualizar refer\u00EAncias',
+                    onClick: function() {
+                        var valuePrefixo = CKEDITOR.dialog.getCurrent().getContentElement('tab_refint', 'prefixo').getValue();
+                        // this = CKEDITOR.ui.dialog.button
+                        updateRefsInternas(valuePrefixo);
+                        clickScroolToRef();
+                        CKEDITOR.dialog.getCurrent().hide();
+                        alert( 'Refer\u00EAncias atualizadas com sucesso');
+                    }
+                },
+                CKEDITOR.dialog.okButton
+             ],
+            onOk: function(event, a, b) {
+                // var valueSelect = this.getContentElement('tab_refint', 'selectRef').getValue();
+                    // valueSelect = (valueSelect.indexOf('-') !== -1) ? valueSelect.split('-') : false;
+                var valuePrefixo = this.getContentElement('tab_refint', 'prefixo').getValue();
+
+                if (verifyConfigValue('substituiselecao')) {
+                    var selectMult = $('.cke_dialog_ui_input_select select[multiple="multiple"] option:checked');
+                    var list_refs = $.map(selectMult,function(e){
+                        if (e.value != '') return e.value
+                    });
+                    console.log(list_refs);
+                    var htmlRefInterna = '';
+
+                    if ($.isArray(list_refs) && list_refs.length > 0) {
+                        $.each(list_refs, function(i, v){
+                            var valueSelect = (v.indexOf('-') !== -1) ? v.split('-') : false;
+                            var refInterna = (valueSelect) ? ' <a href="#RefPro_'+valueSelect[0]+'" class="ancoraSei refInternaPro anchorRefInternaPro" contenteditable="false">['+valuePrefixo+' '+valueSelect[1]+']</a> ' : false;
+                            if (refInterna) htmlRefInterna += refInterna;
+                            if (i < list_refs.length-2) htmlRefInterna += ', ';
+                            if (i == list_refs.length-2) htmlRefInterna += ' e ';
+                        });
+                    }
+                } else {
+                    var valueSelect = this.getContentElement('tab_refint', 'selectRef').getValue();
+                        valueSelect = (valueSelect.indexOf('-') !== -1) ? valueSelect.split('-') : false;
+                        htmlRefInterna = (valueSelect != '') ?  ' <a href="#RefPro_'+valueSelect[0]+'" class="ancoraSei refInternaPro anchorRefInternaPro" contenteditable="false">['+valuePrefixo+' '+valueSelect[1]+']</a> ' : '';
+                }
+                oEditor.focus();
+                oEditor.fire('saveSnapshot');
+                oEditor.insertHtml(htmlRefInterna);
+                oEditor.fire('saveSnapshot');
+
+                updateRefsInternas(valuePrefixo);
+                clickScroolToRef();
+            },
+            onShow : function() {
+				var IDSelect = this.getContentElement( 'tab_refint', 'selectRef' )._.inputId;
+                var listP = getNiveisParagrafos();
+                    listP = (listP) ? $.map(listP, function(v){ return '<option value="'+v.ref+'-'+v.item+'">'+v.item+'. '+v.text.replace(/^(.{50}[^\s]*).*/, "$1")+'...'+'</option>'; }).join('') : false;
+                    if (listP) $('#'+IDSelect).html('<option value="">&nbsp;<option>'+listP);
+                    if (verifyConfigValue('substituiselecao')) setChosenInCke(true);
+            },
+            contents :
+            [
+               {
+                  id : 'tab_refint',
+                  label : 'Refer\u00EAncia interna',
+                  elements :
+                  [
+                    {
+                        type: 'text',
+                        label: 'Prefixo',
+                        id: 'prefixo',
+            			width: '200px',
+                        'default': 'ITEM'
+ 					},{
+                        type: 'select',
+                        id: 'selectRef',
+                        label: 'Par\u00E1grafo numerado',
+                        width: '100%',
+                        items: [ ]
+                    }
+                  ]
+               }
+            ]
+         };
+      } );
+}
+function updateRefsInternas(valuePrefixo) {
+    var iframe_ = $('iframe[title*="'+idEditor+'"]').contents();
+    if ( iframe_.find('body').attr('contenteditable') == 'true' ) {
+        var listRefs = getNiveisParagrafos();
+        if (listRefs) {
+            iframe_.find('.refInternaPro').each(function(){
+                var _this = $(this);
+                var ref_this = _this.attr('href');
+                    ref_this = (ref_this.indexOf('_') !== -1) ? ref_this.split('_')[1] : false;
+                var item = (ref_this) ? jmespath.search(listRefs, "[?ref=='"+ref_this+"'] | [0].item ") : false;
+                    item = (item && item !== null) ? item : false;
+                if (item) _this.text('['+valuePrefixo+' '+item+']');
+            })
+        }
+    }
+}
+function getNiveisParagrafos() {
+    var iframe_ = $('iframe[title*="'+idEditor+'"]').contents();
+    if ( iframe_.find('body').attr('contenteditable') == 'true' ) {
+        var i_Paragrafo_Numerado_Nivel1 = 0;
+        var i_Paragrafo_Numerado_Nivel2 = 0;
+        var i_Paragrafo_Numerado_Nivel3 = 0;
+        var i_Paragrafo_Numerado_Nivel4 = 0;
+        
+        var i_Item_Nivel1 = 0;
+        var i_Item_Nivel2 = 0;
+        var i_Item_Nivel3 = 0;
+        var i_Item_Nivel4 = 0;
+
+        var arrayParagrafos = [];
+        
+        iframe_.find('p').each(function(i){
+            var randRef = randomString(16);
+            var iNumerado = false;
+            var _this = $(this);
+            var _class = _this.attr('class');
+            if (_class == 'Paragrafo_Numerado_Nivel1') { 
+                i_Paragrafo_Numerado_Nivel1++; 
+                i_Paragrafo_Numerado_Nivel2 = 0;
+                i_Paragrafo_Numerado_Nivel3 = 0;
+                i_Paragrafo_Numerado_Nivel4 = 0;
+                iNumerado = true; 
+            }
+            if (_class == 'Paragrafo_Numerado_Nivel2') { 
+                i_Paragrafo_Numerado_Nivel2++; 
+                i_Paragrafo_Numerado_Nivel3 = 0;
+                i_Paragrafo_Numerado_Nivel4 = 0;
+                iNumerado = true; 
+            }
+            if (_class == 'Paragrafo_Numerado_Nivel3') { 
+                i_Paragrafo_Numerado_Nivel3++; 
+                i_Paragrafo_Numerado_Nivel4 = 0;
+                iNumerado = true; 
+            }
+            if (_class == 'Paragrafo_Numerado_Nivel4') { 
+                i_Paragrafo_Numerado_Nivel4++; 
+                iNumerado = true; 
+            }
+            
+            if (_class == 'Item_Nivel1') { 
+                i_Item_Nivel1++; 
+                i_Item_Nivel2 = 0;
+                i_Item_Nivel3 = 0;
+                i_Item_Nivel4 = 0;
+                iNumerado = true; 
+            }
+            if (_class == 'Item_Nivel2') { 
+                i_Item_Nivel2++; 
+                i_Item_Nivel3 = 0;
+                i_Item_Nivel4 = 0;
+                iNumerado = true; 
+            }
+            if (_class == 'Item_Nivel3') { 
+                i_Item_Nivel3++; 
+                i_Item_Nivel4 = 0;
+                iNumerado = true; 
+            }
+            if (_class == 'Item_Nivel4') { 
+                i_Item_Nivel4++; 
+                iNumerado = true; 
+            }
+
+            if (_class == 'sessionBreakPro') {
+                i_Paragrafo_Numerado_Nivel1 = 0;
+                i_Paragrafo_Numerado_Nivel2 = 0;
+                i_Paragrafo_Numerado_Nivel3 = 0;
+                i_Paragrafo_Numerado_Nivel4 = 0;
+            
+                i_Item_Nivel1 = 0;
+                i_Item_Nivel2 = 0;
+                i_Item_Nivel3 = 0;
+                i_Item_Nivel4 = 0;
+            }
+            
+            var item = (_class == 'Paragrafo_Numerado_Nivel1') ? i_Paragrafo_Numerado_Nivel1 : '';
+                item = (_class == 'Paragrafo_Numerado_Nivel2') ? i_Paragrafo_Numerado_Nivel1+'.'+i_Paragrafo_Numerado_Nivel2 : item;
+                item = (_class == 'Paragrafo_Numerado_Nivel3') ? i_Paragrafo_Numerado_Nivel1+'.'+i_Paragrafo_Numerado_Nivel2+'.'+i_Paragrafo_Numerado_Nivel3 : item;
+                item = (_class == 'Paragrafo_Numerado_Nivel4') ? i_Paragrafo_Numerado_Nivel1+'.'+i_Paragrafo_Numerado_Nivel2+'.'+i_Paragrafo_Numerado_Nivel3+'.'+i_Paragrafo_Numerado_Nivel4 : item;
+            
+                item = (_class == 'Item_Nivel1') ? i_Item_Nivel1 : item;
+                item = (_class == 'Item_Nivel2') ? i_Item_Nivel1+'.'+i_Item_Nivel2 : item;
+                item = (_class == 'Item_Nivel3') ? i_Item_Nivel1+'.'+i_Item_Nivel2+'.'+i_Item_Nivel3 : item;
+                item = (_class == 'Item_Nivel4') ? i_Item_Nivel1+'.'+i_Item_Nivel2+'.'+i_Item_Nivel3+'.'+i_Item_Nivel4 : item;
+            
+            if (iNumerado) {
+                if (_this.find('a[name*="RefPro_"]').length == 0) {
+                    _this.prepend('<a name="RefPro_'+randRef+'">');
+                } else {
+                    randRef = _this.find('a[name*="RefPro_"]').attr('name').replace('RefPro_','');
+                }
+                arrayParagrafos.push({ref: randRef, item: item, text: _this.text()});
+            }
+        });
+        return arrayParagrafos;
+    } else {
+        return false;
+    }
+}
+function clickScroolToRef() {
+    $('iframe.cke_wysiwyg_frame').each(function(index){
+        var iframe_ = $(this).contents();
+        if ( iframe_.find('body').attr('contenteditable') == 'true' ) {
+            iframe_.find('.anchorRefInternaPro').unbind().on('click', function(){
+                var _this = $(this);
+                var ref = _this.attr('href');
+                    ref = (typeof ref !== 'undefined') ? ref.replace('#','') : false;
+                if (ref) {
+                    var container = $('#divEditores');
+                    var element = iframe_.find('a[name="'+ref+'"]').closest('p');
+                    var position = element.offset().top + 270;
+                    container.animate({
+                        scrollTop: position
+                    });
+                }
+            });
+        }
+    });
+}
+
+function getCharOnCursor(position = 'prev') {
+    var range = oEditor.getSelection().getRanges()[ 0 ],
+        startNode = range.startContainer;
+    var pos = (position == 'prev') ? range.startOffset - 1 : range.startOffset;
+
+    if ( startNode.type == CKEDITOR.NODE_TEXT && range.startOffset )
+        // Range at the non-zero position of a text node.
+        return startNode.getText()[ pos ];
+    else {
+        // Expand the range to the beginning of editable.
+        range.collapse( true );
+        range.setStartAt( oEditor.editable(), CKEDITOR.POSITION_AFTER_START );
+
+        // Let's use the walker to find the closes (previous) text node.
+        var walker = new CKEDITOR.dom.walker( range ),
+            node;
+
+        while ( ( node = walker.previous() ) ) {
+            // If found, return the last character of the text node.
+            if ( node.type == CKEDITOR.NODE_TEXT )
+                return node.getText().slice( -1 );         
+        }
+    }
+
+    // Selection starts at the 0 index of the text node and/or there's no previous text node in contents.
+    return null;
+}
+function setStyleReview(type = 'add' , mode = 'insert', text = '', addSp = false, pClass = false) {
+    var userReview = getOptionsPro('usuarioSistema') ? getOptionsPro('usuarioSistema') : '';
+    var dateReview = moment().format('DD/MM/YYYY HH:mm');
+    var reviewRef = randomString(8);
+    if (mode == 'change') {
+        var styleBgColor = new CKEDITOR.style({
+            element: 'span',
+            attributes: {
+                'data-review': type,
+                'data-user-review': userReview,
+                'data-date-review': dateReview,
+                'data-id-review': reviewRef,
+                'class': 'reviewSeiPro',
+                'style': (type == 'add') ? 'background-color: #F0F8FF' : 'background-color: #FFF0F5'
+            }
+        });
+
+        var styleTxtColor = new CKEDITOR.style({
+            element: (type == 'add') ? 'u' : 's',
+            attributes: {
+                'data-review': type,
+                'data-review': type,
+                'data-user-review': userReview,
+                'data-date-review': dateReview,
+                'data-id-review': reviewRef,
+                'class': 'reviewSeiPro',
+                'style': (type == 'add') ? 'color:#0000FF' : 'color:#FF0000'
+            }
+        });
+
+        oEditor.applyStyle(styleBgColor); 
+        oEditor.applyStyle(styleTxtColor); 
+    } else if (mode == 'insert') {
+        var inserHtml = '<span data-review="'+type+'" class="reviewSeiPro" data-id-review="'+reviewRef+'" data-date-review="'+dateReview+'" data-user-review="'+userReview+'" style="background-color:'+(type == 'add' ? '#F0F8FF' : '#FFF0F5')+';"><'+(type == 'add' ? 'u' : 's')+' style="color:'+(type == 'add' ? '#0000FF' : '#FF0000')+';">'+text+'</'+(type == 'add' ? 'u' : 's')+'></span>'+(addSp ? '<span class="reviewSP">&nbsp;</span> ' : '');
+            if (pClass) {
+                oEditor.insertHtml('<p class="'+pClass+'">'+inserHtml+'</p> ');
+            } else {
+                oEditor.insertHtml(inserHtml);
+            }
+    }
+}
+function showReviewTips(this_, iframeDoc) {
+    iframeDoc.find('.reviewDisplayPro').remove();
+
+    var elem = $(this_).closest('span');
+    var userReview = elem.attr('data-user-review');
+        userReview = $("<div/>").text(userReview).html();
+    var dateReview = elem.attr('data-date-review');
+        dateReview = $("<div/>").text(dateReview).html();
+    var typeReview = elem.attr('data-review');
+    var idReview = elem.attr('data-id-review');
+    var commentReview = elem.attr('data-comment');
+        commentReview = (typeof commentReview === 'undefined') ? '' : $("<div/>").text(commentReview).html();
+
+    var html =  getHtmlReviewDisplayPro({
+        date: dateReview,
+        id_review: idReview,
+        type: typeReview,
+        user: userReview,
+        comment: commentReview,
+        text: false
+    });
+
+        elem.prepend(html);
+    
+        var boxDisplayLink = elem.find('.reviewDisplayPro');
+        var boxDisplayLink_left = boxDisplayLink.offset().left;
+        var boxDisplayLink_width = boxDisplayLink.width();
+        var windowWidth = $(window).width();
+        var margin = ( boxDisplayLink_left+boxDisplayLink_width > windowWidth ) ? windowWidth-(boxDisplayLink_left+boxDisplayLink_width+45) : 0;
+            boxDisplayLink.css('margin-left', margin);
+    console.log(elem[0], iframeDoc);
+}
+function scroolToReview(idReview) {
+    $('iframe.cke_wysiwyg_frame').each(function(index){
+        var iframe_ = $(this).contents();
+        if ( iframe_.find('body').attr('contenteditable') == 'true' ) {
+                var container = $('#divEditores');
+                var element = iframe_.find('.reviewSeiPro[data-id-review="'+idReview+'"]').closest('p');
+                var position = element.offset().top + 200;
+                container.animate({
+                    scrollTop: position
+                });
+                return false;
+        }
+    });
+}
+function getHtmlReviewDisplayPro(data, readonly = false) {
+    var textCommentReview = (data.comment == '') ? 'Adicionar coment\u00E1rio' : data.comment;
+        textCommentReview = (data.comment == '' && readonly) ? 'Nenhum coment\u00E1rio' : textCommentReview;
+    var html =  '<div class="reviewDisplayPro" unselectable="on">'+
+                '    <span contenteditable="false">'+
+                (data.text 
+                    ? '<span style="margin:5px;display:block;"><span style="background-color:'+(data.type == 'add' ? '#F0F8FF' : '#FFF0F5')+';"><'+(data.type == 'add' ? 'u' : 's')+' style="color:'+(data.type == 'add' ? '#0000FF' : '#FF0000')+';">'+data.text+'</'+(data.type == 'add' ? 'u' : 's')+'></span></span>'
+                    : ''
+                )+
+                (data.html 
+                    ? '<div onmouseover="return infraTooltipMostrar(\'Clique para rolar at\u00E9 o texto\');" onmouseout="return infraTooltipOcultar();" class="textReview" onclick="scroolToReview(\''+data.id_review+'\')">'+data.html+'</div>'
+                    : ''
+                )+
+                '        <span style="color: #777;font-size: 90%;margin-left:5px;"><i class="fas fa-user" style="padding-right: 5px;font-size: 90%;color: #4285f4;"></i><span class="info"></span><strong class="title-reviewtip" title="'+data.user+'">'+data.user+'</strong></span>'+
+                '        <span style="color: #777;font-size: 80%;margin-left:10px;font-style: italic;"><i class="far fa-clock" style="color: #777;"></i> '+data.date+'</span>'+
+                '        <span class="action" style="float: right;font-size: 80%;margin-left:10px;cursor:pointer;color: #9CB639;" onclick="parent.removeReviewPro(this)" data-readonly="'+readonly+'" data-id-review="'+data.id_review+'" data-mode="accept" data-type="'+data.type+'" title="Aceitar revis\u00E7\u00E3o"><i class="fas fa-check-circle" style="color: #9CB639;"></i> Aceitar</span>'+
+                '        <span class="action" style="float: right;font-size: 80%;margin-left:10px;cursor:pointer;color: #E46E64;" onclick="parent.removeReviewPro(this)" data-readonly="'+readonly+'" data-id-review="'+data.id_review+'" data-mode="reject" data-type="'+data.type+'" title="Rejeitar revis\u00E7\u00E3o"><i class="fas fa-times-circle" style="color: #E46E64;"></i> Rejeitar</span>'+
+                (getOptionsPro('usuarioSistema') == data.user && !readonly
+                    ? '        <span onclick="parent.addCommentReviewPro(this)" data-info="'+(data.comment == '' ? 'new' : 'update')+'" style="color: #777;font-size: 90%;display:block;font-style: italic;margin: 10px 0 5px 0;padding: 5px;border-radius:5px;"><i class="fas fa-comment" style="margin-right: 5px;font-size: 90%;color: #e9af68;transform: scale(-1, 1);"></i><span class="commentReview info" style="padding: 3px;">'+textCommentReview+'<span></span>'
+                    : (data.comment == '' && !readonly ? '' : '<span style="color: #777;font-size: 90%;display:block;font-style: italic;margin: 10px 0 5px 0;padding: 5px;border-radius:5px;"><i class="fas fa-comment" style="margin-right: 5px;font-size: 90%;color: #e9af68;transform: scale(-1, 1);"></i><span class="commentReview info">'+textCommentReview+'<span></span>')
+                )+
+                '    </span>'+
+                '</div>';
+    return html;
+}
+function addCommentReviewPro(this_) {
+    var _this = $(this_);
+    var _target = _this.data('readonly') ? _this : _this;
+    var _info = _this.find('.commentReview');
+
+    if (_this.attr('data-info') == 'new') _info.html('');
+        _info.prop('contenteditable',true).focus().on('keydown',function(e) {
+            setTimeout(function(){ 
+                var text = _info.text().trim();
+                if (text != '') {
+                    _this.attr('data-info','update');
+                    _this.closest('.reviewSeiPro').attr('data-comment',text.replace(/(\r\n|\n|\r)/gm, ' ')).attr('data-date-review',moment().format('DD/MM/YYYY HH:mm'));
+                } else {
+                    _this.attr('data-info','new');
+                    _this.closest('.reviewSeiPro').removeAttr('data-comment');
+                }
+            }, 100);
+        });
+}
+function removeReviewPro(this_) {
+    var _this = $(this_);
+    var _data = _this.data();
+
+    oEditor.fire('saveSnapshot');
+    $('iframe.cke_wysiwyg_frame').each(function(index){
+        if ( $(this).contents().find('body').attr('contenteditable') == 'true' ) {
+            setRemoveReviewPro(_this, $(this).contents(), _data);
+            oEditor.fire('saveSnapshot');
+        }
+    });
+}
+function setRemoveReviewPro(_this, iframeEditor, _data) {
+        iframeEditor.find('.reviewDisplayPro').remove();
+    if (_data.mode == 'acceptAll') {
+        iframeEditor.find('.reviewSeiPro').each(function(){
+            var rv = $(this);
+            if (rv.data('review') == 'add') {
+                rv.prev('span.reviewSP').remove();
+                rv.after(rv.text()).remove();
+            } else if (rv.data('review') == 'delete') {
+                rv.remove();
+            }
+        });
+    } else if (_data.mode == 'rejectAll') {
+        iframeEditor.find('.reviewSeiPro').each(function(){
+            var rv = $(this);
+            if (rv.data('review') == 'add') {
+                rv.prev('span.reviewSP').remove();
+                rv.remove();
+            } else if (rv.data('review') == 'delete') {
+                rv.after(rv.text()).remove();
+            }
+        });
+    } else if (_data.mode == 'accept') {
+        if (_data.type == 'add') {
+            var elemReview = iframeEditor.find('span[data-id-review="'+_data.idReview+'"]');
+            elemReview.prev('span.reviewSP').remove();
+            elemReview.after(elemReview.text()).remove();
+            if (_data.readonly) _this.closest('.reviewDisplayPro').slideUp('slow', function() { _this.closest('.reviewDisplayPro').remove() });
+            return false;
+        } else if ('delete') {
+            var elemReview = iframeEditor.find('span[data-id-review="'+_data.idReview+'"]');
+            elemReview.remove();
+            if (_data.readonly) _this.closest('.reviewDisplayPro').slideUp('slow', function() { _this.closest('.reviewDisplayPro').remove() });
+            return false;
+        }
+    } else if (_data.mode == 'reject') {
+        if (_data.type == 'add') {
+            var elemReview = iframeEditor.find('span[data-id-review="'+_data.idReview+'"]');
+            elemReview.prev('span.reviewSP').remove();
+            elemReview.remove();
+            if (_data.readonly) _this.closest('.reviewDisplayPro').slideUp('slow', function() { _this.closest('.reviewDisplayPro').remove() });
+            return false;
+        } else if ('delete') {
+            var elemReview = iframeEditor.find('span[data-id-review="'+_data.idReview+'"]');
+            elemReview.after(elemReview.text()).remove();
+            if (_data.readonly) _this.closest('.reviewDisplayPro').slideUp('slow', function() { _this.closest('.reviewDisplayPro').remove() });
+            return false;
+        }
+    }
+    if (_data.mode == 'acceptAll' || _data.mode == 'rejectAll') {
+        setTimeout(function(){ 
+            contentDialogReview('<span style="font-size: 12pt;"><i class="fas fa-check verdeColor" style="margin-right: 5px;"></i>Revis\u00F5es realizadas com sucesso</span>');
+            setTimeout(function(){ CKEDITOR.dialog.getCurrent().hide() },3000);
+        },500);
+    }
+}
+function hideReviewTips(iframeDoc) {
+    if (iframeDoc.find('.reviewDisplayPro:hover').length == 0) {
+        iframeDoc.find('.reviewDisplayPro').remove();
+    }
+}
+function getStyleReview(evt) {
+    var keycode = evt.data.keyCode;
+    var wordKey = evt.data.domEvent.$.key;
+    var sel = oEditor.getSelection();
+    var select = sel.getStartElement();
+    var spanElement = $(select.$).closest('span');
+    var selectTxt = sel.getSelectedText();
+    
+    if (spanElement.hasClass('commentReview')) return false;
+    // console.log(keycode, wordKey, selectTxt, evt);
+    
+    if (selectTxt == '' && keycode == 8 && (spanElement.length == 0 || (spanElement.length && spanElement.data('review') != 'add'))) {
+        oEditor.fire('saveSnapshot');
+        var newRange = setPositionCursor();
+        var wordDeleted = getCharOnCursor('prev');
+            wordDeleted = (wordDeleted == ' ') ? '&nbsp;' :  wordDeleted;
+        
+            setStyleReview('delete', 'insert', wordDeleted);
+            sel.selectRanges([ newRange ]);
+            oEditor.fire('saveSnapshot');
+            // console.log(wordDeleted);
+
+    } else if (selectTxt == '' && keycode == 46) {
+        oEditor.fire('saveSnapshot');
+        var newRange = setPositionCursor();
+        var wordDeleted = getCharOnCursor('next');
+        
+            setStyleReview('delete', 'insert', wordDeleted);
+            //oEditor.getSelection().selectRanges([ newRange ]);
+            oEditor.fire('saveSnapshot');
+            // console.log(wordDeleted);
+
+    } else {
+        if (wordKey != 'Shift' && wordKey != 'Meta' && wordKey.indexOf('Arrow') === -1) {
+            if (selectTxt != '' ) {
+                oEditor.fire('saveSnapshot');
+                var insetSp = (keycode == 46 || keycode == 32) ? '' : wordKey;
+                    insetSp = (keycode == 8) ? ' ' : insetSp;
+
+                    if (selectTxt.indexOf('\n\n') !== -1) {
+                        var listElem = setListElementsSelected();
+                        // console.log(listElem);
+                        $.each(listElem,function(i, v){
+                            console.log(i, v.attr('class'));
+                            setStyleReview('delete', 'insert', v.text(), true, v.attr('class'));
+                        });
+                        oEditor.fire('saveSnapshot');
+                    } else {
+                        setStyleReview('delete', 'insert', selectTxt, true);
+                        setStyleReview('add', 'insert', insetSp);
+                        oEditor.fire('saveSnapshot');
+                    }
+                
+                    var _select = oEditor.getSelection().getStartElement();
+                    var _spanElement = $(_select.$).closest('span');
+                    if (keycode != 8 && keycode != 46 && _spanElement.length && _spanElement.data('review') == 'add') {
+                        var newRange = setPositionCursor();
+
+                        setTimeout(function(){ 
+                            _spanElement.find('u').text(wordKey); 
+                            oEditor.getSelection().selectRanges([ newRange ]);
+                        });
+                    }
+                    // console.log(_spanElement[0], keycode, wordKey);
+                
+            } else {
+                if (spanElement.length == 0 || (spanElement.length && spanElement.data('review') != 'add')) {
+                    oEditor.fire('saveSnapshot');
+                    setStyleReview('add','change');
+                    // console.log('add insert');
+                    oEditor.fire('saveSnapshot');
+                }
+            }
+        }
+    }
+}
+function setListElementsSelected() {
+    var init = oEditor.getSelection().getNative();
+    var start = $(init.focusNode.parentNode);
+    var end = $(init.baseNode.parentNode);
+    var list = [];
+
+    function add(elem) {
+        var next = elem.next();
+            list.push(elem.clone());
+        if (end[0] != elem[0]) add(next);
+    }
+    add(start);
+
+    return list;
+}
+function setPositionCursor() {
+    var oldRanges = oEditor.getSelection().getRanges();
+    var oldRange = oldRanges[oldRanges.length - 1];
+    var newRange = oEditor.createRange();
+        newRange.setStart(oldRange.endContainer, oldRange.endOffset);
+        newRange.setEnd(oldRange.endContainer, oldRange.endOffset);
+    return newRange;
+}
+function getBoxCtrReview(this_) {
+    setParamEditor(this_);
+    oEditor.openDialog('ReviewSEI');
+}
+function contentDialogReview(alertText = '<span style="font-size: 12pt;"><i class="fas fa-info-circle laranjaColor" style="margin-right: 5px;"></i>Nenhuma revis\u00E3o identificada</span>') {
+    var listReviews = $('iframe[title*="txaEditor_"]').map(function(v, i){ 
+        var _this = $(this);
+        var body = _this.contents().find('body');
+        hideReviewTips(_this);
+        if ( body.attr('contenteditable') == 'true' ) {
+            var review = body.find('.reviewSeiPro').map(function(){
+                var _data = $(this).data();
+                var html = $(this).closest('p').clone().find('.reviewSeiPro[data-id-review="'+_data.idReview+'"]').addClass('reviewHighlights').end().html();
+                    $(this).find('.reviewDisplayPro').remove();
+
+                return getHtmlReviewDisplayPro({
+                    date: _data.dateReview,
+                    id_review: _data.idReview,
+                    type: _data.review,
+                    user: _data.userReview,
+                    comment: typeof _data.comment === 'undefined' ? '' : _data.comment,
+                    text: false,
+                    html: html
+                }, true);
+            }).get().join('');
+            return review;
+        }
+    }).get().join('');
+
+    var btnControlReject =  '<div style="margin: 10px 0 !important;display: inline-block;width: 95%;">'+
+                            '   <span class="action" style="font-size: 11pt;float: right;margin-left:10px;cursor:pointer;color: #9CB639;" onclick="parent.removeReviewPro(this)" data-mode="acceptAll" title="Aceitar revis\u00E7\u00E3o"><i class="fas fa-check-circle" style="font-size: 11pt;color: #9CB639;"></i> Aceitar Todas</span>'+
+                            '   <span class="action" style="font-size: 11pt;float: left;margin-left:10px;cursor:pointer;color: #E46E64;" onclick="parent.removeReviewPro(this)" data-mode="rejectAll" title="Rejeitar revis\u00E7\u00E3o"><i class="fas fa-times-circle" style="font-size: 11pt;color: #E46E64;"></i> Rejeitar todas</span>'+
+                            '</div>';
+
+    $('#boxReviews').html(listReviews == '' ? alertText : btnControlReject+listReviews);
+}
+function getDialogReview() {
+    var htmlReview =   '<div style="padding-bottom: 10px;overflow: auto;max-height: 400px;text-align: center;" id="boxReviews"></div>';
+    CKEDITOR.dialog.add( 'ReviewSEI', function(editor)
+      {
+         return {
+            title : 'Gerenciar Revis\u00F5es',
+            minWidth : 700,
+            minHeight : 280,
+            buttons: [],
+            onShow : function() {
+                contentDialogReview();
+            },
+            contents :
+            [
+               {
+                  id : 'tab1',
+                  label : 'Revis\u00F5es',
+                  elements :
+                  [
+                    {
+             			type: 'html',
+             			html: htmlReview
+             		}
+                  ]
+               }
+            ]
+         };
+      } );
+}
+function getBoxReview(this_) {
+    var btn = $('.getReviewButton');
+	if ( btn.hasClass('cke_button_off') ) {
+        btn.addClass('cke_button_on').removeClass('cke_button_off');
+        initStyleReview();
+	} else {
+		btn.addClass('cke_button_off').removeClass('cke_button_on');
+	}
+}
+function initStyleReview() {
+    if (typeof window.loadedStyleReview !== 'undefined' && $.inArray(oEditor.name, window.loadedStyleReview) !== -1) {
+        return false;
+    } else {
+        oEditor.on('key', function (evt) {
+            if ($('.getReviewButton').hasClass('cke_button_on')) getStyleReview(evt);
+        });
+        if (typeof window.loadedStyleReview === 'undefined') { 
+            window.loadedStyleReview = [oEditor.name];
+        } else {
+            window.loadedStyleReview.push(oEditor.name);
+        }
+    }
+    console.log(window.loadedStyleReview,'window.loadedStyleReview');
+}
+
+// CKWebSpeech
+// CKWebSpeech is a speech recognition plugin to CKEditor, it type out voice ideas into CKEdtior, with support for 32 languages from 62 culture variants.
+// https://github.com/ultranaco/ckwebspeech
+
+function instanceDitadoPro(oEditor) {
+    if (typeof oEditor.ckWebSpeech === 'undefined') {
+        oEditor.addCommand( 'webspeechDialog', new CKEDITOR.dialogCommand( 'webspeechDialog' ) );
+
+        oEditor.addCommand('webspeechToogle', {
+            exec: function( oEditor ) {
+                //console.log(oEditor.ckWebSpeech);
+                oEditor.ckWebSpeech.toogleSpeech();
+            }
+        });
+
+        var culture = typeof (oEditor.config.ckwebspeech) === "undefined" 
+                    ? undefined : typeof oEditor.config.ckwebspeech.culture === "undefined"
+                        ?undefined : oEditor.config.ckwebspeech.culture;
+
+            oEditor['ckWebSpeech'] = new CKWebSpeech(langs, culture, oEditor);
+
+            oEditor.config.ckwebspeech = {
+                'culture' : 'pt-BR',
+                'commandvoice' : 'ok', // trigger command listener
+                'commands': [            // action list
+                    {'vai': 'openai'},
+                    {'newline': 'nova linha'},
+                    {'newparagraph': 'novo par\u00E1grafo'},
+                    {'undo': 'desfazer'},
+                    {'redo': 'refazer'}
+                ]
+            };
+
+        if ( oEditor.contextMenu && typeof oEditor.getMenuItem('webSpeechEnabled') === 'undefined' ) {
+            oEditor.addMenuGroup( 'webSpeech', -10 * 3 );
+            oEditor.addMenuItem( 'webSpeechEnabled',
+                {
+                    label : 'Ditado',
+                    icon : URL_SPRO + 'icons/editor/webspeech.png',
+                    command : 'webspeechToogle',
+                    group : 'webSpeech'
+                });
+            oEditor.contextMenu.addListener( function( element ) {
+                // if ( hasSelection(oEditor) ) {
+                    return { webSpeechEnabled: CKEDITOR.TRISTATE_OFF};
+                // }
+            });
+        }
+    }
+}
+function getBoxDitado(this_) {
+    var btn = $('.getDitadoButton');
+	if ( btn.hasClass('cke_button_off') ) {
+        btn.addClass('cke_button_on').removeClass('cke_button_off');
+	} else {
+        btn.addClass('cke_button_off').removeClass('cke_button_on');
+	}
+    oEditor.execCommand('webspeechToogle');
+}
+function getBoxCtrDitado(this_) {
+    setParamEditor(this_);
+    oEditor.openDialog('webspeechDialog');
+}
+function initDitadoPro() {
+    langs =
+	[
+	['Afrikaans', 			['af-ZA']],
+	['Bahasa Indonesia',	['id-ID']],
+	['Bahasa Melayu', 		['ms-MY']],
+	['Catal\u00E0', 		['ca-ES']],
+	['\u010Ce\u0161tina', 	['cs-CZ']],
+	['Deutsch',         	['de-DE']],
+	['English',         	['en-AU', 'Australia'],
+							['en-CA', 'Canada'],
+							['en-IN', 'India'],
+							['en-NZ', 'New Zealand'],
+							['en-ZA', 'South Africa'],
+							['en-GB', 'United Kingdom'],
+							['en-US', 'United States']],
+	['Espa\u00F1ol',        ['es-AR', 'Argentina'],
+							['es-BO', 'Bolivia'],
+							['es-CL', 'Chile'],
+							['es-CO', 'Colombia'],
+							['es-CR', 'Costa Rica'],
+							['es-EC', 'Ecuador'],
+							['es-SV', 'El Salvador'],
+							['es-ES', 'Espa\u00F1a'],
+							['es-US', 'Estados Unidos'],
+							['es-GT', 'Guatemala'],
+							['es-HN', 'Honduras'],
+							['es-MX', 'M\u00E9xico'],
+							['es-NI', 'Nicaragua'],
+							['es-PA', 'Panam\u00E1'],
+							['es-PY', 'Paraguay'],
+							['es-PE', 'Per\u00FA'],
+							['es-PR', 'Puerto Rico'],
+							['es-DO', 'Rep\u00FAblica Dominicana'],
+							['es-UY', 'Uruguay'],
+							['es-VE', 'Venezuela']],
+	['Euskara',         	['eu-ES']],
+	['Fran\u00E7ais',       ['fr-FR']],
+	['Galego',          	['gl-ES']],
+	['Hrvatski',        	['hr_HR']],
+	['IsiZulu',         	['zu-ZA']],
+	['\u00CDslenska',        ['is-IS']],
+	['Italiano',        	['it-IT', 'Italia'],
+							['it-CH', 'Svizzera']],
+	['Magyar',          	['hu-HU']],
+	['Nederlands',      	['nl-NL']],
+	['Norsk bokm\u00E5l',   ['nb-NO']],
+	['Polski',          	['pl-PL']],
+	['Portugu\u00EAs',      ['pt-BR', 'Brasil'],
+							['pt-PT', 'Portugal']],
+	['Rom\u00E2n\u0103',    ['ro-RO']],
+	['Sloven\u010Dina',     ['sk-SK']],
+	['Suomi',           	['fi-FI']],
+	['Svenska',         	['sv-SE']],
+	['T\u00FCrk\u00E7e',    ['tr-TR']],
+	['\u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0438',       	['bg-BG']],
+	['P\u0443\u0441\u0441\u043A\u0438\u0439',         					['ru-RU']],
+	['\u0421\u0440\u043F\u0441\u043A\u0438',          					['sr-RS']],
+	['\uD55C\uAD6D\uC5B4',            									['ko-KR']],
+	['\u4E2D\u6587',             										['cmn-Hans-CN', '\u666E\u901A\u8BDD (\u4E2D\u56FD\u5927\u9646)'],
+							['cmn-Hans-HK', '\u666E\u901A\u8BDD (\u9999\u6E2F)'],
+							['cmn-Hant-TW', '\u4E2D\u6587 (\u53F0\u7063)'],
+							['yue-Hant-HK', '\u7CB5\u8A9E (\u9999\u6E2F)']],
+	['\u65E5\u672C\u8A9E',  ['ja-JP']],
+	['Lingua lat\u012Bna',  ['la']]
+	];
+
+    CKWebSpeechHandler = function(oEditor) {
+        this._editor = oEditor;
+        this._currentCulture = {val: 'pt-BR', langVal: 19};
+        this._elmtPlugIcon;
+        this._plugPath;
+        this._recognizing;
+        this._recognition;
+        this._ignoreOnend;
+        this._start_timestamp;
+        this._working;
+        this.CKWebSpeechHandler();
+    }
+
+    CKWebSpeechHandler.prototype.CKWebSpeechHandler = function() {
+        this._recognition;
+        this._plugPath = URL_SPRO;
+        this._recognizing = false;
+        this._ignoreOnend = false;
+        this._working = false;
+        this.getElementPluginIcon();
+        this.initServiceSpeech();
+    }
+    CKWebSpeechHandler.prototype.isUnlockedService = function() {
+        if (!('webkitSpeechRecognition' in window)) 
+            return false;  
+        return true;
+    }
+    CKWebSpeechHandler.prototype.getElementPluginIcon = function() {
+        var obj = this; var cont =0;
+
+        var listener = setInterval(function(){
+            cont++;
+            var element;
+            try
+                {element = document.getElementById(obj._editor.ui.instances.Webspeech._.id);}
+            catch(err)
+                {element = null;}
+            
+            if(element !== null) {
+                obj._elmtPlugIcon = element.getElementsByClassName('cke_button__webspeech_icon')[0];
+                clearInterval(listener);
+            }
+            if(cont == 500) clearInterval(listener);
+        }, 1);
+    }
+
+    CKWebSpeechHandler.prototype.updateIcons = function() {
+        console.log('Ditado_recognizing: ', this._recognizing);
+        if(this._recognizing){
+            $('.cke_button__ditado_icon').css('background','url(\''+URL_SPRO+'icons/editor/webspeech-enable.gif\')');
+            $('.getDitadoButton').addClass('cke_button_on').removeClass('cke_button_off');
+            
+        }else{
+            $('.cke_button__ditado_icon').css('background','url(\''+URL_SPRO+'icons/editor/webspeech.png\')');
+            $('.getDitadoButton').addClass('cke_button_off').removeClass('cke_button_on');
+        }
+    }
+
+    CKWebSpeechHandler.prototype.initServiceSpeech = function() {
+        if(this.isUnlockedService())
+        {
+            this._recognition = new webkitSpeechRecognition();
+            this._recognition.continuous = true; 
+            this._recognition.interimResults = false;
+            
+            var self = this
+            this._recognition.onstart = function(){ self.onStart() };
+            this._recognition.onerror = function(event){ self.onError(event) };
+            this._recognition.onend = function(){ self.onEnd() };
+            this._recognition.onresult = function(event){ self.onResult(event) };
+            this._recognition.onspeechstart = function(event){self.onSpeech()};
+            this._recognition.onspeechend = function(event){self.onSpeechEnd()};
+        }
+    }
+
+    CKWebSpeechHandler.prototype.onStart = function() {
+        //console.log(this)
+        this._recognizing = true;
+        this.updateIcons();
+    }
+
+    CKWebSpeechHandler.prototype.onError = function(event) {
+        if (event.error == 'no-speech') {
+            //start_img.src = '/media/images-webspeech/mic.gif
+            //console.log('info_no_speech');
+            this._ignore_onend = true;
+        }
+        if (event.error == 'audio-capture') {
+            //start_img.src = '/media/images-webspeech/mic.gif';
+            //showInfo('info_no_microphone');
+            //console.log('auddio_capture');
+            this._ignore_onend = true;
+        }
+        if (event.error == 'not-allowed') {
+            if (event.timeStamp - this._start_timestamp < 100) {
+                //console.log('info_blocked');//showInfo('info_blocked');
+            } else {
+                //console.log('info_denied');//showInfo('info_denied');
+            }
+            this._ignore_onend = true;
+        }
+        this.updateIcons();
+    }
+
+    CKWebSpeechHandler.prototype.onEnd = function() {
+        this._recognizing = false;
+        if (this._ignoreOnend) return;
+        this.updateIcons();
+    }
+    CKWebSpeechHandler.prototype.onSpeech = function(event)  {
+        // this._elmtPlugIcon.style.backgroundImage = 'url(' +  this._plugPath 
+                // + 'icons/editor/speech.gif)';
+    }
+
+    CKWebSpeechHandler.prototype.onSpeechEnd = function(event) {
+        this.updateIcons();
+    }
+
+    CKWebSpeechHandler.prototype.onResult = function(event) {
+        if (typeof(event.results) == 'undefined') {
+            this._recognizing = false;
+            this._recognition.onend = null;
+            this._recognition.stop();
+            this.updateIcons();
+        //upgrade();
+            return;
+        }
+        for (var i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+                var t = ' '+event.results[i][0].transcript+' ';
+
+                if (t.match(/.* nova linha .*/) || t.match(/.* ponto final .*/) || t.match(/.* novo par\u00E1grafo .*/)) {
+                    var l = (t.match(/.* nova linha .*/)) ? t.trim().split('nova linha') : t;
+                        l = (t.match(/.* ponto final .*/)) ? t.trim().split('ponto final') : l;
+                        l = (t.match(/.* novo par\u00E1grafo .*/)) ? t.trim().split('novo par\u00E1grafo') : l;
+                        l = l.filter( n => n);
+                    if (l.length > 0) {
+                        var _this = this;
+                        $.each(l, function(i, v){
+                            if (v.trim() != '') {
+                                var ponto = (i < l.length-1) ? '.' : '';
+                                    v = _this.replaceTranscript(v);
+                                    _this._editor.insertText(v+ponto);
+                                    if (ponto != '') oEditor.execCommand('enter');
+                            }
+                        });
+                    } else {
+                        oEditor.execCommand('enter');
+                    }
+                } else if (t.trim().toLocaleLowerCase() == 'desfazer') {
+                    oEditor.execCommand('undo');
+                } else if (t.trim().toLocaleLowerCase() == 'refazer') {
+                    oEditor.execCommand('redo');
+                } else {
+                    t = this.replaceTranscript(t);
+                    this._editor.insertText(t);
+                }
+                console.log(event.results[i][0].transcript, t);
+            }
+        }
+    }
+
+    CKWebSpeechHandler.prototype.replaceTranscript = function(t) {
+        t = (t.match(/.* abre par\u00EAnteses .*/)) ? t.replace(/ abre par\u00EAnteses /, '(') : t;
+        t = (t.match(/.* fecha par\u00EAnteses .*/)) ? t.replace(/ fecha par\u00EAnteses /, ')') : t;
+        t = (t.match(/.* abre colchete .*/)) ? t.replace(/ abre colchetes /, '[') : t;
+        t = (t.match(/.* fecha colchete .*/)) ? t.replace(/ fecha colchete /, ']') : t;
+        t = (t.match(/.* abre aspas .*/)) ? t.replace(/ abre aspas /, '"') : t;
+        t = (t.match(/.* fecha aspas .*/)) ? t.replace(/ fecha aspas /, '"') : t;
+        t = (t.match(/.* espa\u00E7o .*/)) ? t.replace(/ espa\u00E7o /, ' ') : t;
+        t = (t.match(/.* aspas .*/)) ? t.replace(/ aspas /, '"') : t;
+        t = (t.match(/.* travess\u00E3o .*/)) ? t.replace(/ travess\u00E3o /, ' \u2013 ') : t;
+        t = (t.match(/.* tra\u00E7o .*/)) ? t.replace(/ tra\u00E7o /, '- ') : t;
+        t = (t.match(/.* ponto e v\u00EDrgula .*/)) ? t.replace(/ ponto e v\u00EDrgula /, '; ') : t;
+        t = (t.match(/.* dois pontos .*/)) ? t.replace(/ dois pontos /, ': ') : t;
+        t = (t.match(/.* 2 pontos .*/)) ? t.replace(/ 2 pontos /, ': ') : t;
+        t = (t.match(/.* ponto .*/)) ? t.replace(/ ponto /, '. ') : t;
+        t = (t.match(/.* v\u00EDrgula .*/)) ? t.replace(/ v\u00EDrgula /, ', ') : t;
+
+        var iStr = Array.from(t.trim())[0];
+        var space = (iStr == ',' || iStr == ';' || iStr == ':' || iStr == '-' || iStr == '.') ? '' : ' ';
+        return space+t.trim();
+    }
+    CKWebSpeechHandler.prototype.toogleSpeech = function() {
+        if(!this._recognizing){
+                this._recognition.lang = this._currentCulture.val;
+                this._recognition.start();
+                this._ignore_onend = false;
+                this._start_timestamp = new Date().getTime();
+            }
+        else
+            {this._recognition.stop();}
+    }
+
+    CKWebSpeech = function(langs, culture, oEditor){
+        CKWebSpeechHandler.call(this, oEditor);
+        this._langs = langs;
+        this.CKWebSpeech(culture);
+    }
+
+    CKWebSpeech.prototype = Object.create( CKWebSpeechHandler.prototype );
+
+    CKWebSpeech.prototype.CKWebSpeech = function(_culture){
+        if(typeof _culture !== "undefined")
+            this.setDialectByCulture(_culture);
+    }
+
+    CKWebSpeech.prototype.setDialectByCulture = function(_culture) {
+        for (var i = 0; i < this._langs.length; i++) {
+            for (var j = 1; j < this._langs[i].length; j++) {
+                if(this._langs[i][j][0].toLowerCase() == _culture.toLowerCase())
+                {
+                    this._currentCulture ={val: this._langs[i][j][0], langVal: i};
+                    return this._currentCulture;
+                }//FALTA COLOCAR EN COOKIE
+            };
+        };
+        return this._currentCulture;
+    }
+
+    CKWebSpeech.prototype.setDialectByLanguage = function(_langVal) {
+        this.setDialectByCulture(this._langs[_langVal][1][0]);
+    }
+
+    CKWebSpeech.prototype.getLanguages = function() {
+        var _languages = new Array();
+        for (var i = 0; i < this._langs.length; i++) {
+            _languages.push(new Array(this._langs[i][0], i));
+        };
+        return _languages;
+    }
+
+    CKWebSpeech.prototype.getCultures = function(_langVal) {
+
+        if(typeof _langVal === "undefined")
+            _langVal = this._currentCulture.langVal;
+
+        var _cultures = new Array();
+        for (var i = 1; i < this._langs[_langVal].length; i++) {
+            _cultures.push( new Array(this._langs[_langVal][i][0]));
+        };
+        return  _cultures;
+    }
+    var extern;
+
+    wsDialogHtml = function() {
+        this.updateCulturesSelect = function(elmtCulture, options)
+        {
+            var select_dialect = document.getElementById(elmtCulture._.inputId);
+            
+            for (var i = select_dialect.options.length - 1; i >= 0; i--) {
+                select_dialect.remove(i);
+            }
+            
+            for (var i = 0; i < options.length; i++) {
+                select_dialect.options.add(new Option(options[i], options[i]));
+            }
+            
+        }
+    }
+}
+function getDialogDitado() {
+    if (checkConfigValue('revisaotexto')) {
+        initDitadoPro();
+        CKEDITOR.dialog.add( 'webspeechDialog', function ( oEditor ) {
+            var wsDialogDom = new wsDialogHtml();
+            var selectCulture = oEditor.ckWebSpeech._currentCulture.val;
+
+            return {
+                title: 'Configura\u00E7\u00F5es do Ditado',
+                minWidth: 400,
+                minHeight: 200,
+                contents: [
+                    {
+                        id: 'tab-basic',
+                        label: 'Configura\u00E7\u00F5es b\u00E1sicas',
+                        elements: [
+                            {
+                                type: 'select',
+                                id: 'wslanguages',
+                                label: 'Idioma',
+                                items: oEditor.ckWebSpeech.getLanguages(),
+                                'default': oEditor.ckWebSpeech._currentCulture.langVal,
+                                onChange: function( api ) {
+                                    var dialog = CKEDITOR.dialog.getCurrent();
+                                    var selCultures = dialog.getContentElement('tab-basic', 'wscultures');
+                                    var options = oEditor.ckWebSpeech.getCultures(api.data.value);
+                                    selCultures.setup({selCultures : selCultures, options : options});
+                                    selCultures.fire('change', {value : options[0][0]}, oEditor);
+                                },
+                                onShow: function(data) {
+                                    var dialog = CKEDITOR.dialog.getCurrent();
+                                    var selLanguages = dialog.getContentElement('tab-basic', 'wslanguages');
+                                    document.getElementById(selLanguages._.inputId).value = 
+                                        oEditor.ckWebSpeech._currentCulture.langVal;
+                                }
+                            },
+                            {
+                                type: 'select',
+                                id: 'wscultures',
+                                label: 'Cultura',
+                                items: oEditor.ckWebSpeech.getCultures(),
+                                'default': oEditor.ckWebSpeech._currentCulture.val,
+                                onChange: function( api ) {
+                                    selectCulture = api.data.value;                            
+                                },
+                                setup: function(data) {
+                                    wsDialogDom.updateCulturesSelect(data.selCultures, data.options);
+                                },
+                                onShow: function(data) {
+                                    var dialog = CKEDITOR.dialog.getCurrent();
+                                    var selCultures = dialog.getContentElement('tab-basic', 'wscultures');
+                                    //console.log(selCultures);
+                                    document.getElementById(selCultures._.inputId).value = 
+                                        oEditor.ckWebSpeech._currentCulture.val;
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'tab-adv',
+                        label: 'Advanced Settings',
+                        elements: [
+
+                        ]
+                    }
+                ],
+                onOk: function() {
+                    oEditor.ckWebSpeech.setDialectByCulture(selectCulture);
+                }
+            };
+        });
+    }
+}
+function getBoxStyleEditor(this_) {
+    var btn = $('.getNewStyleButton');
+	if ( btn.hasClass('cke_button_off') ) {
+        btn.addClass('cke_button_on').removeClass('cke_button_off');
+        updateStyleEditor('set');
+	} else {
+        btn.addClass('cke_button_off').removeClass('cke_button_on');
+        updateStyleEditor('remove');
+	}
+}
+function updateStyleEditor(mode) {
+    if (mode == 'set') {
+        localStorage.setItem('seiSlim_editor', true);
+        $('head').find('link[data-style="seipro-fonticon"]').remove();
+        $('head').find('style[data-style="seipro-fonticon"]').remove();
+        insertFontIcon('head');
+        $('body').addClass('seiSlim seiSlim_parent seiSlim_view');
+    } else {
+        localStorage.removeItem('seiSlim_editor');
+        $('body').attr('class','');
+    }
 }
 function initFunctions() {
+    initContextMenuPro();
     getDialogLegisSEI();
-    getDialogNatJusSEI();
     getDialogNotaRodape();
+    initOpenAI();
+    getDialogRefInterna();
     getDialogSumarioDocumento();
     getDialogSyleTable();
 	getDialogTinyUrl();
@@ -5160,19 +6919,22 @@ function initFunctions() {
     getDialogLatex();
     getDialogProcessoPublicoPro();
     getDialogSigilo();
+    getDialogReview();
+    getDialogDitado();
     getDialogBatchImgQuality();
     initDialogImageEditorPro();
 	loadResizeImg();
     updateDialogDefinitionPro();
     loadPasteImgToBase64();
-    initContextMenuPro();
     insertFontIcon('head');
     reloadModalLink();
     setDocCertidao();
+    setDocAutomatico();
     checkAutoSave();
     initDropImages();
     getStylesOnEditor();
     repairSaveButtonBug();
+    clickScroolToRef();
 	
 	// RETORNA DADOS DO PROCESSO
 	var idProcedimento = getParamsUrlPro(window.location.href).id_procedimento;
