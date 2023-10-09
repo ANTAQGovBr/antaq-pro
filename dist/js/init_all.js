@@ -105,7 +105,8 @@ function _P() { // get  Session Name Space
 }
 function loadStyleDesign() {
     var body = document.body;
-    if (localStorage.getItem('seiSlim') && !isNewSEI) {
+    if (localStorage.getItem('seiSlim')) {
+    // if (localStorage.getItem('seiSlim') && !isNewSEI) {
         body.classList.add("seiSlim");
         body.classList.add("seiSlim_parent");
         if (document.getElementById("divInfraAreaTelaE") === null) body.classList.add("seiSlim_view");
@@ -136,6 +137,7 @@ function loadScriptProAll() {
         $.getScript(getUrlExtension("js/lib/moment.min.js"));
         $.getScript(getUrlExtension("js/lib/jquery.tablesorter.combined.min.js"));
         $.getScript(getUrlExtension("js/lib/chosen.jquery.min.js"));
+        $.getScript(getUrlExtension("js/lib/favico-0.3.10.min.js"));
         $.getScript(getUrlExtension("js/sei-pro-all.js"));
     }
 }
