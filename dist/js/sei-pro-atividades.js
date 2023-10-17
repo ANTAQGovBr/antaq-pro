@@ -2882,7 +2882,7 @@ function getHtmlTableAtiv() {
         sessionStorageStorePro('configDataAtividadesHTML', html);
     }
 }
-function getHtmlLinkRequisicao(value, onclick = false) {
+function getHtmlLinkRequisicao(value, onclick = false, showId = true) {
     var linkDoc = (value.data_entrega == '0000-00-00 00:00:00') 
                     ? url_host+'?acao=procedimento_trabalhar&id_procedimento='+value.id_procedimento+'&id_documento='+value.id_documento_requisicao 
                     : url_host+'?acao=procedimento_trabalhar&id_procedimento='+value.id_procedimento+'&id_documento='+value.id_documento_entregue;
@@ -2913,7 +2913,7 @@ function getHtmlLinkRequisicao(value, onclick = false) {
                             '                   </span>'+
                             '               </a>';
         processoHtml = (value.id_tipo_requisicao == 0 && value.id_procedimento == 0) ? '' : processoHtml;
-        processoHtml = '<div class="type-id">#'+value.id_demanda+'</div>'+processoHtml;
+        processoHtml = (showId) ? '<div class="type-id">#'+value.id_demanda+'</div>'+processoHtml : processoHtml;
     return processoHtml;
 }
 function getHtmlActionsConfig(type) {
@@ -13450,8 +13450,15 @@ function getKanbanItem(value) {
                 '   </div>'+
                 '   <div class="kanban-description">'+
                 '       <sub title="'+getTitleDialogBox(value, true)+'">'+
-                '       <div style="margin: 0 0 8px 0;" class="info_noclick">'+getHtmlLinkRequisicao(value, true)+'</div>'+
-                '       '+getTitleDialogBox(value)+
+                '           <div style="margin: 0 0 8px 0;" class="info_noclick">'+getHtmlLinkRequisicao(value, true, false)+'</div>'+
+                '           <div style="font-size: 13px;">'+
+                '               <p style="margin-top: 10px; margin-bottom: 5px;"><span style="font-weight: bolder;">#' + value.id_demanda + '</span></p>'+
+                '               <p style="margin-bottom: 5px;">'+((value.nome_atividade) ? value.nome_atividade : '')+'</p>'+
+                '               <p style="margin-bottom: 5px;">'+
+                '                   '+((value.nome_atividade) ? value.nome_requisicao : '')+
+                '                   '+((value.nome_requisicao) ? '('+value.requisicao_sei+')' : '')+
+                '               </p>'+                
+                '           </div>'+
                 '       </sub>'+
                 '       '+obsGerencial+
                 '       '+obsTecnica+
