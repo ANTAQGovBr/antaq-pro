@@ -10,7 +10,7 @@ Adicionou um novo artigo bem no meio do documento? Não se preocupe, fazemos a e
 
 ## Como utilizar?
 
-No editor de textos do SEI, ative a enumeração automática do **SEI Legis §!** no botão ![icone](/img/icon-cke.png) 
+No editor de textos do SEI, ative a enumeração automática do ANTAQ Pro, clicando no botão **§!** ![icone](/img/icon-cke.png) 
 
 ![Tela 1](../img/tela-legistica1_.gif) 
 
