@@ -10,6 +10,7 @@ Além de gerenciar suas atividades, ele adiciona ao [Sistema Eletrônico de Info
 - [Inserir documento externo (HTML, Google Docs e Google Planilhas)](./pages/INSERIRDOC.md)
 - [Adicionar estilo a tabela](./pages/ESTILOTABELA.md)
 - [Adicionar link de legislação](./pages/LINKLEGIS.md)
+- [Enumerar Normas (Legística)](./pages/LEGISTICA.md)
 - [Primeira letra maiúscula (exceto artigos e preposições)](./pages/LETRAMAIUSC.md)
 - [Inserir referência de documentos do processo](./pages/REFDOCUMENTOS.md)
 - [Inserir nota de rodapé](./pages/NOTARODAPE.md)

@@ -2240,7 +2240,7 @@ function getAtividadesProcessoArvore() {
                             '       </span>'+
                             '      <i class="fas fa-chevron-'+(getOptionsPro('panelDadosArvorePro_atividades') == 'hide' ? 'right' : 'down')+' azulColor" style="float: right; cursor:pointer; margin-right: 20px;" onclick="togglePanelDadosArvore(this)"></i>'+
                             '   </label>'+
-                            '   <div class="infoDadosArvore kanban-container" style="'+(getOptionsPro('panelDadosArvorePro_atividades') == 'hide' ? 'display:none' : '')+';padding: 10px 0;max-height: 800px;overflow-y: scroll;">'+
+                            '   <div class="infoDadosArvore kanban-container" style="'+(getOptionsPro('panelDadosArvorePro_atividades') == 'hide' ? 'display:none' : '')+';padding: 10px 0;">'+
                             '       '+htmlInfoAtividades+
                             '   </div>'+
                             '</div>';
