@@ -33,7 +33,7 @@ function handleClientLoadPro(TimeOut = 3000) {
     } else {
         setTimeout(function(){ 
             handleClientLoadPro(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload handleClientLoadPro'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload handleClientLoadPro'); 
         }, 500);
     }
 }
@@ -230,7 +230,7 @@ function setSelectAllTr(this_, tagname = false) {
     var tagname_select = (tagname) ? 'tr[data-tagname="'+tagname+'"]:visible' : 'tr:visible';
     var listCheckbox = [];
     if (index < 1) {
-        var checkbox = $(this_).closest('table').find(tagname_select).find('input[type=checkbox]');
+        var checkbox = $(this_).closest('table').find(tagname_select).find('input[type=checkbox]:not(.onoffswitch-checkbox)');
         var t = (checkbox.length > limit) ? Math.round(checkbox.length/limit) : true;
         
         if (t) {
@@ -244,7 +244,7 @@ function setSelectAllTr(this_, tagname = false) {
         }
         $(this_).data('index',index+1);
     } else {
-        var checkbox = $(this_).closest('table').find(tagname_select).find('input[type=checkbox]:checked');
+        var checkbox = $(this_).closest('table').find(tagname_select).find('input[type=checkbox]:not(.onoffswitch-checkbox):checked');
         var t = (checkbox.length > limit) ? Math.round(checkbox.length/limit) : false;
         
         if (t) {
@@ -312,7 +312,7 @@ function cleanConfigDataRecebimento() {
     }
     localStorageStorePro('configDataRecebimentoPro', storeRecebimento);
 }
-function removeAllTags() {
+function removeAllTags(forceFilter = false, n) {
     $('#tblProcessosRecebidos, #tblProcessosGerados, #tblProcessosDetalhado').find('.especifProc').remove();
 	$('#divRecebidos table tbody').find('.tagintable').remove();
 	$('#divRecebidos table tbody tr').each(function(index){ 
@@ -340,6 +340,15 @@ function removeAllTags() {
     initViewEspecifacaoProcesso();
     addAcompanhamentoEspIcon();
     tableHomeDestroy(true);
+    // console.log('### removeAllTags', n, checkLoadedTableSorter(), storeGroupTablePro(), forceFilter, sessionStorageRestorePro('setFiltersTableHome'));
+    if (forceFilter && sessionStorageRestorePro('setFiltersTableHome')) {
+        setTimeout(function(){ 
+            $.each(tableHomePro, function(i){
+                $.tablesorter.setFilters( tableHomePro[i][0], sessionStorageRestorePro('setFiltersTableHome'), true );
+                tableHomePro[i].trigger('update');
+            });
+        }, 1000);
+    }
 }
 function getTagName(tagName, type) {
 	var tagName_ = (typeof tagName !== 'undefined' && tagName != '' ) ? removeAcentos(tagName).replace(/\ /g, '') : 'SemGrupo' ;
@@ -573,25 +582,27 @@ function insertGroupTable(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             insertGroupTable(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload insertGroupTable'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload insertGroupTable'); 
         }, 500);
     }
 }
 function initChosenFilterHome(TimeOut = 9000) {
     if (TimeOut <= 0) { return; }
     if (typeof $().chosen !== 'undefined') { 
-        $('#newFiltro .selectPro').chosen({
-            placeholder_text_single: ' ',
-            no_results_text: 'Nenhum resultado encontrado'
-        });
-        forcePlaceHoldChosen();
+        setTimeout(() => {
+            $('#newFiltro .selectPro').chosen({
+                placeholder_text_single: ' ',
+                no_results_text: 'Nenhum resultado encontrado'
+            });
+            forcePlaceHoldChosen();
+        }, 2000);
     } else {
         if (typeof $().chosen === 'undefined' && typeof URL_SPRO !== 'undefined' && TimeOut == 9000) { 
             $.getScript(URL_SPRO+"js/lib/chosen.jquery.min.js");
         }
         setTimeout(function(){ 
             initChosenFilterHome(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initChosenFilterHome'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initChosenFilterHome'); 
         }, 500);
     }
 }
@@ -623,7 +634,7 @@ function initUpdateGroupTable(this_) {
         } 
 
         if (getOptionsPro('panelProcessosView') == 'Quadro') {
-            addKanbanProc(valueSelect);
+            initAddKanbanProc(valueSelect);
             updateGroupTablePro(valueSelect, 'insert');
         } else {
             if ( typeof valueSelect !== 'undefined' && valueSelect != '' ) { 
@@ -654,15 +665,15 @@ function getTableTag(type) {
 }
 function initTableTag(type = '') {
     cleanConfigDataRecebimento();
-	removeAllTags();
+	removeAllTags(false, 1);
 	if ( type != '' ) {
         $('#divRecebidos thead').hide();
 		appendGerados(type);
 		getTableTag(type);
 		getTableOnTag(type);
 	}
-    initNewTabProcesso();
-    setTimeout(function(){ 
+    setTimeout(function(){
+        initNewTabProcesso();
         forcePlaceHoldChosen();
         urgenteProMoveOnTop();
         checkboxRangerSelectShift();
@@ -689,8 +700,12 @@ function urgenteProMoveOnTop() {
     $("#tblProcessosGerados tbody").prepend($('#tblProcessosGerados tbody a.urgentePro[href*="controlador.php?acao=procedimento_trabalhar"]').closest('tr'));
     $("#tblProcessosDetalhado tbody").prepend($('#tblProcessosDetalhado tbody a.urgentePro[href*="controlador.php?acao=procedimento_trabalhar"]').closest('tr'));
 }
+function checkLoadedTableSorter() {
+    return typeof tableHomePro !== 'undefined' && typeof tableHomePro[0] !== 'undefined' && typeof tableHomePro[0].data('tablesorter') !== 'undefined' && typeof tableHomePro[0].data('tablesorter').$filters !== 'undefined';
+}
 function getFilterTableHome(this_) {
     if (tableHomePro.length > 0 && $('.filterTableProcessos').length > 0) {
+        if (!checkLoadedTableSorter()) removeAllTags(false, 2);
         if ($('#selectGroupTablePro').val() != '') {
             $('#selectGroupTablePro').val('').trigger('change').trigger('chosen:updated');
         }
@@ -706,6 +721,7 @@ function getFilterTableHome(this_) {
         } else if (data.type == 'tag') {
             value = (value != '') ? extractOnlyAlphaNum(removeAcentos(value)) : value;
             filters[1] = (value == '' ? '' : 'Marcador? '+value);
+            filters[1] = value == 'null' ? '!Marcador?' : filters[1];
         } else if (data.type == 'clean') {
             $.each(tableHomePro, function(i){
                 tableHomePro[i].trigger('filterReset');
@@ -721,8 +737,12 @@ function getFilterTableHome(this_) {
                 $.each(tableHomePro, function(i){
                     $.tablesorter.setFilters( tableHomePro[i][0], filters, true );
                 });
+                sessionStorageStorePro('setFiltersTableHome', filters);
             }, 100);
+        } else {
+            sessionStorageRemovePro('setFiltersTableHome');
         }
+        // console.log('getFilterTableHome', data, filters);
     } else {
         tableHomeDestroy(true);
     }
@@ -776,6 +796,7 @@ function selectFilterTableHome() {
 
         if (marcadores.length > 0) {
             html += '   <optgroup label="Por marcadores">';
+            html += '       <option value="null" data-type="tag">Sem marcador</option>';
             $.each(marcadores, function(i, v){
                 html += '       <option value="'+v+'" data-type="tag">'+v+'</option>';
             });
@@ -787,17 +808,17 @@ function selectFilterTableHome() {
 }
 function initDadosProcesso(TimeOut = 9000) {
     if (TimeOut <= 0) { return; }
-    if (typeof getParamsUrlPro !== 'undefined' && typeof getDadosIframeProcessoPro !== 'undefined'  && typeof $("#ifrArvore").contents().find('#topmenu').find('a[target="ifrVisualizacao"]').eq(0).attr('href') !== 'undefined' ) { 
+    if (typeof getParamsUrlPro !== 'undefined' && typeof getDadosIframeProcessoPro !== 'undefined'  && typeof $("#ifrArvore").contents().find('#topmenu').find('a[target="'+ifrVisualizacao_+'"]').eq(0).attr('href') !== 'undefined' ) { 
         var id_procedimento = getParamsUrlPro(window.location.href).id_procedimento;
             id_procedimento = (typeof id_procedimento === 'undefined') ? getParamsUrlPro($('#ifrArvore').attr('src')).id_procedimento : id_procedimento;
             id_procedimento = (typeof id_procedimento === 'undefined') ? getParamsUrlPro(window.location.href).id_protocolo : id_procedimento;
-            // idProcedimento = (typeof idProcedimento !== 'undefined') ? idProcedimento : getParamsUrlPro($("#ifrArvore").contents().find('#topmenu').find('a[target="ifrVisualizacao"]').eq(0).attr('href')).id_procedimento;
+            // idProcedimento = (typeof idProcedimento !== 'undefined') ? idProcedimento : getParamsUrlPro($("#ifrArvore").contents().find('#topmenu').find('a[target="'+ifrVisualizacao_+'"]').eq(0).attr('href')).id_procedimento;
             // console.log(id_procedimento, 'processo');
             getDadosIframeProcessoPro(id_procedimento, 'processo');
     } else {
         setTimeout(function(){ 
             initDadosProcesso(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initDadosProcesso'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initDadosProcesso'); 
         }, 500);
     }
 }
@@ -894,7 +915,7 @@ function observeHistoryBrowserPro() {
             var hCurrent = jmespath.search(iHistoryArray, "[?link=='"+window.location.href+"'].id | [0]");
             if (!href.find('span').hasClass('infraArvoreNoSelecionado')) {
                 href.trigger('click');
-                $('#ifrVisualizacao').attr('src', href.attr('href'));
+                $($ifrVisualizacao).attr('src', href.attr('href'));
                 console.log(hCurrent, iHistoryCurrent, iHistoryArray, linkDoc, href.find('span').hasClass('infraArvoreNoSelecionado'), e.state);
                 //history.forward();
                 history.back(); 
@@ -909,14 +930,22 @@ function observeHistoryBrowserPro() {
 function initNewBtnHome() { 
     var base64IconReaberturaPro = 'data:image/png;base64,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';
     var lastCheck = getOptionsPro('lastcheck_AcompEsp');
-        lastCheck = (lastCheck) ? ' <br>(\u00DAltima verifica\u00E7\u00E3o em: '+moment(lastCheck, 'YYYY-MM-DD HH:mm:ss').format('DD/MM/YYYY HH:mm')+')' : false;
+        lastCheck = (lastCheck) ? ' <br>(\u00DAltima verifica\u00E7\u00E3o em: '+moment(lastCheck, 'YYYY-MM-DD HH:mm:ss').format('DD/MM/YYYY HH:mm')+')' : '';
     var title = 'Reabertura Programada de Processos'+lastCheck;
     var iconBoxSlim = localStorage.getItem('seiSlim');
-    var htmlBtn =   '<a tabindex="451" class="botaoSEI iconReaberturaPro '+(iconBoxSlim ? 'iconBoxSlim' : '')+' iconPro_reopen" onmouseout="return infraTooltipOcultar();" onmouseover="return infraTooltipMostrar(\''+title+'\')" onclick="checkDadosAcompEspecial(true);" style="position: relative; margin-left: -3px;">'+
-                    '    <img class="infraCorBarraSistema" src="'+base64IconReaberturaPro+'" title="'+title+'">'+
+    var iconLabel = localStorage.getItem('iconLabel');
+
+    var htmlBtn =   '<a tabindex="451" class="botaoSEI iconReaberturaPro '+(iconLabel ? 'iconLabel' : '')+' '+(iconBoxSlim ? 'iconBoxSlim' : '')+' iconPro_reopen" onmouseout="return infraTooltipOcultar();" onmouseover="return infraTooltipMostrar(\''+title+'\')" onclick="checkDadosAcompEspecial(true);" style="position: relative; margin-left: -3px;">'+
+                    '    <img class="infraCorBarraSistema" src="'+base64IconReaberturaPro+'" title="'+title+'" alt="'+title+'">'+
+                    '    <span class="botaoSEI_iconBox">'+
+                    '       <i class="fas fa-folder-download" style="font-size: 17pt; color: #fff;"></i>'+
+                    '    </span>'+
+                    (iconBoxSlim ?
+                    '    <span class="newIconTitle">'+title+'</span>'+
+                    '' : '')+
                     '</a>';
-    $('#divComandos').find('.iconReaberturaPro').remove();
-    $('#divComandos').append(htmlBtn);
+    $(divComandos).find('.iconReaberturaPro').remove();
+    $(divComandos).append(htmlBtn);
 }
 function initNewTabProcesso(TimeOut = 9000) {
     if (TimeOut <= 0) { return; }
@@ -925,7 +954,7 @@ function initNewTabProcesso(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             initNewTabProcesso(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initNewTabProcesso'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initNewTabProcesso'); 
         }, 500);
     }
 }
@@ -938,11 +967,11 @@ function getNewTabProcesso() {
         var _this = $(mutations[0].target);
         var _parent = _this.closest('table');
         if (_parent.find('tr.infraTrMarcada').length > 0) {
-            $('#divComandos').find('.iconPro_Observe').removeClass('botaoSEI_hide');
+            $(divComandos).find('.iconPro_Observe').removeClass('botaoSEI_hide');
             removeDuplicateValue('#hdnRecebidosItensSelecionados');
             removeDuplicateValue('#hdnGeradosItensSelecionados');
         } else {
-            $('#divComandos').find('.iconPro_Observe').addClass('botaoSEI_hide');
+            $(divComandos).find('.iconPro_Observe').addClass('botaoSEI_hide');
         }
     });
     setTimeout(function(){ 
@@ -1022,8 +1051,8 @@ function getNewTabProcesso() {
 
                     '</a>'+htmlBtnAtiv+htmlBtnPrazo+htmlBtnTypes+htmlBtnUpload+htmlBtnNaoLido;
                     
-        $('#divComandos').find('.iconPro_Observe').remove();
-        $('#divComandos').append(htmlBtn);
+        $(divComandos).find('.iconPro_Observe').remove();
+        $(divComandos).append(htmlBtn);
     }, 500);
 }
 function openListNewTab(this_) {
@@ -1118,13 +1147,13 @@ function initPanelFavorites(TimeOut = 9000) {
         if (checkConfigValue('gerenciarfavoritos') && typeof getStoreFavoritePro() !== 'undefined' && getStoreFavoritePro().hasOwnProperty('favorites')) {
             setTimeout(function(){ 
                 setPanelFavorites('insert');
-                if(verifyConfigValue('debugpage')) console.log('setPanelFavorites');
+                if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('setPanelFavorites');
             }, 500);
         }
     } else {
         setTimeout(function(){ 
             initPanelFavorites(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initPanelFavorites'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initPanelFavorites'); 
         }, 500);
     }
 }
@@ -1142,7 +1171,7 @@ function checkLoadConfigSheets(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             checkLoadConfigSheets(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload checkLoadConfigSheets'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload checkLoadConfigSheets'); 
         }, 500);
     }
 }
@@ -1182,10 +1211,11 @@ function insertDivPanelControleProc() {
     if ($('.controleProcPro').length == 0) {
         $('#divInfraBarraLocalizacao').css('width', '100%').addClass('titlePanelHome').append(htmlToggleTable).prepend(htmlIconTable);
         $(idControleProc).css({'width': '100%', 'display': statusView});
-        $('#panelHomePro').append(htmlDivPanel);
+        $('#panelHomePro').prepend(htmlDivPanel);
         $('#frmProcedimentoControlar').moveTo('#processosSEIPro');
         $('#divInfraBarraLocalizacao').moveTo('#processosSEIPro');
         if (isNewSEI && getOptionsPro(elementControleProc) == 'hide') $(idControleProc).addClass('displayNone');
+        if (!checkLoadedTableSorter() && (typeof storeGroupTablePro() === 'undefined' || storeGroupTablePro() == '')) removeAllTags(false, 3);
     }
 }
 function insertDivPanel() {
@@ -1200,12 +1230,13 @@ function initSortDivPanel(TimeOut = 9000) {
         if ($('#tblMarcadores').length == 0) {
             insertDivPanelControleProc();
             setSortDivPanel();
+            if (!checkLoadedTableSorter() && (typeof storeGroupTablePro() === 'undefined' || storeGroupTablePro() == '')) removeAllTags(true, 4);
         } 
     } else {
         setTimeout(function(){ 
             initSortDivPanel(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initSortDivPanel => '+TimeOut); 
-            if (TimeOut == 9000) fnJqueryPro();
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initSortDivPanel => '+TimeOut); 
+            if (TimeOut == 9000 && typeof fnJqueryPro !== 'undefined') fnJqueryPro();
         }, 500);
     }
 }
@@ -1306,6 +1337,18 @@ function copyTableResultProtocoloSEI() {
 function downloadTableResultProtocoloSEI() {
     downloadTableCSV($('.tableResultProtocoloSEI'), 'PesquisaProtocolo_SEIPro');
 }
+function initFilterTableProcessos(this_, TimeOut = 9000) {
+    if (TimeOut <= 0) { return; }
+    if (checkLoadedTableSorter()) { 
+        filterTableProcessos(this_);
+    } else {
+        if (TimeOut == 9000) removeAllTags(false, 5);
+        setTimeout(function(){ 
+            initFilterTableProcessos(this_, TimeOut - 100); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage')) console.log('Reload initFilterTableProcessos'); 
+        }, 1500);
+    }
+}
 function filterTableProcessos(this_) {
     var _this = $(this_);
     var _parent = _this.closest('thead');
@@ -1333,9 +1376,9 @@ function initTableSorterHome(TimeOut = 1000) {
         }
     } else {
         setTimeout(function(){ 
-            if (typeof $().tablesorter === 'undefined' && TimeOut == 1000) { $.getScript((URL_SPRO+"js/lib/jquery.tablesorter.combined.min.js")) }
+            if (typeof $().tablesorter === 'undefined' && TimeOut == 1000) { $.getScript(parent.URL_SPRO+"js/lib/jquery.tablesorter.combined.min.js") }
             initTableSorterHome(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initTableSorterHome'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initTableSorterHome'); 
         }, 500);
     }
 }
@@ -1369,6 +1412,18 @@ function setTableSorterHome() {
                                     _this.after(aftereTh);
                             }
                         });
+                       $('#ancLiberarMeusProcessos').click(function(){
+                           verMeusProcessos('T')
+                       });
+                       $('#ancLiberarMarcador').click(function(){
+                           filtrarMarcador(null);
+                       });
+                       $('#ancLiberarTipoProcedimento').click(function(){
+                           filtrarTipoProcedimento(null);
+                       });
+                       $('#ancLiberarTipoPrioridade').click(function(){
+                           filtrarTipoPrioridade(null);
+                       });
                    }
                     
                     var elemID = $(this).attr('id');
@@ -1451,7 +1506,7 @@ function setTableSorterHome() {
                     var filter = _this.find('.tablesorter-filter-row').get(0);
                     if (typeof filter !== 'undefined') {
                         setTimeout(function(){ 
-                            var htmlFilter =    '<a class="newLink filterTableProcessos '+(_this.find('tr.tablesorter-filter-row').hasClass('hideme') ? '' : 'newLink_active')+'" onclick="filterTableProcessos(this)" onmouseover="return infraTooltipMostrar(\'Pesquisar na tabela\');" onmouseout="return infraTooltipOcultar();" style="left: 0; top: -20px; position: absolute;">'+
+                            var htmlFilter =    '<a class="newLink filterTableProcessos '+(_this.find('tr.tablesorter-filter-row').hasClass('hideme') ? '' : 'newLink_active')+'" onclick="initFilterTableProcessos(this)" onmouseover="return infraTooltipMostrar(\'Pesquisar na tabela\');" onmouseout="return infraTooltipOcultar();" style="left: 0; top: -20px; position: absolute;">'+
                                                 '   <i class="fas fa-search cinzaColor" style="padding-right: 3px; cursor: pointer; font-size: 12pt;"></i>'+
                                                 '</a>';
                             _this.find('thead .filterTableProcessos').remove();
@@ -1471,7 +1526,7 @@ function setTableSorterHome() {
             setTimeout(function(){ 
                 if ($('.filterTableProcessos').length == 0) {
                     setTimeout(function(){ 
-                        if(verifyConfigValue('debugpage')) console.log('Reload tableHomeDestroy *****');
+                        if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload tableHomeDestroy *****');
                         tableHomeDestroy(true);
                     }, 1000);
                 }
@@ -1495,7 +1550,7 @@ function tableHomeDestroy(reload = false, tableHomeTimeout = 3000) {
         window.tableHomePro = [];
         if (reload && tableHomeTimeout > 0) {
             initTableSorterHome();
-            if(verifyConfigValue('debugpage')) console.log('Reload initTableSorterHome => '+tableHomeTimeout);
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initTableSorterHome => '+tableHomeTimeout);
             setTimeout(function(){ 
                 forceTableHomeDestroy(tableHomeTimeout-500);
             }, 1000);
@@ -1514,7 +1569,7 @@ function forceTableHomeDestroy(Timeout = 3000) {
     });
     if (force && Timeout > 0 && $('#tblProcessosGerados').is(':visible')) {
         tableHomeDestroy(true, Timeout-1000);
-        if(verifyConfigValue('debugpage')) console.log('Reload forceTableHomeDestroy => '+TimeOut);
+        if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload forceTableHomeDestroy => '+TimeOut);
     }
 }
 function forceOnLoadBody() {
@@ -1528,7 +1583,7 @@ function observeAreaTela(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             observeAreaTela(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload observeAreaTela'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload observeAreaTela'); 
         }, 500);
     }
 }
@@ -1573,7 +1628,7 @@ function initReplaceSticknoteHome(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             initReplaceSticknoteHome(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initReplaceSticknoteHome'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initReplaceSticknoteHome'); 
         }, 500);
     }
 }
@@ -1586,7 +1641,7 @@ function initFullnameAtribuicao(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             initFullnameAtribuicao(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initFullnameAtribuicao');  
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initFullnameAtribuicao');  
         }, 500);
     }
 }
@@ -1599,20 +1654,20 @@ function initViewEspecifacaoProcesso(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             initViewEspecifacaoProcesso(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initViewEspecifacaoProcesso'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initViewEspecifacaoProcesso'); 
         }, 500);
     }
 }
 function initFaviconNrProcesso(TimeOut = 9000) {
     if (TimeOut <= 0) { return; }
-    if (typeof Favico !== 'undefined') { 
+    if (typeof Favico !== 'undefined' && typeof checkConfigValue !== 'undefined') { 
         if (checkConfigValue('contadoricone')) {
             getFaviconNrProcesso();
         }
     } else {
         setTimeout(function(){ 
             initFaviconNrProcesso(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initFaviconNrProcesso'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initFaviconNrProcesso'); 
         }, 500);
     }
 }
@@ -1623,19 +1678,19 @@ function initReloadModalLink(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             initReloadModalLink(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initReloadModalLink'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initReloadModalLink'); 
         }, 500);
     }
 }
 function initReplaceNewIcons(TimeOut = 9000) {
-    if (typeof isNewSEI !== 'undefined' && isNewSEI) $('#divComandos a').addClass('botaoSEI');
+    if (typeof isNewSEI !== 'undefined' && isNewSEI) $(divComandos+' a').addClass('botaoSEI');
     if (localStorage.getItem('seiSlim') === null || (TimeOut <= 0 || parent.window.name != '')) { return; }
     if (typeof replaceNewIcons === 'function') {
         replaceNewIcons(isNewSEI ? $('.barraBotoesSEI a.botaoSEI') : $('.infraBarraComandos a.botaoSEI'));
     } else {
         setTimeout(function(){ 
             initReplaceNewIcons(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initReplaceNewIcons => '+TimeOut); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initReplaceNewIcons => '+TimeOut); 
         }, 500);
     }
 }
@@ -1646,7 +1701,7 @@ function initObserveUrlChange(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             initObserveUrlChange(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initObserveUrlChange => '+TimeOut); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initObserveUrlChange => '+TimeOut); 
         }, 500);
     }
 }
@@ -1654,7 +1709,7 @@ function setObserveUrlChange() {
     if (parent.verifyConfigValue('urlamigavel')) {
         $(window).bind('hashchange', function() {
             var ifrArvore = $('#ifrArvore').contents();
-            var sourceLink = ifrArvore.find('.infraArvoreNoSelecionado').eq(0).closest('a[target="ifrVisualizacao"]');
+            var sourceLink = ifrArvore.find('.infraArvoreNoSelecionado').eq(0).closest('a[target="'+ifrVisualizacao_+'"]');
             var nrSEI = (typeof sourceLink !== 'undefined' && sourceLink !== null) ? getNrSei(sourceLink.text().trim()) : false;
                 nrSEI = (nrSEI == '') ? false : nrSEI;
             var nrSEI_URL = (window.location.hash.indexOf('@') !== -1) ? window.location.hash.replace('#','').split('@')[1] : false;
@@ -1670,7 +1725,7 @@ function setObserveUrlChange() {
                 delayCrash = true;
                 setTimeout(function(){ delayCrash = false }, 300);
                 sourceLink.closest('.infraArvore').find('.infraArvoreNoSelecionado').removeClass('infraArvoreNoSelecionado');
-                var targetLink = ifrArvore.find('a[target="ifrVisualizacao"]:contains("'+nrSEI_URL+'")');
+                var targetLink = ifrArvore.find('a[target="'+ifrVisualizacao_+'"]:contains("'+nrSEI_URL+'")');
                 var pastaArvore = targetLink.closest('.infraArvore');
                     targetLink.unbind('click').trigger('click');
                     if (idSource && idTarget && idSource > idTarget) {
@@ -1721,10 +1776,10 @@ function getPanelProc(this_) {
                     }).trigger('chosen:updated');
                 }
                 setTimeout(function(){ 
-                    addKanbanProc();
+                    initAddKanbanProc();
                 }, 500);
         } else {
-            addKanbanProc();
+            initAddKanbanProc();
         }
     } else {
         $('#tblProcessosRecebidos, #tblProcessosGerados, #tblProcessosDetalhado').show();
@@ -1733,7 +1788,20 @@ function getPanelProc(this_) {
     }
     setOptionsPro('panelProcessosView', mode);
 }
+function initAddKanbanProc(type = storeGroupTablePro(), loop = 3, TimeOut = 9000) {
+    if (TimeOut <= 0) { return; }
+    if (typeof jKanban !== 'undefined') { 
+        addKanbanProc(type, loop);
+    } else {
+        if (typeof jKanban === 'undefined') $.getScript(URL_SPRO+"js/lib/jkanban.min.js");
+        setTimeout(function(){ 
+            initAddKanbanProc(type, loop, TimeOut - 100); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initAddKanbanProc'); 
+        }, 500);
+    }
+}
 function addKanbanProc(type = storeGroupTablePro(), loop = 3) {
+    if (typeof jKanban === 'undefined') $.getScript(URL_SPRO+"js/lib/jkanban.min.js");
     if (!type || type == 'all' || type == '') {
         setOptionsPro('panelProcessosView', 'Tabela');
         $('#processosProActions').find('.btn[data-value="Tabela"]').trigger('click');
@@ -1753,7 +1821,7 @@ function addKanbanProc(type = storeGroupTablePro(), loop = 3) {
                 itensKanban.unshift('');
             } else if (loop > 0) {
                 getAjaxListaAtribuicao();
-                setTimeout(function(){ addKanbanProc(type, loop-1); }, 2000);
+                setTimeout(function(){ initAddKanbanProc(type, loop-1); }, 2000);
                 $('#processosProActions [data-value="Quadro"] i').attr('class','fas fa-spinner fa-spin');
             }
         } else if (type == 'tags') {
@@ -1765,7 +1833,7 @@ function addKanbanProc(type = storeGroupTablePro(), loop = 3) {
                 itensKanban.unshift('');
             } else if (loop > 0) {
                 getAjaxListaMarcador();
-                setTimeout(function(){ addKanbanProc(type, loop-1); }, 2000);
+                setTimeout(function(){ initAddKanbanProc(type, loop-1); }, 2000);
                 $('#processosProActions [data-value="Quadro"] i').attr('class','fas fa-spinner fa-spin');
             }
         } else {
@@ -2094,8 +2162,8 @@ function addControlePrazo(this_ = false) {
     var textControle = 'Adicionar';
     var form = $('#frmProcedimentoControlar');
     var href = isNewSEI
-            ? $('#divComandos a[onclick*="andamento_marcador_cadastrar"]').attr('onclick') 
-            : $('#divComandos a[onclick*="andamento_marcador_gerenciar"]').attr('onclick');
+            ? $(divComandos+' a[onclick*="andamento_marcador_cadastrar"]').attr('onclick') 
+            : $(divComandos+' a[onclick*="andamento_marcador_gerenciar"]').attr('onclick');
         href = (typeof href !== 'undefined') ? href.match(RegExp(/(?<=(["']))(?:(?=(\\?))\2.)*?(?=\1)/, 'g')) : false;
         href = (href && href !== null && href.length > 0 && href[0] != '') ? href[0] : false;
     if (this_) {
@@ -2353,7 +2421,7 @@ function setPrazoMarcador(mode, this_, form, href, param = false, callback = fal
                                 });
                                 if (this_) tblProcessos.find('thead th a[onclick*="setSelectAllTr"]').data('index',1).trigger('click');
                                 setTimeout(function(){ 
-                                    if(verifyConfigValue('debugpage')) console.log('Reload tableHomeDestroy');
+                                    if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload tableHomeDestroy');
                                     tableHomeDestroy(true);
                                 }, 500);
                             }
@@ -2406,6 +2474,276 @@ function configDatesSwitchChangeHome(this_) {
         _parent.find('.configDates_duesetdate .input span').hide();
         _this.closest('tr').find('.iconSwitch').removeClass('azulColor');
     }
+}
+function getMapaControleProcesso() {
+    return $('#tblProcessosRecebidos').find('tbody tr').not('.tableHeader').not('.infraCaption').map(function(){
+        let _this = $(this);
+        let _td = _this.find('td');
+        let id_procedimento = _this.attr('id');
+            id_procedimento = typeof id_procedimento !== 'undefined' ? parseInt(id_procedimento.replace('P','')) : false;
+        let protocolo = _td.eq(2).text();
+        let link_atribuicao = _td.eq(3).find('a[href*="controlador.php?acao=procedimento_atribuicao_listar"]');
+        let nome_atribuicao = link_atribuicao.attr('title');
+            nome_atribuicao = typeof nome_atribuicao !== 'undefined' ? nome_atribuicao.replace('Atribuído para ','') : false;
+        let usuario_atribuicao = link_atribuicao.text().trim();
+        let descricao = _td.eq(4).text();
+        let tipo_processo = _td.eq(5).text();
+        
+        let _return = {
+            id_procedimento: id_procedimento,
+            protocolo: protocolo,
+            atribuicao : nome_atribuicao ? {nome: nome_atribuicao, usuario: usuario_atribuicao} : false,
+            descricao : descricao,
+            tipo_processo: tipo_processo
+           }
+        return _return;
+    }).get();
+}
+function updateCountIconDist() {
+    var counter = $('#distribAutTablePro').find('input[type="checkbox"]:checked').length;
+    if (counter > 0) {
+        $('.iconConfig_distrib').find('.fa-layers-counter').text(counter).show();
+    } else {
+        $('.iconConfig_distrib').find('.fa-layers-counter').hide();
+    }
+}
+
+/* txtPadrao_setConfig({
+    nome: 'DISTRIBUICAO_AUTOMATICA_SEIPRO',
+    descricao: `Configura\u00E7\u00F5es interna para distribui\u00E7\u00E3o autom\u00E1tica de processos (criado pelo SEI Pro)`,
+    conteudo: `<p>[{"tipo_processo": "Material: Baixa de Material de Consumo", "atribuicao": "Pedro.Soares"},{"tipo_processo": "Gest\u00E3o e Controle: Execu\u00E7\u00E3o de Auditoria Interna", "atribuicao": "Pedro.Soares"}]</p>`
+}); */
+
+// var conteudoDist = await txtPadrao_getConfig('DISTRIBUICAO_AUTOMATICA_SEIPRO');
+// console.log(conteudoDist);
+
+var txtPadrao_newLink = async () => {
+    var htmlTxtPadrao = await $.get(urlTxtPadrao);
+    var urlNew = $(htmlTxtPadrao).find('#btnNovo').attr('onclick');
+        urlNew = typeof urlNew !== 'undefined' && urlNew.indexOf("'") !== -1 ? urlNew.split("'")[1] : false;
+    return urlNew;
+}
+var txtPadrao_getConfig = async (idTxt) => {
+    var htmlTxtPadrao = await $.get(urlTxtPadrao);
+    var urlView = $(htmlTxtPadrao).find('.infraAreaTabela tr').map(function(){ if ($(this).find('td').eq(2).text() == '[_'+idTxt+']') return $(this).find('a[href*="acao=texto_padrao_interno_consultar"]').attr('href') }).get();
+        urlView = typeof urlView !== 'undefined' && urlView !== null && urlView.length ? urlView[0] : false;
+
+    if (urlView) {
+        var htmlTxtPadrao = await $.get(urlView);
+        var conteudoTxtPadrao = $(htmlTxtPadrao).find('#txaConteudo').val();
+            conteudoTxtPadrao = typeof conteudoTxtPadrao !== 'undefined' && conteudoTxtPadrao !== null && conteudoTxtPadrao.trim() != '' ? $(conteudoTxtPadrao).text() : false;
+            conteudoTxtPadrao = conteudoTxtPadrao && isJson(conteudoTxtPadrao) ? JSON.parse(conteudoTxtPadrao) : false;
+            conteudoTxtPadrao = conteudoTxtPadrao && $.isArray(conteudoTxtPadrao) ? conteudoTxtPadrao : false;
+        return conteudoTxtPadrao;
+    } else {
+        return false;
+    };
+}
+var txtPadrao_setConfig = async (data) => {
+    var htmlTxtPadrao = await $.get(urlTxtPadrao);
+    var urlEdit = $(htmlTxtPadrao).find('.infraAreaTabela tr').map(function(){ if ($(this).find('td').eq(2).text() == '[_'+data.nome+']') return $(this).find('a[href*="acao=texto_padrao_interno_alterar"]').attr('href') }).get();
+        urlEdit = typeof urlEdit !== 'undefined' && urlEdit !== null && urlEdit.length ? urlEdit[0] : false;
+    var urlPage = urlEdit ? urlEdit : await txtPadrao_newLink();
+    var htmlLink = await $.get(urlPage);
+    var form = $(htmlLink).find('#frmTextoPadraoInternoCadastro');
+    var urlForm = form.attr('action');
+    var createConfig = await txtPadrao_createConfig(form, urlForm, data);
+    return createConfig;
+}
+var txtPadrao_createConfig = async (form, urlForm, data) => {
+    let params = {};
+        form.find("input[type=hidden]").each(function () {
+            if ($(this).attr('name') && $(this).attr('id').includes('hdn')) {
+                params[$(this).attr('name')] = $(this).val();
+            }
+        });
+        form.find('input[type=text]').each(function () {
+            if ($(this).attr('id') && $(this).attr('id').includes('txt')) {
+                params[$(this).attr('id')] = $(this).val();
+            }
+        });
+        params.txtNome = '[_'+data.nome+']';
+        params.txtDescricao = data.descricao;
+        params.txaConteudo = '<p>'+JSON.stringify(data.conteudo)+'</p>';
+        params.sbmCadastrarTextoPadraoInterno = 'Salvar';
+        params.sbmAlterarTextoPadraoInterno = 'Salvar';
+    
+    var postData = '';
+    for (var k in params) {
+        if (postData !== '') postData = postData + '&';
+        var valor = (k=='txtDescricao' || k=='txaConteudo') ? escapeComponent(params[k]) : params[k];
+            postData = postData + k + '=' + valor;
+    }
+    
+    var htmlTxtPadraoCreated = await $.ajax({
+        method: 'POST',
+        url: urlForm,
+        data: postData,
+        contentType: 'application/x-www-form-urlencoded; charset=ISO-8859-1'
+    });
+    return htmlTxtPadraoCreated;
+}
+var getTableDistribAutomatica = async () => {
+    var dadosDistribuicao = await txtPadrao_getConfig('DISTRIBUICAO_AUTOMATICA_SEIPRO');
+        window.dadosDistribuicaoAut = dadosDistribuicao;
+    var htmlBox =       '<div id="boxDistribAut" class="tabelaPanelScroll" style="margin-top: 10px;height: 400px;">'+
+                        '               <a class="newLink iconConfig_distrib" onclick="getAtribuicaoAutomatica(this)" onmouseover="return infraTooltipMostrar(\'Atribuir processos\');" onmouseout="return infraTooltipOcultar();" style="margin: 0px; font-size: 14pt;">'+
+                        '                   <span class="fa-layers fa-fw">'+
+                        '                       <i class="fas fa-user-friends"></i>'+
+                        '                       <span class="fa-layers-counter" style="display:none"></span>'+
+                        '                   </span>'+
+                        '                   <span style="font-size: 80%;">Atribuir Processos</span>'+
+                        '               </a>'+
+                        '               <a class="newLink iconConfig_distrib" onclick="setAtribuicaoAutomatica(this)" onmouseover="return infraTooltipMostrar(\'Configura\u00E7\u00F5es de atribui\u00E7\u00E3o\');" onmouseout="return infraTooltipOcultar();" style="margin: 0px;font-size: 14pt;right: 280px;position: absolute;">'+
+                        '                   <i class="fas fa-cog"></i>'+
+                        '               </a>'+
+                        '   <table id="distribAutTablePro" style="margin-top: 5px; font-size: 9pt !important;width: 100%;" class="seiProForm tableAtividades tableDialog tableInfo tableZebra">'+
+                        '        <thead>'+
+                        '            <tr class="tableHeader">'+
+                        '                <th class="tituloControle " width="5%" align="center">'+
+                        '                   <label class="lblInfraCheck" for="lnkInfraCheck" accesskey=";"></label>'+
+                        '                   <a id="lnkInfraCheck" onclick="getSelectAllTr(this, \'SemGrupo\');" onmouseover="updateTipSelectAll(this)" onmouseenter="return infraTooltipMostrar(\'Selecionar Todos\')" onmouseout="return infraTooltipOcultar();">'+
+                        '                       <img src="/infra_css/imagens/check.gif" id="imgRecebidosCheck" class="infraImg">'+
+                        '                   </a>'+
+                        '                </th>'+
+                        '                <th class="tituloControle" style="text-align: center; width: 180px;">Processo</th>'+
+                        '                <th class="tituloControle" style="text-align: center;font-weight: bold;">Descri\u00E7\u00E3o</th>'+
+                        '                <th class="tituloControle" style="text-align: center;font-weight: bold;">Tipo</th>'+
+                        '                <th class="tituloControle" style="text-align: center;font-weight: bold;">Atualmente atribu\u00EDdo</th>'+
+                        '                <th class="tituloControle" style="text-align: center;font-weight: bold;">Nova atribui\u00E7\u00E3o</th>'+
+                        '            </tr>'+
+                        '        </thead>'+
+                        '        <tbody>';
+        $.each(getMapaControleProcesso(),function(i, v){
+            let distribuicao = dadosDistribuicaoAut ? dadosDistribuicaoAut.filter(function(p){ return p.tipo_processo == v.tipo_processo }) : [];
+            let nova_atribuicao = distribuicao.length ? distribuicao[0] : false;
+            let atribuicao = v.atribuicao ? v.atribuicao.usuario : '';
+            htmlBox +=  '   <tr style="text-align: left;" data-tagname="SemGrupo">'+
+                        '       <td class="tituloControle" style="text-align:center;">'+
+                        '           <input type="checkbox" onclick="updateCountIconDist()" id="chkDistrib_'+v.id_procedimento+'" '+(nova_atribuicao && nova_atribuicao.atribuicao != atribuicao ? 'checked' : '')+' '+(!nova_atribuicao ? 'disabled' : '')+' name="chkDistrib_'+v.id_procedimento+'" value="'+v.id_procedimento+'">'+
+                        '       </td>'+
+                        '       <td>'+
+                        '           <a style="margin-left: 5px;" href="'+url_host+'?acao=procedimento_trabalhar&id_procedimento='+v.id_procedimento+'" target="_blank">'+
+                        '               <span class="bLink">'+
+                        '                   '+v.protocolo+
+                        '                   <i class="fas fa-external-link-alt bLink" style="font-size: 90%; text-decoration: underline;"></i>'+
+                        '               </span>'+
+                        '           </a>'+
+                        '       </td>'+
+                        '       <td>'+v.tipo_processo+'</div>'+
+                        '       <td>'+v.descricao+'</div>'+
+                        '       <td>'+atribuicao+'</td>'+
+                        '       <td>'+(nova_atribuicao ? nova_atribuicao.atribuicao : '')+'</td>'+
+                        '   </tr>';
+        });
+        htmlBox +=      '   </table>'+
+                        '</div>';
+    resetDialogBoxPro('dialogBoxPro');
+    dialogBoxPro = $('#dialogBoxPro')
+        .html('<div class="dialogBoxDiv">'+htmlBox+'</div>')
+        .dialog({
+            title: 'Distribui\u00E7\u00E3o Autom\u00E1tica de Processos',
+            width: $('body').width()-300,
+            height: 450,
+            open: function() { 
+                setTimeout(function(){ 
+                    var distribTable = $('#distribAutTablePro');
+                        distribTable.tablesorter({
+                            sortLocaleCompare : true,
+                            widgets: ["saveSort", "filter"],
+                            widgetOptions: {
+                                saveSort: true,
+                                filter_hideFilters: true,
+                                filter_columnFilters: true,
+                                filter_saveFilters: true,
+                                filter_hideEmpty: true,
+                                filter_excludeFilter: {}
+                            },
+                            sortReset: true,
+                            headers: {
+                                0: { sorter: false, filter: false },
+                                1: { filter: true },
+                                2: { filter: true },
+                                3: { filter: true },
+                                4: { filter: true },
+                                5: { filter: true }
+                            }
+                        }).on("filterEnd", function (event, data) {
+                            checkboxRangerSelectShift();
+                            var caption = $(this).find("caption").eq(0);
+                            var tx = caption.text();
+                                caption.text(tx.replace(/\d+/g, data.filteredRows));
+                                $(this).find("tbody > tr:visible > td > input").prop('disabled', false);
+                                $(this).find("tbody > tr:hidden > td > input").prop('disabled', true);
+                        });
+                        initPanelResize('#boxDistribAut', 'distribPro');
+
+                    var filterDistrib = distribTable.find('.tablesorter-filter-row').get(0);
+                    if (typeof filterDistrib !== 'undefined') {
+                        var observerFilterDistrib = new MutationObserver(function(mutations) {
+                            var _this = $(mutations[0].target);
+                            var _parent = _this.closest('table');
+                            var iconFilter = _parent.find('.filterTableDistrib button');
+                            var checkIconFilter = iconFilter.hasClass('active');
+                            var hideme = _this.hasClass('hideme');
+                            if (hideme && checkIconFilter) {
+                                iconFilter.removeClass('active');
+                            }
+                            updateCountIconDist();
+                        });
+                        setTimeout(function(){ 
+                            var htmlfilterDistrib =    '<div class="btn-group filterTableDistrib" role="group" style="right: 45px;top: 18px;z-index: 999;position: absolute;">'+
+                                                        '   <button type="button" onclick="downloadTablePro(this)" data-icon="fas fa-download" style="padding: 0.1rem .5rem; font-size: 9pt;" data-value="Baixar" class="btn btn-sm btn-light">'+
+                                                        '       <i class="fas fa-download" style="padding-right: 3px; cursor: pointer; font-size: 10pt; color: #888;"></i>'+
+                                                        '       <span class="text">Baixar</span>'+
+                                                        '   </button>'+
+                                                        '   <button type="button" onclick="copyTablePro(this)" data-icon="fas fa-copy" style="padding: 0.1rem .5rem; font-size: 9pt;" data-value="Copiar" class="btn btn-sm btn-light">'+
+                                                        '       <i class="fas fa-copy" style="padding-right: 3px; cursor: pointer; font-size: 10pt; color: #888;"></i>'+
+                                                        '       <span class="text">Copiar</span>'+
+                                                        '   </button>'+
+                                                        '   <button type="button" onclick="filterTablePro(this)" style="padding: 0.1rem .5rem; font-size: 9pt;" data-value="Pesquisar" class="btn btn-sm btn-light '+(distribTable.find('tr.tablesorter-filter-row').hasClass('hideme') ? '' : 'active')+'">'+
+                                                        '       <i class="fas fa-search" style="padding-right: 3px; cursor: pointer; font-size: 10pt;"></i>'+
+                                                        '       Pesquisar'+
+                                                        '   </button>'+
+                                                        '</div>';
+                                distribTable.find('thead .filterTableDistrib').remove();
+                                distribTable.find('thead').prepend(htmlfilterDistrib);
+                                observerFilterDistrib.observe(filterDistrib, {
+                                    attributes: true
+                                });
+                                distribTable.find('.tablesorter-filter-row input.tablesorter-filter').eq(2).attr('type','date');
+                                updateCountIconDist(filterDistrib);
+                        }, 500);
+                    }
+                }, 500);
+                if (typeof $().visible == 'undefined') $.getScript(URL_SPRO+"js/lib/jquery-visible.min.js");
+            },
+            close: function() { 
+                $('#boxDistribAut').remove();
+                resetDialogBoxPro('dialogBoxPro');
+            }
+    });
+
+}
+function setAtribuicaoAutomatica() {
+
+    var htmlBox =       '<div id="boxDistribAut" class="tabelaPanelScroll" style="margin-top: 10px;height: 400px;">'+
+                        '</div>';
+                        
+    resetDialogBoxPro('dialogBoxPro');
+    dialogBoxPro = $('#dialogBoxPro')
+        .html('<div class="dialogBoxDiv">'+htmlBox+'</div>')
+        .dialog({
+            title: 'Distribui\u00E7\u00E3o Autom\u00E1tica de Processos',
+            width: $('body').width()-300,
+            height: 450,
+            open: function() { 
+            },
+            close: function() { 
+                $('#boxDistribAut').remove();
+                resetDialogBoxPro('dialogBoxPro');
+            }
+    });
 }
 function setControlePrazo(force = false) {
     var tblProcessos = $('#tblProcessosRecebidos, #tblProcessosGerados, #tblProcessosDetalhado');
@@ -2480,7 +2818,7 @@ function initControlePrazo(force = false, TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             initControlePrazo(force, TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initControlePrazo'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initControlePrazo'); 
         }, 500);
     }
 }
@@ -2514,7 +2852,7 @@ function initAllMarcadoresHome(TimeOut = 9000) {
     } else {
         setTimeout(function(){ 
             initAllMarcadoresHome(TimeOut - 100); 
-            if(verifyConfigValue('debugpage')) console.log('Reload initAllMarcadoresHome'); 
+            if(typeof verifyConfigValue !== 'undefined' && verifyConfigValue('debugpage'))console.log('Reload initAllMarcadoresHome'); 
         }, 500);
     }
 }
@@ -2556,12 +2894,12 @@ function loadIframeProcessUpload(idProcedimento, load_upload = true) {
     if ( $('#frmCheckerProcessoPro').length == 0 ) { getCheckerProcessoPro(); }
     
     var url = 'controlador.php?acao=procedimento_trabalhar&id_procedimento='+idProcedimento;
-    $('#divComandos .iconUpload_new').addClass('iconLoading');
+    $(divComandos+' .iconUpload_new').addClass('iconLoading');
     
     $('#frmCheckerProcessoPro').attr('src', url).unbind().on('load', function(){
         var ifrArvore = $('#frmCheckerProcessoPro').contents().find('#ifrArvore');
             contentW = ifrArvore[0].contentWindow;
-            $('#divComandos .iconUpload_new').removeClass('iconLoading');
+            $(divComandos+' .iconUpload_new').removeClass('iconLoading');
             if (load_upload) {
                 getUploadFilesInProcess();
             } else {
@@ -2620,7 +2958,7 @@ function getUploadFilesInProcess() {
                 '</div>';
 
     if (_containerUpload.find('.dz-infoupload').length == 0) {
-        _containerUpload.find('#divComandos').after(html).data('index', 0);
+        _containerUpload.find(divComandos).after(html).data('index', 0);
     }
 
     arvoreDropzone = new Dropzone(containerUpload, {
@@ -2646,7 +2984,7 @@ function getUploadFilesInProcess() {
                             '           <img class="dz-link-icon" src="/infra_css/'+(parent.isNewSEI ? 'svg/documento_pdf.svg' : 'imagens/pdf.gif')+'" align="absbottom" id="iconID">'+
                             '       </a>'+
                             '       <span class="dz-progress-mark"><i class="fas fa-cog fa-spin" style="color: #017FFF; font-size: 10pt;"></i></span>'+
-                            '       <a id="anchorID" target="ifrVisualizacao" class="dz-filename">'+
+                            '       <a id="anchorID" target="'+ifrVisualizacao_+'" class="dz-filename">'+
                             '           <span data-dz-name title="" id="spanID"></span>'+
                             '       </a>'+
                             '       <span class="dz-size" data-dz-size></span>'+
@@ -2735,17 +3073,22 @@ function sortUploadArvore() {
 function storeLinkUsuarioSistema() {
     if (typeof setOptionsPro !== 'undefined') setOptionsPro('usuarioSistema',$('#lnkUsuarioSistema').attr('title'));
 }
+function storeVersionSEI() {
+    if (typeof getSeiVersionPro !== 'undefined' && getSeiVersionPro()) 
+        getSeiVersionPro();
+    else if (typeof setSeiVersionPro !== 'undefined') setSeiVersionPro();
+}
 function initSeiPro() {
 	if ( $('#tblProcessosRecebidos, #tblProcessosGerados, #tblProcessosDetalhado').length > 0 ) {
-        if (typeof URL_SPRO !== 'undefined') $.getScript((URL_SPRO+"js/lib/jquery-table-edit.min.js"));
-        if (typeof URL_SPRO !== 'undefined') $.getScript((URL_SPRO+"js/lib/moment-duration-format.min.js"));
+        if (typeof URL_SPRO !== 'undefined' && typeof SimpleTableCellEdition === 'undefined') $.getScript((URL_SPRO+"js/lib/jquery-table-edit.min.js"));
+        if (typeof URL_SPRO !== 'undefined' && typeof moment.duration === 'undefined') $.getScript((URL_SPRO+"js/lib/moment-duration-format.min.js"));
         initTableSorterHome();
         insertGroupTable();
         replaceSelectAll();
         initPanelFavorites();
         checkLoadConfigSheets();
         insertDivPanel();
-        initNewTabProcesso();
+        setTimeout(() => { initNewTabProcesso() }, 2000);
         forceOnLoadBody();
         observeAreaTela();
         initReplaceSticknoteHome();
@@ -2759,9 +3102,11 @@ function initSeiPro() {
         initUrgentePro();
         initNaoVisualizadoPro();
         storeLinkUsuarioSistema();
+        storeVersionSEI();
         if (typeof checkDadosAcompEspecial !== 'undefined') checkDadosAcompEspecial();
+        if (sessionStorage.getItem('configHost_Pro') === null && typeof getConfigHost !== 'undefined') getConfigHost();
 	} else if ( $("#ifrArvore").length > 0 ) {
-        initDadosProcesso();
+        if (!checkHostLimit()) initDadosProcesso();
         initObserveUrlChange();
         checkLoadConfigSheets();
         //observeHistoryBrowserPro();

@@ -1,4 +1,4 @@
-
+const loadPrescricoesPro = true;
 function valuePrescricao(id_prescricao, arrayPrescricoes = arrayPrescricoesProcPro) {
     var value = (id_prescricao == 0) ? null : jmespath.search(arrayPrescricoes, "[?id_prescricao==`"+id_prescricao+"`] | [0]");
         value = value === null ? false : value;
@@ -72,7 +72,7 @@ function getCtrPrescricao(prescData = arrayPrescricoesProcPro) {
                         var subtract = moment().subtract(_duration, "milliseconds");
                             htmlDuration = getDatesPreview({date: subtract.format('YYYY-MM-DD HH:mm:ss')});
                             htmlDuration = (htmlDuration && htmlDuration.indexOf('atr\u00E1s') !== -1) ? htmlDuration.replace('atr\u00E1s','') : '';
-                            htmlDuration = _diffDays >= 1 ? htmlDuration : '<span class="dateboxDisplay tagTableText_date_vencido "><i class="fas fa-history" style="color: #777; padding-right: 3px; font-size: 12pt;"></i> '+(typeof _duration !== 'undefined' ? moment.duration(_duration, "minutes").format("H[h]:m[m]") : '')+' </span>';
+                            htmlDuration = _diffDays >= 1 ? htmlDuration : '<span class="dateboxDisplay tagTableText_date_vencido "><i class="fas fa-history" style="color: #777; padding-right: 3px; font-size: 12pt;"></i> '+(typeof _duration !== 'undefined' ? moment.utc(_duration.as('milliseconds')).format('H[h]:m[m]') : '')+' </span>';
                             htmlDias = _diffDays;
 
                             if (!p.suspensao) totalDecorrido = totalDecorrido+_diffDays;

@@ -7,24 +7,6 @@ var alertText = {
     4: 'Itens dever ser terminadas com ponto final (.), dois pontos (:) ou ponto e u00EDrgula (;), sem espa\u00E7o antes da pontua\u00E7\u00E3o. ',
     5: 'Itens dever ser iniciados com letra min\u00FAscula.  '
 }
-var romanToInt = function(s) {
-    const mapRoman=new Map();
-    mapRoman.set('I', 1);
-    mapRoman.set('V', 5);
-    mapRoman.set('X', 10);
-    mapRoman.set('L', 50);
-    mapRoman.set('C', 100);
-    mapRoman.set('D', 500);
-    mapRoman.set('M', 1000);
-    var result=0;
-    if(s){
-        var s1=s.split('');
-        s1.forEach(function(e,i){
-            result += mapRoman.get(e) < mapRoman.get(s1[i+1]) ? -mapRoman.get(e) : mapRoman.get(e);
-        });
-    }
-    return result;
-}
 /*
 function removeAcentos(str) {
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -344,7 +326,7 @@ function updateLegis(iframe) {
             text = text.replace(textSearch, resultAnex);
             $(this).html(text).attr('class',classParag);
             iAnex++;
-			iTit = 0; iCap = 0; iSec = 0; iArt = 0; iPar = 0; iInc = 0; iAlin = 0; letterAlin = '';
+			iTit = 0; iCap = 0; iSec = 0; iSub = 0; iArt = 0; iPar = 0; iInc = 0; iAlin = 0; letterAlin = '';
         }
         if ( textSearch.toLowerCase().indexOf('tit.') !== -1) {
             classParag = 'Texto_Centralizado';
@@ -356,7 +338,7 @@ function updateLegis(iframe) {
             text = text.replace(textSearch, resultTit);
             $(this).html(text).attr('class',classParag);
             iTit++;
-            iCap = 0; iSec = 0;
+            iCap = 0; iSec = 0; iSub = 0;
         }
         if ( textSearch.toLowerCase().indexOf('cap.') !== -1) {
             classParag = 'Texto_Centralizado';
@@ -369,7 +351,7 @@ function updateLegis(iframe) {
             text = text.replace(textSearch, resultCap);
             $(this).html(text).attr('class',classParag);
             iCap++;
-            iSec = 0;
+            iSec = 0; iSub = 0;
         }
         if ( textSearch.toLowerCase().indexOf('sec.') !== -1) {
             classParag = 'Texto_Centralizado';
